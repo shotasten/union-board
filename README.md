@@ -29,8 +29,8 @@ Google Apps Script (GAS) とHTML Serviceを使用した、TMU（Tokyo Music Unio
 
 ### 成果物
 
-- **GASプロジェクトURL**: https://script.google.com/d/1nmgCCPGTOq7HX7g9ZS_RvLp4YQK-24vQdrYj3BjeyA1yA4GpfJkFkfU7/edit
-- **WebアプリURL**: https://script.google.com/macros/s/AKfycbwlIcXzDKgbveWkK6gbHRuXmf9fAvNN4ckiAtXBwvy4Cv7xiszLAezjfQ-4Jsag5sry/exec
+- **GASプロジェクトURL**: `https://script.google.com/d/[SCRIPT_ID]/edit` (実際のIDは`.clasp.json`を参照)
+- **WebアプリURL**: デプロイ後に取得したURLを使用
 
 ## 🛠️ 技術スタック
 

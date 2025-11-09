@@ -689,35 +689,6 @@ function resetRateLimit(userKey: string, action: string): void {
 }
 
 /**
- * Google OAuth 2.0 Client IDを設定（手動実行用）
- * @param clientId Google OAuth 2.0 Client ID
- */
-function setGoogleClientId(clientId: string): void {
-  try {
-    if (!clientId || clientId.trim() === '') {
-      Logger.log('❌ エラー: Client IDが空です');
-      return;
-    }
-
-    setConfig('GOOGLE_CLIENT_ID', clientId.trim());
-    Logger.log(`✅ GOOGLE_CLIENT_IDを設定しました: ${clientId}`);
-    Logger.log('⚠️ 注意: AUTH_MODEを"google"に変更する必要があります');
-  } catch (error) {
-    Logger.log(`❌ エラー: Client ID設定失敗 - ${(error as Error).message}`);
-    Logger.log((error as Error).stack);
-  }
-}
-
-/**
- * Google OAuth 2.0 Client IDを設定（テスト用：引数なし）
- * この関数内でClient IDを直接指定して実行
- */
-function setupGoogleClientId(): void {
-  const clientId = '186303714302-4rnqdsi5b28kgltunt4h92ho2uchrhif.apps.googleusercontent.com';
-  setGoogleClientId(clientId);
-}
-
-/**
  * テスト関数: セキュリティ対策テスト
  */
 function testSecurity(): void {

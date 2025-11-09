@@ -1,19 +1,26 @@
 {
-  "name": "workspace",
+  "name": "gas-attendance-manager",
   "version": "1.0.0",
-  "description": "",
+  "description": "吹奏楽団向け出欠管理Webアプリ",
   "main": "index.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
+    "build": "tsc && cp src/client/index.html dist/index.html",
+    "push": "npm run build && clasp push",
+    "deploy": "npm run build && clasp push && clasp deploy",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/shotasten/gas-attendance-manager.git"
   },
-  "keywords": [],
+  "keywords": [
+    "gas",
+    "attendance",
+    "band"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {

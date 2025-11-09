@@ -1,155 +1,172 @@
-# 出欠管理Webアプリ
+# UnionBoard
 
-**Google Apps Script（GAS）+ HTML Service** を使用した、吹奏楽団向けの出欠管理システム
+TMU 練習予定・出欠管理アプリ（Google Apps Script製）
 
----
+## 📋 プロジェクト概要
 
-## 📋 概要
-
-このプロジェクトは、吹奏楽団のイベント（練習、演奏会など）の出欠管理を効率化するWebアプリケーションです。
+Google Apps Script (GAS) とHTML Serviceを使用した、TMU（Tokyo Music Union）の練習予定・出欠管理アプリです。
 
 ### 主要機能
 
-- ✅ イベント管理（管理者：作成・編集・削除）
-- ✅ 出欠登録（ユーザー：○/△/× + コメント）
+- ✅ イベント管理（作成・編集・削除）
+- ✅ 出欠登録（○/△/× + コメント）
 - ✅ 出欠集計表示（リアルタイム）
 - ✅ Googleカレンダー連携（双方向同期）
-- ✅ 個人カレンダー共有（希望者のみ自動同期）
-- ✅ 柔軟な認証方式（Google認証 / 匿名の両対応）
+- ✅ 匿名認証モード（管理者トークン認証）
+- ✅ セキュリティ対策（XSS対策、レート制限、入力サニタイゼーション）
 
----
+## 🚀 Phase 0: 環境セットアップ ✅ 完了
 
-## 📚 ドキュメント
+### 完了項目
 
-- **[仕様書](./docs/仕様書.md)**: 詳細な技術仕様・データモデル
-- **[作業計画書](./docs/作業計画書.md)**: 開発フェーズ・スケジュール
-- **[開発方針（必読）](./docs/作業計画書.md#開発方針必読厳守)**: テスト駆動開発・品質保証基準
+- ✅ Node.js インストール完了（v24.11.0）
+- ✅ clasp インストール完了（v3.1.1）
+- ✅ Google認証完了
+- ✅ GASプロジェクト作成完了
+- ✅ TypeScript設定完了
+- ✅ プロジェクト構造作成完了
+- ✅ 初回デプロイ・動作確認完了
 
----
+### 成果物
 
-## 🚀 開発状況
-
-| Phase | ステータス | 進捗 |
-|-------|-----------|------|
-| Phase 0: 環境セットアップ | 🟡 準備中 | 0% |
-| Phase 1: MVP実装 | ⚪ 未着手 | 0% |
-| Phase 2: カレンダー連携 | ⚪ 未着手 | 0% |
-| Phase 3: 認証・セキュリティ | ⚪ 未着手 | 0% |
-| Phase 4: テスト・デプロイ | ⚪ 未着手 | 0% |
-
----
+- **GASプロジェクトURL**: https://script.google.com/d/1nmgCCPGTOq7HX7g9ZS_RvLp4YQK-24vQdrYj3BjeyA1yA4GpfJkFkfU7/edit
+- **WebアプリURL**: https://script.google.com/macros/s/AKfycbwlIcXzDKgbveWkK6gbHRuXmf9fAvNN4ckiAtXBwvy4Cv7xiszLAezjfQ-4Jsag5sry/exec
 
 ## 🛠️ 技術スタック
 
-- **言語**: TypeScript (clasp使用)
+- **言語**: TypeScript
 - **フロントエンド**: Vanilla JavaScript + CSS
 - **バックエンド**: Google Apps Script
 - **ストレージ**: Google Spreadsheet
-- **認証**: Google Identity Services / 匿名
-- **カレンダー**: Google Calendar API
+- **デプロイ**: clasp
+- **タイムゾーン**: Asia/Tokyo
 
----
+## 📁 プロジェクト構造
 
-## 📦 セットアップ
+```
+/workspace
+├── src/
+│   ├── server/          # バックエンドロジック (TypeScript)
+│   │   ├── main.ts      # エントリーポイント
+│   │   ├── events.ts    # イベント管理
+│   │   ├── responses.ts # 出欠管理
+│   │   ├── calendar.ts  # カレンダー連携
+│   │   ├── auth.ts      # 認証処理
+│   │   └── utils.ts     # ユーティリティ
+│   ├── client/          # フロントエンド
+│   │   └── index.html   # メインHTML
+│   └── types/
+│       └── models.ts    # 型定義
+├── dist/                # コンパイル済みファイル
+├── docs/                # ドキュメント
+├── .clasp.json          # clasp設定
+├── tsconfig.json        # TypeScript設定
+├── appsscript.json      # GAS設定
+├── package.json         # npm設定
+└── README.md
+```
 
-### 前提条件
+## 🔧 セットアップ手順
 
-- Node.js v14以上
-- npm
-- Googleアカウント
+**他のアカウントで1から導入する場合は、[完全なセットアップ手順](docs/セットアップ手順.md)を参照してください。**
 
-### インストール手順
+### クイックスタート
 
 ```bash
 # リポジトリをクローン
-git clone <repository-url>
+git clone https://github.com/shotasten/gas-attendance-manager.git
 cd gas-attendance-manager
 
 # 依存関係をインストール
 npm install
 
-# claspでGoogleアカウント認証
-npx clasp login
+# Google Apps Script APIを有効化
+# https://script.google.com/home/usersettings
 
-# GASプロジェクトを作成
-npx clasp create --type standalone --title "出欠管理アプリ"
+# clasp認証
+clasp login
 
+# 新規プロジェクト作成
+clasp create --type standalone --title "UnionBoard" --rootDir ./dist
+
+# ビルドとプッシュ
+npm run build && clasp push
+```
+
+**詳細な手順**: [セットアップ手順（完全版）](docs/セットアップ手順.md) を参照してください。
+
+## 🚢 デプロイ手順
+
+```bash
 # TypeScriptをコンパイル
 npm run build
 
-# GASにデプロイ
-npx clasp push
+# GASにプッシュ
+clasp push
+
+# Webアプリとしてデプロイ（GASエディタで実施）
+# 1. https://script.google.com でプロジェクトを開く
+# 2. 「デプロイ」→「新しいデプロイ」
+# 3. 種類: ウェブアプリ
+# 4. アクセス権限: 全員
+# 5. デプロイ
 ```
 
-詳細は `docs/セットアップ手順.md`（Phase 4で作成予定）を参照してください。
+### 便利なコマンド
 
----
+```bash
+# ビルド
+npm run build
 
-## 🧪 テスト方針
+# ビルド + プッシュ
+npm run push
 
-このプロジェクトでは**テスト駆動開発**を徹底しています。
-
-### 必須事項
-
-- すべての機能実装後、テストコードを作成
-- 意図した動作が行えるかを確認
-- 正常系・異常系・境界値をテスト
-
-詳細は [開発方針](./docs/作業計画書.md#開発方針必読厳守) を参照してください。
-
----
-
-## 📖 プロジェクト構成
-
-```
-/workspace
-├── src/
-│   ├── server/          # バックエンド（TypeScript）
-│   ├── client/          # フロントエンド（HTML/CSS/JS）
-│   └── types/           # 型定義
-├── docs/
-│   ├── 仕様書.md
-│   └── 作業計画書.md
-├── .clasp.json          # clasp設定
-├── tsconfig.json        # TypeScript設定
-├── appsscript.json      # GAS設定
-└── README.md            # 本ドキュメント
+# ビルド + プッシュ + デプロイ
+npm run deploy
 ```
 
----
+## 📝 開発方針
 
-## 🤝 開発に参加する
+詳細は `docs/作業計画書.md` を参照してください。
 
-### 開発方針
+### 重要原則
 
 1. **テスト駆動開発の徹底**
-   - 実装 → テスト → 動作確認 → 次へ
+   - 実装後は必ずテストコードを作成
+   - すべてのテストが通るまで次に進まない
+
 2. **問題解決への真摯な姿勢**
-   - 動作しない場合、仕様を簡略化せず原因調査
-3. **品質保証**
-   - 各機能はテスト済み、エラーハンドリング済みで「完成」
+   - 動作確認失敗時は原因を徹底調査
+   - 仕様を簡略化せず、解決を目指す
 
-詳細は [開発方針](./docs/作業計画書.md#開発方針必読厳守) を必読。
+3. **品質保証の基準**
+   - 動作確認済み
+   - エラーハンドリング実装
+   - ログ出力完備
+
+## 📅 開発スケジュール
+
+- ✅ **Phase 0**: 環境セットアップ（完了）
+- ✅ **Phase 1**: MVP実装（イベント管理、出欠登録、集計表示）（完了）
+- ✅ **Phase 2**: カレンダー連携（完了）
+- ✅ **Phase 3**: 認証・セキュリティ（完了）
+- 🔄 **Phase 4**: テスト・デプロイ（進行中）
+
+## 📚 ドキュメント
+
+- [仕様書](docs/仕様書.md)
+- [作業計画書](docs/作業計画書.md)
+- [セットアップ手順](docs/セットアップ手順.md)
+- [運用マニュアル](docs/運用マニュアル.md)
+
+## 📄 ライセンス
+
+ISC
+
+## 👤 開発者
+
+開発中...
 
 ---
 
-## 📝 ライセンス
-
-（後で追加予定）
-
----
-
-## 👥 コントリビューター
-
-- AI Assistant - 設計・実装
-- プロジェクトオーナー - 要件定義・レビュー
-
----
-
-## 📞 お問い合わせ
-
-質問や不明点がある場合は、Issues または プロジェクトオーナーにお問い合わせください。
-
----
-
-**最終更新**: 2025-11-06
+**Phase 0 完了日**: 2025-11-08

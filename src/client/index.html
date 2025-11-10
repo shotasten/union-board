@@ -407,6 +407,7 @@
       border: none;
       border-bottom: 1px solid #f0f0f0;
       line-height: 1.4;
+      vertical-align: middle;
     }
 
     .attendance-grid tbody tr:nth-child(even) {
@@ -418,13 +419,16 @@
     }
 
     .attendance-grid th {
-      background: #f8f9fa;
-      font-weight: 600;
+      background: #F5F5F5;
+      color: #333;
+      font-weight: bold;
       font-size: 0.85rem;
       position: sticky;
       top: 0;
       z-index: 10;
-      border-bottom: 1px solid #e0e0e0;
+      border: none;
+      border-bottom: 1px solid #DDDDDD;
+      vertical-align: middle;
     }
 
     .attendance-grid th:first-child {
@@ -432,11 +436,14 @@
       left: 0;
       top: 0;
       z-index: 30;
-      background: #f8f9fa;
+      background: #F5F5F5;
+      color: #333;
+      font-weight: bold;
       min-width: 200px;
       width: 200px;
       max-width: 200px;
-      border-right: 1px solid #e0e0e0;
+      border-right: 1px solid #DDDDDD;
+      vertical-align: middle;
     }
 
     /* 2行目のヘッダー行（メンバー名）のz-indexを明示的に低く設定 */
@@ -445,11 +452,11 @@
     }
 
     .attendance-grid tbody tr:nth-child(even) td:first-child {
-      background-color: #FAFAFA;
+      background-color: #F5F5F5;
     }
 
     .attendance-grid tbody tr:nth-child(odd) td:first-child {
-      background-color: white;
+      background-color: #F5F5F5;
     }
 
     .attendance-grid td:first-child {
@@ -462,7 +469,9 @@
       max-width: 200px;
       word-wrap: break-word;
       overflow-wrap: break-word;
-      border-right: 1px solid #e0e0e0;
+      border-right: 1px solid #DDDDDD;
+      vertical-align: middle;
+      background-color: #F5F5F5;
     }
 
     .status-cell {

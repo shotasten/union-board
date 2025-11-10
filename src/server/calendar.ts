@@ -418,9 +418,9 @@ function testAppToCalendarSync(): void {
     Logger.log(' --- テスト2: buildDescription()のテスト ---');
     
     // テスト用に出欠回答を登録
-    submitResponse(testEventId, 'test-user-1', 'テストユーザー1', '○', '参加します');
-    submitResponse(testEventId, 'test-user-2', 'テストユーザー2', '△', '未定です');
-    submitResponse(testEventId, 'test-user-3', 'テストユーザー3', '×', '欠席します');
+    submitResponse(testEventId, 'test-user-1', '○', '参加します');
+    submitResponse(testEventId, 'test-user-2', '△', '未定です');
+    submitResponse(testEventId, 'test-user-3', '×', '欠席します');
     
     const description = buildDescription(testEventId);
     Logger.log(`説明文:\n${description}`);
@@ -438,7 +438,7 @@ function testAppToCalendarSync(): void {
     Logger.log(' --- テスト3: 出欠登録時の説明欄同期 ---');
     
     // 追加の出欠回答を登録
-    submitResponse(testEventId, 'test-user-4', 'テストユーザー4', '○', '参加します');
+    submitResponse(testEventId, 'test-user-4', '○', '参加します');
     
     // カレンダーイベントの説明欄を確認
     try {

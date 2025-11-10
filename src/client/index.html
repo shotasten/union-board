@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>UnionBoard</title>
   <!-- Updated: 2025-11-08 Phase 3.7: 認証UI実装（Google認証機能は削除済み） -->
   <style>
@@ -19,6 +19,8 @@
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       min-height: 100vh;
       padding: 20px;
+      -webkit-text-size-adjust: 100%;
+      -ms-text-size-adjust: 100%;
     }
 
     .container {
@@ -28,6 +30,7 @@
       border-radius: 12px;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
       overflow: hidden;
+      width: 100%;
     }
 
     header {
@@ -58,7 +61,8 @@
     .admin-login-btn,
     .admin-logout-btn,
     .sync-all-btn,
-    .create-event-btn {
+    .create-event-btn,
+    .cleanup-btn {
       background: white;
       color: #667eea;
       border: 2px solid white;
@@ -68,6 +72,17 @@
       cursor: pointer;
       transition: all 0.2s;
       font-weight: bold;
+    }
+
+    .cleanup-btn {
+      background: #f44336;
+      color: white;
+      border: 2px solid #f44336;
+    }
+
+    .cleanup-btn:hover {
+      background: #d32f2f;
+      border-color: #d32f2f;
     }
 
     .admin-login-btn:hover,
@@ -288,6 +303,18 @@
       border-collapse: collapse;
       min-width: 800px;
       table-layout: fixed;
+    }
+
+    @media (max-width: 768px) {
+      .attendance-grid {
+        min-width: 600px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .attendance-grid {
+        min-width: 500px;
+      }
     }
 
     .attendance-grid th,
@@ -591,6 +618,7 @@
       z-index: 10000; /* モーダル（z-index: 2000）より上に表示 */
       animation: slideIn 0.3s ease-out;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      background: #2196F3; /* デフォルト背景色（info用） */
     }
 
     .toast.success {
@@ -599,6 +627,10 @@
 
     .toast.error {
       background: #f44336;
+    }
+
+    .toast.info {
+      background: #2196F3;
     }
 
     @keyframes slideIn {
@@ -772,18 +804,18 @@
       top: 0;
       width: 100%;
       height: 100%;
-      background-color: rgba(0, 0, 0, 0.5);
+      background-color: rgba(0, 0, 0, 0.7);
       overflow: auto;
     }
 
     .modal-content {
-      background-color: white;
+      background-color: #ffffff;
       margin: 5% auto;
       padding: 30px;
       border-radius: 12px;
       width: 90%;
       max-width: 600px;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
       animation: slideDown 0.3s ease-out;
     }
 
@@ -1075,41 +1107,183 @@
 
     /* レスポンシブデザイン */
     @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        border-radius: 8px;
+        max-width: 100%;
+        width: 100%;
+      }
+
+      header {
+        padding: 20px 15px;
+      }
+
       header h1 {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
       }
 
       header p {
-        font-size: 1rem;
+        font-size: 0.9rem;
+      }
+
+      .header-actions {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .admin-login-btn,
+      .admin-logout-btn,
+      .sync-all-btn,
+      .create-event-btn,
+      .cleanup-btn {
+        width: 100%;
+        font-size: 0.9rem;
+        padding: 12px 16px;
       }
 
       main {
-        padding: 20px;
+        padding: 15px;
+      }
+
+      .view-toggle {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .view-btn {
+        width: 100%;
+        text-align: center;
       }
 
       .events-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
+      }
+
+      .event-card {
+        padding: 15px;
+      }
+
+      .event-card h3 {
+        font-size: 1.1rem;
+      }
+
+      .event-meta {
+        font-size: 0.85rem;
       }
 
       .response-buttons {
         flex-direction: column;
+        gap: 8px;
       }
 
       .response-btn {
         width: 100%;
+        padding: 12px;
+        font-size: 1rem;
       }
 
       .tally-stats {
         flex-direction: column;
+        gap: 10px;
+      }
+
+      .tally-stat {
+        width: 100%;
       }
 
       .modal-content {
-        margin: 10% auto;
+        margin: 5% auto;
         padding: 20px;
+        width: 95% !important;
+        max-width: 95% !important;
+      }
+
+      .modal-header h2 {
+        font-size: 1.2rem;
       }
 
       .admin-actions {
         flex-direction: column;
+        gap: 8px;
+      }
+
+      .admin-btn {
+        width: 100%;
+      }
+
+      .attendance-grid-container {
+        font-size: 0.75rem;
+      }
+
+      .attendance-grid th,
+      .attendance-grid td {
+        padding: 4px 6px;
+        font-size: 0.75rem;
+      }
+
+      .attendance-grid th:first-child {
+        min-width: 150px;
+        width: 150px;
+        max-width: 150px;
+      }
+
+      .attendance-grid td:first-child {
+        min-width: 150px;
+        width: 150px;
+        max-width: 150px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 5px;
+      }
+
+      .container {
+        max-width: 100%;
+        width: 100%;
+        border-radius: 0;
+      }
+
+      header {
+        padding: 15px 10px;
+      }
+
+      header h1 {
+        font-size: 1.3rem;
+      }
+
+      main {
+        padding: 10px;
+      }
+
+      .modal-content {
+        margin: 2% auto;
+        padding: 15px;
+        width: 98% !important;
+        max-width: 98% !important;
+      }
+
+      .attendance-grid th,
+      .attendance-grid td {
+        padding: 3px 4px;
+        font-size: 0.7rem;
+      }
+
+      .attendance-grid th:first-child {
+        min-width: 120px;
+        width: 120px;
+        max-width: 120px;
+      }
+
+      .attendance-grid td:first-child {
+        min-width: 120px;
+        width: 120px;
+        max-width: 120px;
       }
     }
   </style>
@@ -1130,7 +1304,7 @@
           <span class="sync-icon">🔄</span> 全イベント同期
         </button>
         <button class="create-event-btn" onclick="openCreateEventModal()" style="display: none;">+ 新しいイベントを作成</button>
-        <button class="cleanup-btn" onclick="cleanupAllData()" id="cleanup-btn" style="display: none; padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; margin-left: 8px;">
+        <button class="cleanup-btn" onclick="cleanupAllData()" id="cleanup-btn" style="display: none;">
           🗑️ 全データ削除
         </button>
       </div>
@@ -1363,7 +1537,7 @@
         </div>
         <div style="margin-top: 20px;">
           <label style="font-weight: bold; display: block; margin-bottom: 10px;">各日程の出欠を選択:</label>
-          <div id="event-status-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px;">
+          <div id="event-status-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; background-color: #ffffff;">
             <!-- 各日程のステータス選択UIがここに動的に生成されます -->
           </div>
         </div>
@@ -2229,17 +2403,22 @@
         const name = typeof member === 'object' ? (member.name || '') : parseMemberName(displayName).name;
         
         const nameHeader = document.createElement('th');
-        nameHeader.style.padding = '4px 6px';
-        nameHeader.style.lineHeight = '1.2';
-        nameHeader.style.maxWidth = '100px';
-        nameHeader.style.minWidth = '80px';
+        nameHeader.style.padding = '6px 8px';
+        nameHeader.style.lineHeight = '1.3';
+        nameHeader.style.maxWidth = '150px';
+        nameHeader.style.minWidth = '120px';
+        nameHeader.style.width = '150px';
         // z-indexを明示的に設定して、イベント列より低くする
         nameHeader.style.zIndex = '9';
         
         // 名前をリンクスタイルで表示
         const nameLink = document.createElement('a');
         nameLink.href = '#';
-        nameLink.style.display = 'block';
+        nameLink.style.display = '-webkit-box';
+        nameLink.style.webkitBoxOrient = 'vertical';
+        nameLink.style.webkitLineClamp = '2';
+        nameLink.style.overflow = 'hidden';
+        nameLink.style.textOverflow = 'ellipsis';
         nameHeader.style.textAlign = 'center';
         nameLink.style.color = selectedMember === displayName ? '#667eea' : '#0066cc';
         nameLink.style.textDecoration = selectedMember === displayName ? 'underline' : 'underline';
@@ -2247,16 +2426,13 @@
         nameLink.style.fontWeight = selectedMember === displayName ? 'bold' : 'normal';
         nameLink.style.cursor = 'pointer';
         nameLink.style.transition = 'all 0.2s';
-        nameLink.style.whiteSpace = 'nowrap';
-        nameLink.style.overflow = 'hidden';
-        nameLink.style.textOverflow = 'ellipsis';
+        nameLink.style.wordBreak = 'break-word';
+        nameLink.style.lineHeight = '1.3';
         
-        // より多くの文字数を表示（15文字まで）
-        if (name.length > 15) {
-          nameLink.textContent = name.substring(0, 15) + '...';
+        // 名前をそのまま表示（2行で表示される）
+        nameLink.textContent = name || '';
+        if (name && name.length > 20) {
           nameLink.title = name; // ツールチップで全文表示
-        } else {
-          nameLink.textContent = name || '';
         }
         
         nameLink.onclick = (e) => {
@@ -2338,14 +2514,24 @@
         }
         eventInfo.appendChild(titleRow);
         
-        // 2行目：場所（未選択は「未定」）
-        const locationRow = document.createElement('div');
-        locationRow.style.fontSize = '0.85rem';
-        locationRow.style.color = '#666';
-        locationRow.style.lineHeight = '1.2';
-        const locationText = event.location ? `📍${event.location}` : '未定';
-        locationRow.textContent = locationText;
-        eventInfo.appendChild(locationRow);
+        // 2行目：場所（未設定の場合は表示しない）
+        if (event.location) {
+          const locationRow = document.createElement('div');
+          locationRow.style.fontSize = '0.85rem';
+          locationRow.style.color = '#666';
+          locationRow.style.lineHeight = '1.2';
+          locationRow.style.whiteSpace = 'nowrap';
+          locationRow.style.overflow = 'hidden';
+          locationRow.style.textOverflow = 'ellipsis';
+          const locationText = `📍${event.location}`;
+          locationRow.textContent = locationText;
+          // ツールチップで全文表示
+          if (locationText.length > 20) {
+            locationRow.title = locationText;
+            locationRow.style.cursor = 'help';
+          }
+          eventInfo.appendChild(locationRow);
+        }
         
         // 3行目：日付・時刻（11/15(土) 13:00～17:00 または 終日）
         const dateTimeDiv = document.createElement('div');
@@ -2838,10 +3024,10 @@
      */
     function renderEventStatusList(memberName) {
       const container = document.getElementById('event-status-list');
-      container.innerHTML = '<div style="padding: 20px; text-align: center;">読み込み中...</div>';
+      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; background-color: #f8f9fa; border-radius: 6px;">読み込み中...</div>';
 
       if (currentEvents.length === 0) {
-        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">イベントがありません</div>';
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; background-color: #f8f9fa; border-radius: 6px; font-weight: 500;">イベントがありません</div>';
         return;
       }
 
@@ -2915,6 +3101,7 @@
         eventRow.style.display = 'flex';
         eventRow.style.flexDirection = 'column';
         eventRow.style.gap = '6px';
+        eventRow.style.backgroundColor = '#ffffff';
 
         // 上部：日付/イベント名とステータス選択
         const topRow = document.createElement('div');
@@ -2968,14 +3155,15 @@
         }
         dateLabelContainer.appendChild(firstLine);
         
-        // 2行目：場所（未選択は「未定」）
-        const secondLine = document.createElement('div');
-        secondLine.style.fontSize = '0.85rem';
-        secondLine.style.color = '#666';
-        secondLine.style.lineHeight = '1.2';
-        const locationText = event.location ? `📍${event.location}` : '未定';
-        secondLine.textContent = locationText;
-        dateLabelContainer.appendChild(secondLine);
+        // 2行目：場所（未設定の場合は表示しない）
+        if (event.location) {
+          const secondLine = document.createElement('div');
+          secondLine.style.fontSize = '0.85rem';
+          secondLine.style.color = '#666';
+          secondLine.style.lineHeight = '1.2';
+          secondLine.textContent = `📍${event.location}`;
+          dateLabelContainer.appendChild(secondLine);
+        }
         
         // 3行目：日付・時刻
         const thirdLine = document.createElement('div');
@@ -3005,8 +3193,12 @@
         const existingData = eventStatusMap[event.id];
         const existingStatus = existingData ? existingData.status : null;
         const gridStatus = getStatus(event.id, memberName);
-        const currentStatus = gridStatus || existingStatus;
-
+        // gridStatusまたはexistingStatusを取得し、'-'の場合はnullに変換（「未定」として扱う）
+        let currentStatus = gridStatus || existingStatus;
+        if (currentStatus === '-') {
+          currentStatus = null;
+        }
+        
         statuses.forEach(status => {
           const btn = document.createElement('button');
           btn.type = 'button';
@@ -3015,6 +3207,7 @@
           btn.dataset.status = status.value === null ? 'none' : status.value;
           
           // 現在のステータスをハイライト
+          // currentStatusがnull（'-'は既にnullに変換済み）の場合、「未定」ボタン（value: null）をactiveにする
           if ((status.value === null && currentStatus === null) || status.value === currentStatus) {
             btn.classList.add('active');
           }
@@ -3177,7 +3370,7 @@
 
           const event = result.event;
           const responses = result.responses || [];
-          const memberList = window.memberList || [];
+          // グローバル変数のmemberListを使用
 
           // イベント情報を表示
           if (infoDiv) {
@@ -3247,16 +3440,27 @@
                 part = member.part || '';
                 name = member.name || '';
               } else {
-                // メンバーが見つからない場合（既存データの互換性）
-                part = '';
-                name = '不明';
+                // メンバーが見つからない場合、userKeyから推測を試みる
+                // userKeyがanon-で始まる場合は匿名ユーザー
+                if (response.userKey && response.userKey.startsWith('anon-')) {
+                  const userName = response.userKey.replace('anon-', '');
+                  const parsed = parseMemberName(userName);
+                  part = parsed.part || '';
+                  name = parsed.name || userName;
+                } else {
+                  // userKeyから推測できない場合
+                  part = '';
+                  name = '不明';
+                }
               }
 
-              if (!statusBreakdown[response.status][part]) {
-                statusBreakdown[response.status][part] = [];
+              // パートが空の場合は「その他」として扱う
+              const partKey = part || 'その他';
+              if (!statusBreakdown[response.status][partKey]) {
+                statusBreakdown[response.status][partKey] = [];
               }
               
-              statusBreakdown[response.status][part].push(name);
+              statusBreakdown[response.status][partKey].push(name);
             }
           });
 
@@ -3330,22 +3534,25 @@
               let html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px;"><h3 style="margin: 0 0 15px 0; font-size: 1.1rem;">コメント一覧</h3>';
               
               comments.forEach(response => {
-                // メンバー名からパートと名前を取得
+                // userKeyからメンバー情報を取得
                 let part = '';
-                let name = response.userName;
+                let name = '';
                 
-                const member = memberList.find(m => {
-                  const displayName = getMemberDisplayName(m);
-                  return displayName === response.userName;
-                });
+                const member = memberList.find(m => m.userKey === response.userKey);
                 
                 if (member && typeof member === 'object') {
                   part = member.part || '';
-                  name = member.name || response.userName;
-                } else {
-                  const parsed = parseMemberName(response.userName);
+                  name = member.name || '';
+                } else if (response.userKey && response.userKey.startsWith('anon-')) {
+                  // 匿名ユーザーの場合、userKeyから名前を推測
+                  const userName = response.userKey.replace('anon-', '');
+                  const parsed = parseMemberName(userName);
                   part = parsed.part || '';
-                  name = parsed.name || response.userName;
+                  name = parsed.name || userName;
+                } else {
+                  // メンバーが見つからない場合
+                  part = '';
+                  name = '不明';
                 }
 
                 const statusColor = response.status === '○' ? '#4caf50' : response.status === '△' ? '#ff9800' : response.status === '×' ? '#f44336' : '#999';
@@ -3810,7 +4017,16 @@
       const memberName = updatedMemberName || selectedMember;
       
       if (!memberName) {
+        showToast('メンバーが選択されていません', 'error');
         return;
+      }
+
+      // 保存ボタンを取得して無効化
+      const saveBtn = document.querySelector('button[onclick="bulkUpdateResponsesForSelectedMember()"]');
+      const originalText = saveBtn ? saveBtn.textContent : '保存';
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = '保存中...';
       }
 
       // このメンバー専用のuserKeyを生成
@@ -3852,9 +4068,38 @@
       });
 
       if (updates.length === 0) {
+        // 保存ボタンを元に戻す
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = originalText;
+        }
         // 名前が変更された場合は、グリッドを再描画して終了
         if (updatedMemberName) {
           renderGrid();
+        } else {
+          // モーダル内にメッセージを表示
+          const container = document.getElementById('event-status-list');
+          if (container) {
+            const messageDiv = document.createElement('div');
+            messageDiv.style.padding = '20px';
+            messageDiv.style.textAlign = 'center';
+            messageDiv.style.color = '#666';
+            messageDiv.style.backgroundColor = '#fff3cd';
+            messageDiv.style.border = '1px solid #ffc107';
+            messageDiv.style.borderRadius = '6px';
+            messageDiv.style.fontWeight = '500';
+            messageDiv.style.marginTop = '10px';
+            messageDiv.textContent = '更新するデータがありません。ステータスを変更するか、コメントを入力してください。';
+            container.appendChild(messageDiv);
+            
+            // 3秒後にメッセージを削除
+            setTimeout(() => {
+              if (messageDiv.parentNode) {
+                messageDiv.parentNode.removeChild(messageDiv);
+              }
+            }, 3000);
+          }
+          showToast('更新するデータがありません', 'info');
         }
         return;
       }
@@ -3868,7 +4113,16 @@
           .withSuccessHandler((result) => {
             completed++;
             if (completed + failed === updates.length) {
+              // 保存ボタンを元に戻す
+              if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+              }
+              
               if (failed === 0) {
+                // 更新成功
+                showToast(`${updates.length}件の出欠を更新しました`, 'success');
+                
                 // 更新完了後、変更をクリア
                 currentEvents.forEach(event => {
                   if (gridData[event.id] && gridData[event.id][memberName]) {
@@ -3891,6 +4145,9 @@
                     }
                   }
                 }
+                
+                // メンバー編集モーダルを閉じる
+                closeMemberEditModal();
               } else {
                 showToast(`${completed}件成功、${failed}件失敗しました`, 'error');
                 renderGrid(); // エラーがあっても再描画
@@ -3901,6 +4158,11 @@
             failed++;
             console.error('更新エラー:', error);
             if (completed + failed === updates.length) {
+              // 保存ボタンを元に戻す
+              if (saveBtn) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = originalText;
+              }
               showToast(`${completed}件成功、${failed}件失敗しました`, 'error');
               renderGrid(); // エラーがあっても再描画
             }

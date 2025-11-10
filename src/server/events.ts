@@ -128,6 +128,30 @@ function getEvents(filter?: 'upcoming' | 'past' | 'all'): AttendanceEvent[] {
     const events: AttendanceEvent[] = [];
     const now = new Date();
     
+    // 表示期間の設定を取得
+    const displayStartDateStr = getConfig('DISPLAY_START_DATE', '');
+    const displayEndDateStr = getConfig('DISPLAY_END_DATE', '');
+    let displayStartDate: Date | null = null;
+    let displayEndDate: Date | null = null;
+    
+    if (displayStartDateStr) {
+      displayStartDate = new Date(displayStartDateStr);
+      if (isNaN(displayStartDate.getTime())) {
+        displayStartDate = null;
+      }
+    }
+    
+    if (displayEndDateStr) {
+      displayEndDate = new Date(displayEndDateStr);
+      if (isNaN(displayEndDate.getTime())) {
+        displayEndDate = null;
+      }
+      // 終了日の23:59:59まで含める
+      if (displayEndDate) {
+        displayEndDate.setHours(23, 59, 59, 999);
+      }
+    }
+    
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
       
@@ -151,6 +175,20 @@ function getEvents(filter?: 'upcoming' | 'past' | 'all'): AttendanceEvent[] {
         lastSynced: row[11] || undefined
       };
       
+      // 表示期間フィルター適用
+      if (displayStartDate || displayEndDate) {
+        const eventStartDate = new Date(event.start);
+        const eventEndDate = new Date(event.end);
+        
+        // イベントが表示期間外の場合は除外
+        if (displayStartDate && eventEndDate < displayStartDate) {
+          continue;
+        }
+        if (displayEndDate && eventStartDate > displayEndDate) {
+          continue;
+        }
+      }
+      
       // フィルター適用
       if (filter === 'upcoming') {
         const endDate = new Date(event.end);
@@ -167,7 +205,7 @@ function getEvents(filter?: 'upcoming' | 'past' | 'all'): AttendanceEvent[] {
       events.push(event);
     }
     
-    Logger.log(`✅ イベント取得成功: ${events.length}件（フィルター: ${filter || 'all'}）`);
+    Logger.log(`✅ イベント取得成功: ${events.length}件（フィルター: ${filter || 'all'}${displayStartDate || displayEndDate ? `, 表示期間: ${displayStartDate ? displayStartDate.toISOString() : 'なし'} ～ ${displayEndDate ? displayEndDate.toISOString() : 'なし'}` : ''}）`);
     return events;
     
   } catch (error) {

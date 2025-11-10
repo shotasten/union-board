@@ -36,26 +36,32 @@
     header {
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
-      padding: 30px;
-      text-align: center;
+      padding: 20px 30px;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
     }
 
     header h1 {
       font-size: 2.5rem;
-      margin-bottom: 10px;
+      margin: 0;
     }
 
     header p {
       font-size: 1.1rem;
       opacity: 0.9;
+      margin: 0;
     }
 
     .header-actions {
-      margin-top: 20px;
       display: flex;
-      gap: 10px;
-      justify-content: center;
+      gap: 8px;
       flex-wrap: wrap;
+      align-items: center;
     }
 
     .admin-login-btn,
@@ -66,12 +72,13 @@
       background: white;
       color: #667eea;
       border: 2px solid white;
-      padding: 10px 20px;
-      font-size: 1rem;
+      padding: 8px 16px;
+      font-size: 0.9rem;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s;
       font-weight: bold;
+      white-space: nowrap;
     }
 
     .cleanup-btn {
@@ -1118,11 +1125,24 @@
       }
 
       header {
-        padding: 20px 15px;
+        padding: 15px;
+      }
+
+      .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 8px;
       }
 
       header h1 {
         font-size: 1.5rem;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
       }
 
       header p {
@@ -1250,11 +1270,34 @@
       }
 
       header {
-        padding: 15px 10px;
+        padding: 12px 10px;
+      }
+
+      .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+        margin-bottom: 6px;
       }
 
       header h1 {
         font-size: 1.3rem;
+      }
+
+      .header-actions {
+        width: 100%;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+
+      .admin-login-btn,
+      .admin-logout-btn,
+      .sync-all-btn,
+      .create-event-btn,
+      .cleanup-btn {
+        font-size: 0.8rem;
+        padding: 6px 12px;
       }
 
       main {
@@ -1291,23 +1334,25 @@
 <body>
   <div class="container">
     <header>
-      <h1>UnionBoard</h1>
-      <p>TMU 練習予定・出欠管理アプリ</p>
-      <div class="header-actions">
-        <button class="admin-login-btn" onclick="showAdminLoginModal()" id="admin-login-btn" style="display: inline-block;">
-          🔐 管理者ログイン
-        </button>
-        <button class="admin-logout-btn" onclick="logoutAdmin()" id="admin-logout-btn" style="display: none;">
-          🚪 ログアウト
-        </button>
-        <button class="sync-all-btn" onclick="syncAllEvents()" id="sync-all-btn" style="display: none;">
-          <span class="sync-icon">🔄</span> 全イベント同期
-        </button>
-        <button class="create-event-btn" onclick="openCreateEventModal()" style="display: none;">+ 新しいイベントを作成</button>
-        <button class="cleanup-btn" onclick="cleanupAllData()" id="cleanup-btn" style="display: none;">
-          🗑️ 全データ削除
-        </button>
+      <div class="header-top">
+        <h1>UnionBoard</h1>
+        <div class="header-actions">
+          <button class="admin-login-btn" onclick="showAdminLoginModal()" id="admin-login-btn" style="display: inline-block;">
+            🔐 管理者ログイン
+          </button>
+          <button class="admin-logout-btn" onclick="logoutAdmin()" id="admin-logout-btn" style="display: none;">
+            🚪 ログアウト
+          </button>
+          <button class="sync-all-btn" onclick="syncAllEvents()" id="sync-all-btn" style="display: none;">
+            <span class="sync-icon">🔄</span> 同期
+          </button>
+          <button class="create-event-btn" onclick="openCreateEventModal()" style="display: none;">新規作成</button>
+          <button class="cleanup-btn" onclick="cleanupAllData()" id="cleanup-btn" style="display: none;">
+            🗑️ 削除
+          </button>
+        </div>
       </div>
+      <p>TMU 練習予定・出欠管理アプリ</p>
     </header>
 
     <main>

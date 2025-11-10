@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>UnionBoard</title>
   <!-- Updated: 2025-11-08 Phase 3.7: 認証UI実装（Google認証機能は削除済み） -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
     * {
       margin: 0;
@@ -45,6 +46,13 @@
       justify-content: space-between;
       align-items: center;
       margin-bottom: 10px;
+      width: 100%;
+    }
+
+    .header-action-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
     }
 
     header h1 {
@@ -67,11 +75,7 @@
       align-items: center;
     }
 
-    .admin-login-btn,
-    .admin-logout-btn,
-    .sync-all-btn,
-    .create-event-btn,
-    .cleanup-btn {
+    .admin-login-btn {
       background: transparent;
       color: #666;
       border: 1px solid #ddd;
@@ -84,35 +88,86 @@
       white-space: nowrap;
     }
 
-    .cleanup-btn {
-      background: transparent;
-      color: #f44336;
-      border: 1px solid #f44336;
-    }
-
-    .cleanup-btn:hover {
-      background: #f44336;
-      color: white;
-    }
-
-    .admin-login-btn:hover,
-    .admin-logout-btn:hover,
-    .sync-all-btn:hover {
+    .admin-login-btn:hover {
       background: #f5f5f5;
       border-color: #bbb;
+    }
+
+    /* アイコンアクションボタン（ログアウト、同期、削除） */
+    .icon-action-btn {
+      background: transparent;
+      border: 1px solid #00796B;
+      padding: 8px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+    }
+
+    .icon-action-btn i {
+      color: #00796B;
+      font-size: 1.1rem;
+    }
+
+    .icon-action-btn:hover {
+      background: #E0F2F1;
+    }
+
+    .cleanup-btn.icon-action-btn {
+      border-color: #f44336;
+    }
+
+    .cleanup-btn.icon-action-btn i {
+      color: #f44336;
+    }
+
+    .cleanup-btn.icon-action-btn:hover {
+      background: #ffebee;
+    }
+
+    /* プライマリーボタン（新規作成）はそのまま維持 */
+    .primary-btn {
+      background: #00796B;
+      color: white;
+      border: 1px solid #00796B;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .primary-btn:hover {
+      background: #00695C;
+      border-color: #00695C;
     }
 
     .create-event-btn {
       background: #00796B;
       color: white;
       border: 1px solid #00796B;
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
       font-weight: 500;
+      white-space: nowrap;
     }
 
     .create-event-btn:hover {
       background: #00695C;
       border-color: #00695C;
     }
+
+    /* 管理者専用機能のスタイル */
+    /* .admin-feature クラスは管理者専用機能であることを示すマーカーとして使用 */
 
     main {
       padding: 30px;
@@ -759,7 +814,8 @@
       opacity: 0.6;
     }
 
-    .sync-all-btn {
+    /* アイコンボタンでない場合のsync-all-btnスタイル（モーダル内などで使用） */
+    .sync-all-btn:not(.icon-action-btn) {
       background: #4caf50;
       color: white;
       border: none;
@@ -773,17 +829,27 @@
       gap: 8px;
     }
 
-    .sync-all-btn:hover {
+    .sync-all-btn:not(.icon-action-btn):hover {
       background: #45a049;
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
     }
 
-    .sync-all-btn:disabled {
+    .sync-all-btn:not(.icon-action-btn):disabled {
       background: #ccc;
       cursor: not-allowed;
       opacity: 0.6;
       transform: none;
+    }
+
+    /* アイコンボタンの場合のdisabled状態 */
+    .icon-action-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .icon-action-btn:disabled i {
+      opacity: 0.5;
     }
 
 
@@ -793,6 +859,11 @@
     }
 
     .sync-icon.spinning {
+      animation: spin 1s linear infinite;
+    }
+
+    /* アイコンボタン内のアイコンのスピンアニメーション */
+    .icon-action-btn i.spinning {
       animation: spin 1s linear infinite;
     }
 
@@ -1199,11 +1270,23 @@
         gap: 8px;
       }
 
-      .admin-login-btn,
-      .admin-logout-btn,
-      .sync-all-btn,
-      .create-event-btn,
-      .cleanup-btn {
+      .admin-login-btn {
+        width: 100%;
+        font-size: 0.9rem;
+        padding: 12px 16px;
+      }
+
+      .icon-action-btn {
+        width: 40px;
+        height: 40px;
+        padding: 8px;
+      }
+
+      .icon-action-btn i {
+        font-size: 1rem;
+      }
+
+      .create-event-btn {
         width: 100%;
         font-size: 0.9rem;
         padding: 12px 16px;
@@ -1336,11 +1419,22 @@
         gap: 6px;
       }
 
-      .admin-login-btn,
-      .admin-logout-btn,
-      .sync-all-btn,
-      .create-event-btn,
-      .cleanup-btn {
+      .admin-login-btn {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+      }
+
+      .icon-action-btn {
+        width: 36px;
+        height: 36px;
+        padding: 6px;
+      }
+
+      .icon-action-btn i {
+        font-size: 0.95rem;
+      }
+
+      .create-event-btn {
         font-size: 0.8rem;
         padding: 6px 12px;
       }
@@ -1385,16 +1479,14 @@
           <button class="admin-login-btn" onclick="showAdminLoginModal()" id="admin-login-btn" style="display: inline-block;">
             🔐 管理者ログイン
           </button>
-          <button class="admin-logout-btn" onclick="logoutAdmin()" id="admin-logout-btn" style="display: none;">
-            🚪 ログアウト
-          </button>
-          <button class="sync-all-btn" onclick="syncAllEvents()" id="sync-all-btn" style="display: none;">
-            <span class="sync-icon">🔄</span> 同期
-          </button>
-          <button class="create-event-btn" onclick="openCreateEventModal()" style="display: none;">新規作成</button>
-          <button class="cleanup-btn" onclick="cleanupAllData()" id="cleanup-btn" style="display: none;">
-            🗑️ 削除
-          </button>
+          <div class="header-action-group" style="display: none;">
+            <button class="sync-all-btn icon-action-btn" onclick="syncAllEvents()" id="sync-all-btn" title="同期">
+              <i class="fas fa-rotate"></i>
+            </button>
+            <button class="admin-logout-btn icon-action-btn" onclick="logoutAdmin()" id="admin-logout-btn" title="ログアウト">
+              <i class="fas fa-right-from-bracket"></i>
+            </button>
+          </div>
         </div>
       </div>
       <p>TMU 練習予定・出欠管理アプリ</p>
@@ -1419,6 +1511,7 @@
         <div id="grid-view" style="display: block;">
           <div class="grid-controls" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
             <button class="member-register-btn" onclick="showMemberRegisterModal()" style="padding: 10px 20px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">+ メンバー登録</button>
+            <button class="admin-feature primary-btn create-event-btn" onclick="openCreateEventModal()" id="create-event-btn" style="display: none; padding: 10px 20px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">新規作成</button>
           </div>
           <!-- 表示期間と凡例 -->
           <div style="margin-bottom: 30px; display: flex; flex-direction: column; gap: 12px;">
@@ -1884,25 +1977,22 @@
       const adminLoginBtn = document.getElementById('admin-login-btn');
       const adminLogoutBtn = document.getElementById('admin-logout-btn');
       const syncAllBtn = document.getElementById('sync-all-btn');
-      const createEventBtn = document.querySelector('.create-event-btn');
-      const cleanupBtn = document.getElementById('cleanup-btn');
+      const createEventBtn = document.getElementById('create-event-btn');
       const displayPeriodEditBtn = document.getElementById('display-period-edit-btn');
+      
+      const headerActionGroup = document.querySelector('.header-action-group');
       
       if (isAdminUser) {
         // 管理者の場合：ログインボタンを非表示、ログアウトボタンと管理ボタンを表示
         if (adminLoginBtn) adminLoginBtn.style.display = 'none';
-        if (adminLogoutBtn) adminLogoutBtn.style.display = 'inline-block';
-        if (syncAllBtn) syncAllBtn.style.display = 'inline-block';
+        if (headerActionGroup) headerActionGroup.style.display = 'flex';
         if (createEventBtn) createEventBtn.style.display = 'inline-block';
-        if (cleanupBtn) cleanupBtn.style.display = 'inline-block';
         if (displayPeriodEditBtn) displayPeriodEditBtn.style.display = 'inline-block';
       } else {
         // 一般ユーザーの場合：ログインボタンを表示、ログアウトボタンと管理ボタンを非表示
         if (adminLoginBtn) adminLoginBtn.style.display = 'inline-block';
-        if (adminLogoutBtn) adminLogoutBtn.style.display = 'none';
-        if (syncAllBtn) syncAllBtn.style.display = 'none';
+        if (headerActionGroup) headerActionGroup.style.display = 'none';
         if (createEventBtn) createEventBtn.style.display = 'none';
-        if (cleanupBtn) cleanupBtn.style.display = 'none';
         if (displayPeriodEditBtn) displayPeriodEditBtn.style.display = 'none';
       }
 
@@ -5349,11 +5439,20 @@
       }
 
       syncAllBtn.disabled = true;
+      // アイコンボタンの場合、アイコンにスピンアニメーションを追加
+      const icon = syncAllBtn.querySelector('i');
+      if (icon) {
+        icon.classList.add('spinning');
+      }
       showFullscreenLoader('全イベントを同期中...');
 
       google.script.run
         .withSuccessHandler((result) => {
           syncAllBtn.disabled = false;
+          // スピンアニメーションを削除
+          if (icon) {
+            icon.classList.remove('spinning');
+          }
           hideFullscreenLoader();
           
           if (result.success > 0 || result.failed === 0) {
@@ -5366,6 +5465,10 @@
         })
         .withFailureHandler((error) => {
           syncAllBtn.disabled = false;
+          // スピンアニメーションを削除
+          if (icon) {
+            icon.classList.remove('spinning');
+          }
           hideFullscreenLoader();
           showToast(error.message || 'エラーが発生しました', 'error');
         })

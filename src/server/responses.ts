@@ -25,7 +25,6 @@ function getResponsesSheet(): GoogleAppsScript.Spreadsheet.Sheet {
  * 同一(eventId, userKey)の場合は上書き
  * @param eventId イベントID
  * @param userKey ユーザー識別子（hash-xxx または anon-xxx）
- * @param userName 表示名
  * @param status 出欠ステータス（○: 出席, △: 未定, ×: 欠席）
  * @param comment コメント（オプション）
  * @returns 成功: true, 失敗: false
@@ -33,14 +32,13 @@ function getResponsesSheet(): GoogleAppsScript.Spreadsheet.Sheet {
 function submitResponse(
   eventId: string,
   userKey: string,
-  userName: string,
   status: '○' | '△' | '×' | '-',
   comment?: string
 ): boolean {
   try {
     // バリデーション
-    if (!eventId || !userKey || !userName) {
-      Logger.log('❌ エラー: eventId, userKey, userNameは必須です');
+    if (!eventId || !userKey) {
+      Logger.log('❌ エラー: eventId, userKeyは必須です');
       return false;
     }
     
@@ -69,10 +67,10 @@ function submitResponse(
       if (row[0] === eventId && row[1] === userKey) {
         const rowIndex = i + 1; // Sheetの行番号（1始まり）
         
-        // カラム: eventId, userKey, userName, status, comment, createdAt, updatedAt
-        // バッチ更新: 連続した列（3-5）をまとめて更新（パフォーマンス最適化）
-        sheet.getRange(rowIndex, 3, 1, 3).setValues([[userName, status, comment || '']]);
-        sheet.getRange(rowIndex, 7).setValue(now); // updatedAt
+        // カラム: eventId, userKey, status, comment, createdAt, updatedAt
+        // バッチ更新: 連続した列（3-4）をまとめて更新（パフォーマンス最適化）
+        sheet.getRange(rowIndex, 3, 1, 2).setValues([[status, comment || '']]);
+        sheet.getRange(rowIndex, 6).setValue(now); // updatedAt
         
         Logger.log(`✅ 出欠回答更新成功: ${eventId} - ${userKey} (${status})`);
         
@@ -88,11 +86,10 @@ function submitResponse(
     }
     
     // 新規登録
-    // カラム: eventId, userKey, userName, status, comment, createdAt, updatedAt
+    // カラム: eventId, userKey, status, comment, createdAt, updatedAt
     sheet.appendRow([
       eventId,
       userKey,
-      userName,
       status,
       comment || '',
       now, // createdAt
@@ -140,14 +137,14 @@ function getResponses(eventId: string): Response[] {
       
       // 指定されたイベントIDの回答のみ取得
       if (row[0] === eventId) {
+        // カラム: eventId, userKey, status, comment, createdAt, updatedAt
         const response: Response = {
           eventId: row[0],
           userKey: row[1],
-          userName: row[2],
-          status: row[3],
-          comment: row[4] || undefined,
-          createdAt: row[5],
-          updatedAt: row[6]
+          status: row[2],
+          comment: row[3] || undefined,
+          createdAt: row[4],
+          updatedAt: row[5]
         };
         
         responses.push(response);
@@ -185,14 +182,14 @@ function getResponseByUser(eventId: string, userKey: string): Response | null {
       const row = data[i];
       
       if (row[0] === eventId && row[1] === userKey) {
+        // カラム: eventId, userKey, status, comment, createdAt, updatedAt
         const response: Response = {
           eventId: row[0],
           userKey: row[1],
-          userName: row[2],
-          status: row[3],
-          comment: row[4] || undefined,
-          createdAt: row[5],
-          updatedAt: row[6]
+          status: row[2],
+          comment: row[3] || undefined,
+          createdAt: row[4],
+          updatedAt: row[5]
         };
         
         Logger.log(`✅ 出欠回答取得成功: ${eventId} - ${userKey}`);
@@ -272,6 +269,55 @@ function tallyResponses(eventId: string): EventTally {
 }
 
 /**
+ * 特定ユーザーの全てのレスポンスを削除
+ * @param userKey ユーザーキー
+ * @returns 削除されたレスポンス数
+ */
+function deleteResponsesByUserKey(userKey: string): number {
+  try {
+    if (!userKey) {
+      Logger.log('❌ エラー: userKeyは必須です');
+      return 0;
+    }
+    
+    const sheet = getResponsesSheet();
+    const data = sheet.getDataRange().getValues();
+    const rowsToDelete: number[] = [];
+    
+    // ヘッダー行をスキップして検索（下から上に削除するため、逆順で収集）
+    for (let i = data.length - 1; i >= 1; i--) {
+      const row = data[i];
+      
+      // 該当するuserKeyのレスポンスを削除対象に追加
+      if (row[1] === userKey) {
+        rowsToDelete.push(i + 1); // Sheetの行番号（1始まり）
+      }
+    }
+    
+    // 行を削除（上から削除すると行番号がずれるため、下から削除）
+    let deletedCount = 0;
+    for (const rowIndex of rowsToDelete) {
+      try {
+        sheet.deleteRow(rowIndex);
+        deletedCount++;
+      } catch (error) {
+        Logger.log(`⚠️ 行削除エラー: ${rowIndex} - ${(error as Error).message}`);
+      }
+    }
+    
+    if (deletedCount > 0) {
+      Logger.log(`✅ レスポンス削除成功: ${userKey} (${deletedCount}件)`);
+    }
+    
+    return deletedCount;
+  } catch (error) {
+    Logger.log(`❌ エラー: レスポンス削除失敗 - ${(error as Error).message}`);
+    Logger.log((error as Error).stack);
+    return 0;
+  }
+}
+
+/**
  * テスト関数: 出欠登録機能
  */
 function testResponses() {
@@ -299,7 +345,6 @@ function testResponses() {
     const result1 = submitResponse(
       testEventId,
       'anon-田中太郎',
-      '田中太郎',
       '○',
       'よろしくお願いします'
     );
@@ -316,7 +361,6 @@ function testResponses() {
     const result2 = submitResponse(
       '存在しないイベントID',
       'anon-テストユーザー',
-      'テストユーザー',
       '○'
     );
     
@@ -331,7 +375,6 @@ function testResponses() {
     const result3 = submitResponse(
       testEventId,
       'anon-田中太郎',
-      '田中太郎',
       '×',
       '都合により欠席します'
     );
@@ -351,9 +394,9 @@ function testResponses() {
     
     // 4. 複数の出欠回答を登録
     Logger.log('\n--- テスト4: 複数の出欠回答を登録 ---');
-    submitResponse(testEventId, 'anon-佐藤花子', '佐藤花子', '○', '参加します！');
-    submitResponse(testEventId, 'anon-鈴木一郎', '鈴木一郎', '△', '検討中です');
-    submitResponse(testEventId, 'anon-高橋次郎', '高橋次郎', '×', '欠席します');
+    submitResponse(testEventId, 'anon-佐藤花子', '○', '参加します！');
+    submitResponse(testEventId, 'anon-鈴木一郎', '△', '検討中です');
+    submitResponse(testEventId, 'anon-高橋次郎', '×', '欠席します');
     
     const allResponses = getResponses(testEventId);
     Logger.log(`登録された回答数: ${allResponses.length}件`);
@@ -385,8 +428,8 @@ function testResponses() {
     Logger.log('\n--- テスト6: 特定ユーザーの回答取得 ---');
     const userResponse = getResponseByUser(testEventId, 'anon-佐藤花子');
     
-    if (userResponse && userResponse.userName === '佐藤花子' && userResponse.status === '○') {
-      Logger.log(`取得した回答: ${userResponse.userName} - ${userResponse.status}`);
+    if (userResponse && userResponse.status === '○') {
+      Logger.log(`取得した回答: userKey=${userResponse.userKey}, status=${userResponse.status}`);
       Logger.log('✅ テスト6: 成功');
     } else {
       Logger.log('❌ テスト6: 失敗 - ユーザーの回答が取得できませんでした');

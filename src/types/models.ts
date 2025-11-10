@@ -43,8 +43,6 @@ declare interface Response {
   eventId: string;
   /** ユーザー識別子（hash-xxx または anon-xxx） */
   userKey: string;
-  /** 表示名 */
-  userName: string;
   /** 出欠ステータス（○: 出席, △: 未定, ×: 欠席, -: 未選択） */
   status: '○' | '△' | '×' | '-';
   /** コメント */
@@ -96,6 +94,10 @@ declare interface Config {
   TIMEZONE: string;
   /** reCAPTCHA Site Key（匿名モード時） */
   RECAPTCHA_SITE_KEY?: string;
+  /** 表示開始日（ISO 8601形式、空の場合は制限なし） */
+  DISPLAY_START_DATE?: string;
+  /** 表示終了日（ISO 8601形式、空の場合は制限なし） */
+  DISPLAY_END_DATE?: string;
 }
 
 /**

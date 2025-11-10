@@ -76,7 +76,9 @@ function getInitData(): { events: AttendanceEvent[]; config: Config; members: Ar
       ADMIN_TOKEN: getConfig('ADMIN_TOKEN', ''),
       CALENDAR_ID: getConfig('CALENDAR_ID', 'primary'),
       CACHE_EXPIRE_HOURS: '6',
-      TIMEZONE: 'Asia/Tokyo'
+      TIMEZONE: 'Asia/Tokyo',
+      DISPLAY_START_DATE: getConfig('DISPLAY_START_DATE', ''),
+      DISPLAY_END_DATE: getConfig('DISPLAY_END_DATE', '')
     };
     
     // メンバー一覧を取得
@@ -274,7 +276,6 @@ function adminDeleteEvent(
  * ユーザー用: 出欠回答登録API
  * @param eventId イベントID
  * @param userKey ユーザー識別子
- * @param userName 表示名
  * @param status 出欠ステータス（○、△、×）
  * @param comment コメント（オプション）
  * @returns 成功時: { success: true }, 失敗時: { success: false, error: string }
@@ -282,15 +283,14 @@ function adminDeleteEvent(
 function userSubmitResponse(
   eventId: string,
   userKey: string,
-  userName: string,
   status: '○' | '△' | '×' | '-',
   comment?: string
 ): { success: boolean; error?: string } {
   try {
-    if (!eventId || !userKey || !userName || !status) {
+    if (!eventId || !userKey || !status) {
       return {
         success: false,
-        error: 'eventId, userKey, userName, statusは必須です'
+        error: 'eventId, userKey, statusは必須です'
       };
     }
     
@@ -301,21 +301,7 @@ function userSubmitResponse(
       };
     }
     
-    // 出欠登録時にメンバー情報が存在しない場合は自動的に保存
-    // userNameからpartとnameを抽出（例: "Tp山田" → part: "Tp", name: "山田"）
-    const member = getMemberByUserKey(userKey);
-    if (!member) {
-      // メンバー情報が存在しない場合、userNameからpartとnameを抽出
-      const partMatch = userName.match(/^([A-Za-z]+\.?)/);
-      const part = partMatch ? partMatch[1] : 'その他';
-      const name = userName.replace(/^[A-Za-z]+\.?/, '');
-      const displayName = userName;
-      
-      // メンバー情報を保存
-      upsertMember(userKey, part, name, displayName);
-    }
-    
-    const result = submitResponse(eventId, userKey, userName, status, comment);
+    const result = submitResponse(eventId, userKey, status, comment);
     
     if (result) {
       return {
@@ -386,7 +372,7 @@ function createMember(
     } else {
       return {
         success: false,
-        error: 'メンバー登録に失敗しました'
+        error: 'メンバー登録に失敗しました（同じパートと名前の組み合わせが既に存在する可能性があります）'
       };
     }
   } catch (error) {
@@ -429,7 +415,7 @@ function updateMember(
     } else {
       return {
         success: false,
-        error: 'メンバー更新に失敗しました'
+        error: 'メンバー更新に失敗しました（同じパートと名前の組み合わせが既に存在する可能性があります）'
       };
     }
   } catch (error) {
@@ -591,7 +577,6 @@ function testApiFunctions() {
       const submitResult = userSubmitResponse(
         testEventId,
         'anon-APIテストユーザー',
-        'APIテストユーザー',
         '○',
         'APIテスト用のコメント'
       );
@@ -607,7 +592,6 @@ function testApiFunctions() {
       const submitResult2 = userSubmitResponse(
         testEventId,
         'anon-テストユーザー2',
-        'テストユーザー2',
         '不正なステータス' as '○' | '△' | '×',
         ''
       );
@@ -792,6 +776,80 @@ function syncAllEvents(userKey?: string, adminToken?: string): { success: number
 }
 
 /**
+ * 管理者用: 表示期間設定API
+ * @param startDate 表示開始日（ISO 8601形式、空文字列で制限解除）
+ * @param endDate 表示終了日（ISO 8601形式、空文字列で制限解除）
+ * @param userKey ユーザー識別子（オプション、管理者判定用）
+ * @param adminToken 管理者トークン（オプション、匿名モード時）
+ * @returns 成功時: { success: true }, 失敗時: { success: false, error: string }
+ */
+function adminSetDisplayPeriod(
+  startDate: string,
+  endDate: string,
+  userKey?: string,
+  adminToken?: string
+): { success: boolean; error?: string } {
+  try {
+    // 管理者権限チェック
+    if (userKey && !isAdmin(userKey, adminToken)) {
+      return {
+        success: false,
+        error: '管理者権限が必要です'
+      };
+    }
+
+    // 日付の妥当性チェック
+    if (startDate && startDate.trim() !== '') {
+      const start = new Date(startDate);
+      if (isNaN(start.getTime())) {
+        return {
+          success: false,
+          error: '開始日の形式が不正です（ISO 8601形式で指定してください）'
+        };
+      }
+    }
+
+    if (endDate && endDate.trim() !== '') {
+      const end = new Date(endDate);
+      if (isNaN(end.getTime())) {
+        return {
+          success: false,
+          error: '終了日の形式が不正です（ISO 8601形式で指定してください）'
+        };
+      }
+    }
+
+    // 開始日と終了日の関係チェック
+    if (startDate && startDate.trim() !== '' && endDate && endDate.trim() !== '') {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+      if (start > end) {
+        return {
+          success: false,
+          error: '開始日が終了日より後になっています'
+        };
+      }
+    }
+
+    // Configに保存
+    setConfig('DISPLAY_START_DATE', startDate.trim() || '');
+    setConfig('DISPLAY_END_DATE', endDate.trim() || '');
+
+    Logger.log(`✅ 表示期間設定成功: ${startDate || '制限なし'} ～ ${endDate || '制限なし'}`);
+    
+    return {
+      success: true
+    };
+  } catch (error) {
+    Logger.log(`❌ エラー: 表示期間設定失敗 - ${(error as Error).message}`);
+    return {
+      success: false,
+      error: (error as Error).message
+    };
+  }
+}
+
+/**
  * 管理者用: 全データ削除API（お掃除用）
  * 注意: この関数は全てのデータを削除します。実行には注意が必要です。
  * @param userKey ユーザー識別子（オプション、管理者判定用）
@@ -885,7 +943,6 @@ function testIntegration(): void {
       const submitResult = userSubmitResponse(
         eventId,
         testUserKey,
-        '統合テストユーザー',
         '○',
         '統合テストのコメント'
       );

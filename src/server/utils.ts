@@ -118,17 +118,17 @@ function initializeSpreadsheet(): void {
   const responsesHasData = sheet.getLastRow() > 1;
   if (!responsesHasData) {
     sheet.clear();
-    sheet.getRange('A1:G1').setValues([[
-      'eventId', 'userKey', 'userName', 'status', 'comment', 'createdAt', 'updatedAt'
+    sheet.getRange('A1:F1').setValues([[
+      'eventId', 'userKey', 'status', 'comment', 'createdAt', 'updatedAt'
     ]]);
-    sheet.getRange('A1:G1').setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
+    sheet.getRange('A1:F1').setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
     sheet.setFrozenRows(1);
     Logger.log('✅ Responsesシート作成完了');
   } else {
     // ヘッダーのみ確認・更新
-    const headerRange = sheet.getRange('A1:G1');
+    const headerRange = sheet.getRange('A1:F1');
     const headerValues = headerRange.getValues()[0];
-    const expectedHeaders = ['eventId', 'userKey', 'userName', 'status', 'comment', 'createdAt', 'updatedAt'];
+    const expectedHeaders = ['eventId', 'userKey', 'status', 'comment', 'createdAt', 'updatedAt'];
     if (JSON.stringify(headerValues) !== JSON.stringify(expectedHeaders)) {
       headerRange.setValues([expectedHeaders]);
       headerRange.setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
@@ -147,7 +147,9 @@ function initializeSpreadsheet(): void {
     
     const configData = [
       ['ADMIN_TOKEN', generateAdminToken()],
-      ['CALENDAR_ID', 'primary']
+      ['CALENDAR_ID', 'primary'],
+      ['DISPLAY_START_DATE', ''],
+      ['DISPLAY_END_DATE', '']
     ];
     sheet.getRange(2, 1, configData.length, 2).setValues(configData);
     sheet.setFrozenRows(1);
@@ -165,7 +167,9 @@ function initializeSpreadsheet(): void {
     const existingKeys = existingConfig.slice(1).map(row => row[0]);
     const requiredConfig = [
       ['ADMIN_TOKEN', generateAdminToken()],
-      ['CALENDAR_ID', 'primary']
+      ['CALENDAR_ID', 'primary'],
+      ['DISPLAY_START_DATE', ''],
+      ['DISPLAY_END_DATE', '']
     ];
     requiredConfig.forEach(([key, defaultValue]) => {
       if (!existingKeys.includes(key)) {

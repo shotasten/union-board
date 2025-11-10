@@ -16,7 +16,7 @@
       font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
       line-height: 1.6;
       color: #333;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #fafafa;
       min-height: 100vh;
       padding: 20px;
       -webkit-text-size-adjust: 100%;
@@ -34,9 +34,10 @@
     }
 
     header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      background: #F5F5F5;
+      color: #333;
       padding: 20px 30px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
     .header-top {
@@ -47,13 +48,15 @@
     }
 
     header h1 {
-      font-size: 2.5rem;
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #333;
       margin: 0;
     }
 
     header p {
-      font-size: 1.1rem;
-      opacity: 0.9;
+      font-size: 0.95rem;
+      color: #888;
       margin: 0;
     }
 
@@ -69,62 +72,72 @@
     .sync-all-btn,
     .create-event-btn,
     .cleanup-btn {
-      background: white;
-      color: #667eea;
-      border: 2px solid white;
+      background: transparent;
+      color: #666;
+      border: 1px solid #ddd;
       padding: 8px 16px;
       font-size: 0.9rem;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s;
-      font-weight: bold;
+      font-weight: normal;
       white-space: nowrap;
     }
 
     .cleanup-btn {
-      background: #f44336;
-      color: white;
-      border: 2px solid #f44336;
+      background: transparent;
+      color: #f44336;
+      border: 1px solid #f44336;
     }
 
     .cleanup-btn:hover {
-      background: #d32f2f;
-      border-color: #d32f2f;
+      background: #f44336;
+      color: white;
     }
 
     .admin-login-btn:hover,
     .admin-logout-btn:hover,
-    .sync-all-btn:hover,
-    .create-event-btn:hover {
-      background: rgba(255, 255, 255, 0.9);
-      transform: translateY(-2px);
+    .sync-all-btn:hover {
+      background: #f5f5f5;
+      border-color: #bbb;
     }
 
-    .admin-logout-btn {
-      background: rgba(255, 255, 255, 0.2);
+    .create-event-btn {
+      background: #00796B;
       color: white;
-      border: 2px solid rgba(255, 255, 255, 0.5);
+      border: 1px solid #00796B;
+      font-weight: 500;
     }
 
-    .admin-logout-btn:hover {
-      background: rgba(255, 255, 255, 0.3);
+    .create-event-btn:hover {
+      background: #00695C;
+      border-color: #00695C;
     }
 
     main {
       padding: 30px;
+      background: #fafafa;
+    }
+
+    .container {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      border-radius: 8px;
+      margin: 20px auto;
+      max-width: 1400px;
     }
 
     /* ローディング表示 */
     .loading {
       text-align: center;
       padding: 40px;
-      color: #667eea;
+      color: #00796B;
       font-size: 1.2rem;
     }
 
     .spinner {
       border: 4px solid #f3f3f3;
-      border-top: 4px solid #667eea;
+      border-top: 4px solid #00796B;
       border-radius: 50%;
       width: 40px;
       height: 40px;
@@ -150,28 +163,35 @@
     /* 表示切り替えボタン */
     .view-toggle {
       display: flex;
-      gap: 10px;
+      gap: 0;
       justify-content: flex-end;
-      margin-bottom: 20px;
+      margin-bottom: 30px;
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 4px;
+      width: fit-content;
+      margin-left: auto;
     }
 
     .view-btn {
-      padding: 8px 16px;
-      border: 2px solid #667eea;
-      background: white;
-      color: #667eea;
+      padding: 8px 20px;
+      border: none;
+      background: transparent;
+      color: #666;
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.9rem;
       transition: all 0.2s;
+      font-weight: 500;
     }
 
     .view-btn:hover {
-      background: #f0f0f0;
+      background: rgba(0, 121, 107, 0.1);
+      color: #00796B;
     }
 
     .view-btn.active {
-      background: #667eea;
+      background: #00796B;
       color: white;
     }
 
@@ -189,9 +209,10 @@
       background: white;
       width: 100%;
       position: relative;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       /* スクロールバーを目立たせる */
       scrollbar-width: thin;
-      scrollbar-color: #667eea #f0f0f0;
+      scrollbar-color: #00796B #f0f0f0;
     }
 
     /* 上部のスクロールバー */
@@ -224,12 +245,12 @@
     }
 
     .attendance-grid-scrollbar-top::-webkit-scrollbar-thumb {
-      background: #667eea;
+      background: #00796B;
       border-radius: 6px;
     }
 
     .attendance-grid-scrollbar-top::-webkit-scrollbar-thumb:hover {
-      background: #5568d3;
+      background: #00695C;
     }
 
     /* Webkit系ブラウザ用のスクロールバースタイル */
@@ -243,12 +264,12 @@
     }
 
     .attendance-grid-container::-webkit-scrollbar-thumb {
-      background: #667eea;
+      background: #00796B;
       border-radius: 6px;
     }
 
     .attendance-grid-container::-webkit-scrollbar-thumb:hover {
-      background: #5568d3;
+      background: #00695C;
     }
 
     /* スクロール可能な場合の左右のフェードアウト効果 */
@@ -326,18 +347,29 @@
 
     .attendance-grid th,
     .attendance-grid td {
-      padding: 6px 8px;
+      padding: 8px 12px;
       text-align: center;
-      border: 1px solid #e0e0e0;
-      line-height: 1.3;
+      border: none;
+      border-bottom: 1px solid #f0f0f0;
+      line-height: 1.4;
+    }
+
+    .attendance-grid tbody tr:nth-child(even) {
+      background-color: #FAFAFA;
+    }
+
+    .attendance-grid tbody tr:nth-child(odd) {
+      background-color: white;
     }
 
     .attendance-grid th {
       background: #f8f9fa;
-      font-weight: bold;
+      font-weight: 600;
+      font-size: 0.85rem;
       position: sticky;
       top: 0;
       z-index: 10;
+      border-bottom: 1px solid #e0e0e0;
     }
 
     .attendance-grid th:first-child {
@@ -349,6 +381,7 @@
       min-width: 200px;
       width: 200px;
       max-width: 200px;
+      border-right: 1px solid #e0e0e0;
     }
 
     /* 2行目のヘッダー行（メンバー名）のz-indexを明示的に低く設定 */
@@ -356,17 +389,25 @@
       z-index: 9;
     }
 
+    .attendance-grid tbody tr:nth-child(even) td:first-child {
+      background-color: #FAFAFA;
+    }
+
+    .attendance-grid tbody tr:nth-child(odd) td:first-child {
+      background-color: white;
+    }
+
     .attendance-grid td:first-child {
       position: sticky;
       left: 0;
       z-index: 1;
-      background: white;
-      font-weight: bold;
+      font-weight: 600;
       min-width: 200px;
       width: 200px;
       max-width: 200px;
       word-wrap: break-word;
       overflow-wrap: break-word;
+      border-right: 1px solid #e0e0e0;
     }
 
     .status-cell {
@@ -382,15 +423,15 @@
     }
 
     .status-cell.status-attend {
-      background-color: #c8e6c9;
+      background-color: #E8F5E9;
     }
 
     .status-cell.status-maybe {
-      background-color: #fff9c4;
+      background-color: #FFFDE7;
     }
 
     .status-cell.status-absent {
-      background-color: #ffcdd2;
+      background-color: #FFEBEE;
     }
 
     .status-cell.status-none {
@@ -404,12 +445,13 @@
     }
 
     .status-icon {
-      font-size: 1.2rem;
-      font-weight: bold;
+      font-size: 1.1rem;
+      font-weight: 500;
     }
 
     .grid-controls {
       position: relative;
+      margin-bottom: 30px;
     }
 
     /* イベント一覧（カード形式） */
@@ -434,7 +476,7 @@
     }
 
     .event-card h3 {
-      color: #667eea;
+      color: #00796B;
       margin-bottom: 10px;
       font-size: 1.3rem;
     }
@@ -479,9 +521,9 @@
       flex: 1;
       min-width: 70px;
       padding: 6px 12px;
-      border: 2px solid #667eea;
+      border: 2px solid #00796B;
       background: white;
-      color: #667eea;
+      color: #00796B;
       border-radius: 6px;
       cursor: pointer;
       font-size: 0.95rem;
@@ -489,12 +531,12 @@
     }
 
     .response-btn:hover {
-      background: #667eea;
+      background: #00796B;
       color: white;
     }
 
     .response-btn.active {
-      background: #667eea;
+      background: #00796B;
       color: white;
     }
 
@@ -540,19 +582,21 @@
 
     .submit-btn {
       width: 100%;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #00796B;
       color: white;
       border: none;
       padding: 12px 24px;
       font-size: 1rem;
       border-radius: 6px;
       cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
+      font-weight: 500;
+      transition: all 0.2s;
     }
 
     .submit-btn:hover {
+      background: #00695C;
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 5px 15px rgba(0, 121, 107, 0.4);
     }
 
     .submit-btn:disabled {
@@ -1011,13 +1055,14 @@
     }
 
     .form-btn.primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: #00796B;
       color: white;
     }
 
     .form-btn.primary:hover {
+      background: #00695C;
       transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      box-shadow: 0 5px 15px rgba(0, 121, 107, 0.4);
     }
 
     .form-btn.secondary {
@@ -1365,23 +1410,23 @@
 
       <div id="events-container" style="display: none;">
         <!-- 表示切り替えボタン -->
-        <div class="view-toggle" style="margin-bottom: 20px; text-align: right;">
+        <div class="view-toggle">
           <button class="view-btn active" onclick="switchView('grid')" id="grid-view-btn">📋 表形式</button>
           <button class="view-btn" onclick="switchView('card')" id="card-view-btn">📄 カード形式</button>
         </div>
         
         <!-- 表形式表示 -->
         <div id="grid-view" style="display: block;">
-          <div class="grid-controls" style="margin-bottom: 8px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <button class="member-register-btn" onclick="showMemberRegisterModal()" style="padding: 8px 16px; background: #4caf50; color: white; border: none; border-radius: 6px; cursor: pointer;">+ メンバー登録</button>
+          <div class="grid-controls" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button class="member-register-btn" onclick="showMemberRegisterModal()" style="padding: 10px 20px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">+ メンバー登録</button>
           </div>
           <!-- 表示期間と凡例 -->
-          <div style="margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="margin-bottom: 30px; display: flex; flex-direction: column; gap: 12px;">
             <!-- 表示期間表示（管理者のみ編集可能） -->
-            <div id="display-period-info" style="padding: 8px 12px; background: #e3f2fd; border-radius: 6px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-              <span style="font-weight: bold; color: #1976d2;">表示期間:</span>
-              <span id="display-period-text">全期間</span>
-              <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" style="display: none; padding: 4px 8px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.85rem;">期間を設定</button>
+            <div id="display-period-info" style="padding: 12px 16px; background: #f5f5f5; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <span style="font-weight: 500; color: #333;">表示期間:</span>
+              <span id="display-period-text" style="color: #666;">全期間</span>
+              <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" style="display: none; padding: 6px 12px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">期間を設定</button>
             </div>
             <!-- 凡例 -->
             <div id="attendance-legend" style="padding: 8px 12px; background: #f8f9fa; border-radius: 6px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; font-size: 0.9rem;">

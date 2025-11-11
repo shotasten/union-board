@@ -3253,56 +3253,69 @@
      */
     function renderEventStatusList(memberName) {
       const container = document.getElementById('event-status-list');
-      container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; background-color: #f8f9fa; border-radius: 6px;">読み込み中...</div>';
+      
+      // キャッシュがない場合は読み込み表示
+      if (!window.allResponsesCache || Object.keys(window.allResponsesCache).length === 0) {
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; background-color: #f8f9fa; border-radius: 6px;">読み込み中...</div>';
+        
+        // キャッシュがない場合は、バッチAPIで取得
+        google.script.run
+          .withSuccessHandler((result) => {
+            if (result.success && result.responsesMap) {
+              window.allResponsesCache = result.responsesMap;
+              // 再帰的に呼び出し（キャッシュがある状態で）
+              renderEventStatusList(memberName);
+            } else {
+              container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">データの取得に失敗しました</div>';
+            }
+          })
+          .withFailureHandler((error) => {
+            console.error('❌ データ取得エラー:', error);
+            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">データの取得に失敗しました</div>';
+          })
+          .getAllEventsWithResponses();
+        
+        return;
+      }
 
       if (currentEvents.length === 0) {
         container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; background-color: #f8f9fa; border-radius: 6px; font-weight: 500;">イベントがありません</div>';
         return;
       }
 
-      // 各イベントの出欠情報を取得
-      let loadedCount = 0;
-      const eventStatusMap = {}; // {eventId: {status, comment}}
+      console.log('✅ キャッシュからデータを取得:', memberName);
 
+      // キャッシュされた出欠データを使用（API呼び出しなし！）
+      const responsesMap = window.allResponsesCache;
+      const eventStatusMap = {}; // {eventId: {status, comment}}
+      
+      // 選択されたメンバーのuserKeyを取得
+      const selectedMemberObj = memberList.find(m => getMemberDisplayName(m) === memberName);
+      if (!selectedMemberObj) {
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">メンバー情報が見つかりません</div>';
+        return;
+      }
+      
+      // 各イベントの出欠情報をキャッシュから取得
       currentEvents.forEach(event => {
-        // 既存の出欠情報を取得
-        google.script.run
-          .withSuccessHandler((result) => {
-            loadedCount++;
+        if (responsesMap[event.id]) {
+          const memberResponse = responsesMap[event.id].find(r => r.userKey === selectedMemberObj.userKey);
+          if (memberResponse) {
+            eventStatusMap[event.id] = {
+              status: memberResponse.status,
+              comment: memberResponse.comment || ''
+            };
             
-            // このメンバーのuserKeyに一致する出欠情報を探す
-            if (result.success && result.responses) {
-              const selectedMemberObj = memberList.find(m => getMemberDisplayName(m) === memberName);
-              const memberResponse = selectedMemberObj ? result.responses.find(r => r.userKey === selectedMemberObj.userKey) : null;
-              if (memberResponse) {
-                eventStatusMap[event.id] = {
-                  status: memberResponse.status,
-                  comment: memberResponse.comment || ''
-                };
-                // サーバーから取得したuserKeyをmemberListに反映（スプレッドシートで管理するため、ローカルストレージには保存しない）
-                if (memberResponse.userKey) {
-                  const member = memberList.find(m => getMemberDisplayName(m) === memberName);
-                  if (member && !member.userKey) {
-                    member.userKey = memberResponse.userKey;
-                  }
-                }
-              }
+            // userKeyをmemberListに反映（初回のみ）
+            if (!selectedMemberObj.userKey) {
+              selectedMemberObj.userKey = memberResponse.userKey;
             }
-            
-            // 全てのイベントの情報を取得したら、UIを生成
-            if (loadedCount === currentEvents.length) {
-              renderEventStatusListUI(memberName, eventStatusMap);
-            }
-          })
-          .withFailureHandler((error) => {
-            loadedCount++;
-            console.error('出欠情報取得エラー:', error);
-            if (loadedCount === currentEvents.length) {
-              renderEventStatusListUI(memberName, eventStatusMap);
-            }
-          })
-          .getEventWithResponses(event.id);
+          }
+        }
       });
+      
+      // UIを即座に描画（API呼び出しなし！）
+      renderEventStatusListUI(memberName, eventStatusMap);
     }
 
     /**

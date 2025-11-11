@@ -2210,6 +2210,27 @@
     }
 
     /**
+     * UTC日時文字列をJST（日本時間）のDateオブジェクトに変換
+     * @param {string} utcString - ISO 8601形式のUTC日時文字列（例: "2025-11-10T00:00:00.000Z"）
+     * @returns {Date} JSTのDateオブジェクト（ブラウザのローカルタイムゾーンで解釈される）
+     */
+    function utcToJST(utcString) {
+      // new Date(utcString)は既にローカルタイムゾーン（JST）で解釈されるため、そのまま返す
+      return new Date(utcString);
+    }
+    
+    /**
+     * UTC日時文字列から日付部分（YYYY-MM-DD）を抽出（タイムゾーン変換なし）
+     * @param {string} utcString - ISO 8601形式のUTC日時文字列（例: "2025-11-19T04:00:00.000Z"）
+     * @returns {string} 日付文字列（YYYY-MM-DD形式）
+     */
+    function getDateFromUTC(utcString) {
+      // UTC文字列から直接日付部分を抽出（例: "2025-11-19T04:00:00.000Z" -> "2025-11-19"）
+      const match = utcString.match(/^(\d{4}-\d{2}-\d{2})/);
+      return match ? match[1] : '';
+    }
+
+    /**
      * 表示期間を保存
      */
     function saveDisplayPeriod() {
@@ -2668,16 +2689,12 @@
         dateCell.style.verticalAlign = 'top';
         dateCell.style.padding = '6px 8px';
         
-        const startDate = new Date(event.start);
-        const endDate = new Date(event.end);
+        // UTCをJSTに変換
+        const startDate = utcToJST(event.start);
+        const endDate = utcToJST(event.end);
         
         // 日付フォーマット
         const dateStr = `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
-        
-        // 時刻フォーマット
-        const startTimeStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
-        const endTimeStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-        const timeStr = `${startTimeStr}～${endTimeStr}`;
         
         // イベント情報をHTMLで構築
         const eventInfo = document.createElement('div');
@@ -2728,34 +2745,48 @@
         dateTimeDiv.style.color = '#666';
         dateTimeDiv.style.lineHeight = '1.2';
         
-        // 開始日と終了日が異なる日付かどうかを判定
-        const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-        const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-        const isMultiDay = startDateOnly.getTime() !== endDateOnly.getTime();
+        // 終日かどうかを判定（event.isAllDayフラグを使用）
+        const isAllDay = event.isAllDay === true || event.isAllDay === 'TRUE' || event.isAllDay === 1 || event.isAllDay === '1';
+        
+        // 開始日と終了日が異なる日付かどうかを判定（UTC文字列から直接日付部分を抽出）
+        // 終日イベントの場合、endが翌日の00:00:00でも1日の終日として扱う
+        let startDateOnlyStr = getDateFromUTC(event.start);
+        let endDateOnlyStr = getDateFromUTC(event.end);
+        
+        if (isAllDay) {
+          // 終日イベントの場合、endが翌日の00:00:00の場合は前日の日付として扱う
+          const endDate = new Date(event.end);
+          const endDateOnly = new Date(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate());
+          const startDateOnly = new Date(new Date(event.start).getUTCFullYear(), new Date(event.start).getUTCMonth(), new Date(event.start).getUTCDate());
+          // endがstartの翌日で、時刻が00:00:00の場合は1日の終日として扱う
+          if (endDateOnly.getTime() - startDateOnly.getTime() === 24 * 60 * 60 * 1000 && 
+              endDate.getUTCHours() === 0 && endDate.getUTCMinutes() === 0 && endDate.getUTCSeconds() === 0) {
+            endDateOnlyStr = startDateOnlyStr; // 同じ日として扱う
+          }
+        }
+        
+        const isMultiDay = startDateOnlyStr !== endDateOnlyStr;
         
         let dateStrShort;
         if (isMultiDay) {
           // 複数日の場合は開始日～終了日を表示
-          const startDateStr = `${startDate.getMonth() + 1}/${startDate.getDate()}(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
-          const endDateStr = `${endDate.getMonth() + 1}/${endDate.getDate()}(${['日','月','火','水','木','金','土'][endDate.getDay()]})`;
-          dateStrShort = `${startDateStr}～${endDateStr}`;
+          const startDateDisplayStr = `${startDate.getMonth() + 1}/${startDate.getDate()}(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
+          const endDateDisplayStr = `${endDate.getMonth() + 1}/${endDate.getDate()}(${['日','月','火','水','木','金','土'][endDate.getDay()]})`;
+          dateStrShort = `${startDateDisplayStr}～${endDateDisplayStr}`;
         } else {
           // 単日の場合は開始日のみ
           dateStrShort = `${startDate.getMonth() + 1}/${startDate.getDate()}(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
         }
         
-        // 終日かどうかを判定（開始時刻が00:00、終了時刻が23:59の場合）
-        const startHours = startDate.getHours();
-        const startMinutes = startDate.getMinutes();
-        const endHours = endDate.getHours();
-        const endMinutes = endDate.getMinutes();
-        const durationMs = endDate.getTime() - startDate.getTime();
-        const durationHours = durationMs / (1000 * 60 * 60);
-        
-        const isAllDay = (startHours === 0 && startMinutes === 0 && endHours === 23 && endMinutes === 59) ||
-                         (startHours === 0 && startMinutes === 0 && endHours === 0 && endMinutes === 0 && durationHours >= 24);
-        
-        const timeDisplay = isAllDay ? '終日' : timeStr;
+        let timeDisplay;
+        if (isAllDay) {
+          timeDisplay = '終日';
+        } else {
+          // 時刻フォーマット（JSTで表示）
+          const startTimeStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
+          const endTimeStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+          timeDisplay = `${startTimeStr}～${endTimeStr}`;
+        }
         dateTimeDiv.textContent = `${dateStrShort} ${timeDisplay}`;
         eventInfo.appendChild(dateTimeDiv);
         
@@ -3306,28 +3337,24 @@
         dateLabelContainer.style.flexDirection = 'column';
         dateLabelContainer.style.gap = '2px';
         
-        const startDate = new Date(event.start);
-        const endDate = new Date(event.end);
+        // UTCをJSTに変換
+        const startDate = utcToJST(event.start);
+        const endDate = utcToJST(event.end);
         const dateStr = `${startDate.getMonth() + 1}/${startDate.getDate()}(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
         const eventTitle = event.title || '（タイトルなし）';
         
-        // 時刻フォーマット
-        const startTimeStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
-        const endTimeStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-        const timeStr = `${startTimeStr}～${endTimeStr}`;
+        // 終日かどうかを判定（event.isAllDayフラグを使用）
+        const isAllDay = event.isAllDay === true || event.isAllDay === 'TRUE' || event.isAllDay === 1 || event.isAllDay === '1';
         
-        // 終日かどうかを判定（開始時刻が00:00、終了時刻が23:59の場合）
-        const startHours = startDate.getHours();
-        const startMinutes = startDate.getMinutes();
-        const endHours = endDate.getHours();
-        const endMinutes = endDate.getMinutes();
-        const durationMs = endDate.getTime() - startDate.getTime();
-        const durationHours = durationMs / (1000 * 60 * 60);
-        
-        const isAllDay = (startHours === 0 && startMinutes === 0 && endHours === 23 && endMinutes === 59) ||
-                         (startHours === 0 && startMinutes === 0 && endHours === 0 && endMinutes === 0 && durationHours >= 24);
-        
-        const timeDisplay = isAllDay ? '終日' : timeStr;
+        let timeDisplay;
+        if (isAllDay) {
+          timeDisplay = '終日';
+        } else {
+          // 時刻フォーマット（JSTで表示）
+          const startTimeStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
+          const endTimeStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+          timeDisplay = `${startTimeStr}～${endTimeStr}`;
+        }
         
         // 1行目：イベント名
         const firstLine = document.createElement('div');
@@ -3563,41 +3590,59 @@
 
           // イベント情報を表示
           if (infoDiv) {
-            const startDate = new Date(event.start);
-            const endDate = new Date(event.end);
+            // UTCをJSTに変換
+            const startDate = utcToJST(event.start);
+            const endDate = utcToJST(event.end);
             
-            // 開始日と終了日が異なる日付かどうかを判定
-            const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-            const endDateOnly = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate());
-            const isMultiDay = startDateOnly.getTime() !== endDateOnly.getTime();
+            // 終日かどうかを判定（event.isAllDayフラグを使用）
+            const isAllDay = event.isAllDay === true || event.isAllDay === 'TRUE' || event.isAllDay === 1 || event.isAllDay === '1';
+            
+            // 開始日と終了日が異なる日付かどうかを判定（UTC文字列から直接日付部分を抽出）
+            // 終日イベントの場合、endが翌日の00:00:00でも1日の終日として扱う
+            let startDateOnlyStr = getDateFromUTC(event.start);
+            let endDateOnlyStr = getDateFromUTC(event.end);
+            
+            if (isAllDay) {
+              // 終日イベントの場合、endが翌日の00:00:00の場合は前日の日付として扱う
+              const endDateUTC = new Date(event.end);
+              const endDateOnly = new Date(endDateUTC.getUTCFullYear(), endDateUTC.getUTCMonth(), endDateUTC.getUTCDate());
+              const startDateOnly = new Date(new Date(event.start).getUTCFullYear(), new Date(event.start).getUTCMonth(), new Date(event.start).getUTCDate());
+              // endがstartの翌日で、時刻が00:00:00の場合は1日の終日として扱う
+              if (endDateOnly.getTime() - startDateOnly.getTime() === 24 * 60 * 60 * 1000 && 
+                  endDateUTC.getUTCHours() === 0 && endDateUTC.getUTCMinutes() === 0 && endDateUTC.getUTCSeconds() === 0) {
+                endDateOnlyStr = startDateOnlyStr; // 同じ日として扱う
+              }
+            }
+            
+            const isMultiDay = startDateOnlyStr !== endDateOnlyStr;
             
             let dateStr;
             if (isMultiDay) {
               // 複数日の場合は開始日～終了日を表示
-              const startDateStr = `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
-              const endDateStr = `${endDate.getFullYear()}年${endDate.getMonth() + 1}月${endDate.getDate()}日(${['日','月','火','水','木','金','土'][endDate.getDay()]})`;
-              dateStr = `${startDateStr}～${endDateStr}`;
+              const startDateDisplayStr = `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
+              const endDateDisplayStr = `${endDate.getFullYear()}年${endDate.getMonth() + 1}月${endDate.getDate()}日(${['日','月','火','水','木','金','土'][endDate.getDay()]})`;
+              dateStr = `${startDateDisplayStr}～${endDateDisplayStr}`;
             } else {
               // 単日の場合は開始日のみ
               dateStr = `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
             }
             
-            const startTimeStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
-            const endTimeStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-            const timeStr = `${startTimeStr}～${endTimeStr}`;
-            
-            const isAllDay = (startDate.getHours() === 0 && startDate.getMinutes() === 0 && 
-                             endDate.getHours() === 23 && endDate.getMinutes() === 59) ||
-                             (startDate.getHours() === 0 && startDate.getMinutes() === 0 && 
-                             endDate.getHours() === 0 && endDate.getMinutes() === 0 && 
-                             (endDate.getTime() - startDate.getTime()) >= 24 * 60 * 60 * 1000);
+            let timeDisplay;
+            if (isAllDay) {
+              timeDisplay = '終日';
+            } else {
+              // 時刻フォーマット（JSTで表示）
+              const startTimeStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
+              const endTimeStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+              timeDisplay = `${startTimeStr}～${endTimeStr}`;
+            }
 
             infoDiv.innerHTML = `
               <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
                 <h3 style="margin: 0 0 10px 0; font-size: 1.2rem;">${event.title || '予定'}</h3>
                 <div style="color: #666; font-size: 0.9rem; line-height: 1.8;">
                   <div><strong>日付:</strong> ${dateStr}</div>
-                  <div><strong>時刻:</strong> ${isAllDay ? '終日' : timeStr}</div>
+                  <div><strong>時刻:</strong> ${timeDisplay}</div>
                   ${event.location ? `<div><strong>場所:</strong> ${event.location}</div>` : ''}
                   ${event.description ? `<div style="margin-top: 10px;"><strong>説明:</strong><br>${event.description.replace(/\n/g, '<br>')}</div>` : ''}
                 </div>

@@ -173,12 +173,15 @@ function buildDescription(eventId: string): string {
  */
 function upsertCalendarEvent(event: AttendanceEvent): string | null {
   try {
+    Logger.log(`🔄 upsertCalendarEvent開始: ${event.id} - ${event.title} (calendarEventId: ${event.calendarEventId || '未設定'})`);
+    
     if (!event || !event.id) {
       Logger.log('❌ エラー: イベントデータが不正です');
       return null;
     }
     
     const calendarId = getOrCreateCalendar();
+    Logger.log(`📅 カレンダーID: ${calendarId}`);
     const calendar = CalendarApp.getCalendarById(calendarId);
     
     if (!calendar) {
@@ -188,23 +191,72 @@ function upsertCalendarEvent(event: AttendanceEvent): string | null {
     
     const startDate = new Date(event.start);
     const endDate = new Date(event.end);
+    Logger.log(`📅 イベント日時: ${startDate.toISOString()} ～ ${endDate.toISOString()}`);
+    
+    // 終日イベントかどうかを判定（フラグが保存されている場合はそれを使用、未設定の場合は計算）
+    let isAllDay: boolean;
+    let startDateOnly: Date | null = null;
+    if (event.isAllDay !== undefined) {
+      // フラグが保存されている場合はそれを使用
+      isAllDay = event.isAllDay;
+      Logger.log(`📅 終日イベントフラグ使用: ${isAllDay ? '終日' : '時間指定'}`);
+      // 終日イベントの場合は日付のみを取得
+      if (isAllDay) {
+        const jstOffset = 9 * 60 * 60 * 1000;
+        const jstStart = new Date(startDate.getTime() + jstOffset);
+        startDateOnly = new Date(Date.UTC(jstStart.getUTCFullYear(), jstStart.getUTCMonth(), jstStart.getUTCDate()));
+      }
+    } else {
+      // フラグが未設定の場合は計算（既存データの互換性のため）
+      isAllDay = isAllDayEvent(event.start, event.end);
+      Logger.log(`📅 終日イベント判定（計算）: ${isAllDay ? '終日' : '時間指定'}`);
+      // 計算結果を直接スプレッドシートに保存（無限ループ防止：updateEventを呼ばない）
+      try {
+        const sheet = getEventsSheet();
+        const data = sheet.getDataRange().getValues();
+        for (let i = 1; i < data.length; i++) {
+          if (data[i][0] === event.id) {
+            const rowIndex = i + 1;
+            // isAllDayカラム（列5）を更新
+            sheet.getRange(rowIndex, 5).setValue(isAllDay);
+            Logger.log(`✅ isAllDayフラグを直接更新: ${event.id} - ${isAllDay}`);
+            break;
+          }
+        }
+      } catch (error) {
+        Logger.log(`⚠️ isAllDayフラグ更新失敗（処理は続行）: ${(error as Error).message}`);
+      }
+      // 終日イベントの場合は日付のみを取得
+      if (isAllDay) {
+        const jstOffset = 9 * 60 * 60 * 1000;
+        const jstStart = new Date(startDate.getTime() + jstOffset);
+        startDateOnly = new Date(Date.UTC(jstStart.getUTCFullYear(), jstStart.getUTCMonth(), jstStart.getUTCDate()));
+      }
+    }
     
     // 説明文を生成（出欠サマリーを含む）
     const description = buildDescription(event.id);
+    Logger.log(`📝 説明文生成完了: ${description.length}文字`);
     
     // 説明文のハッシュを計算
     const notesHash = computeHash(description);
+    Logger.log(`🔐 notesHash: ${notesHash}`);
     
     // 既存のカレンダーイベントIDがあるか確認
     let calendarEvent: GoogleAppsScript.Calendar.CalendarEvent | null = null;
     
     if (event.calendarEventId) {
+      Logger.log(`🔍 既存カレンダーイベントを検索: ${event.calendarEventId}`);
       try {
         calendarEvent = calendar.getEventById(event.calendarEventId);
+        Logger.log(`✅ 既存カレンダーイベントが見つかりました: ${event.calendarEventId}`);
       } catch (error) {
-        Logger.log(`⚠️ 既存のカレンダーイベントが見つかりません: ${event.calendarEventId}`);
+        Logger.log(`⚠️ 既存のカレンダーイベントが見つかりません: ${event.calendarEventId} - ${(error as Error).message}`);
         // 既存イベントが見つからない場合は新規作成
+        Logger.log(`➕ 新規カレンダーイベントを作成します`);
       }
+    } else {
+      Logger.log(`➕ calendarEventIdが未設定のため、新規カレンダーイベントを作成します`);
     }
     
     if (calendarEvent) {
@@ -214,11 +266,29 @@ function upsertCalendarEvent(event: AttendanceEvent): string | null {
       const currentStart = calendarEvent.getStartTime();
       const currentEnd = calendarEvent.getEndTime();
       const currentLocation = calendarEvent.getLocation() || '';
+      const isCurrentAllDay = calendarEvent.isAllDayEvent();
+      
+      Logger.log(`📅 既存イベント情報: 終日=${isCurrentAllDay}, 開始=${currentStart.toISOString()}, 終了=${currentEnd.toISOString()}`);
       
       // タイトル、日時、場所が変更されているか確認
       const titleChanged = currentTitle !== event.title;
-      const timeChanged = currentStart.getTime() !== startDate.getTime() || 
-                         currentEnd.getTime() !== endDate.getTime();
+      // 終日イベントの場合は時間比較を調整
+      let timeChanged = false;
+      if (isCurrentAllDay && isAllDay && startDateOnly) {
+        // 両方とも終日イベントの場合、日付のみ比較
+        const currentStartDate = new Date(currentStart.getFullYear(), currentStart.getMonth(), currentStart.getDate());
+        const newStartDate = new Date(startDateOnly);
+        timeChanged = currentStartDate.getTime() !== newStartDate.getTime();
+        Logger.log(`📅 終日イベントの日付比較: ${currentStartDate.toISOString()} vs ${newStartDate.toISOString()}`);
+      } else if (!isCurrentAllDay && !isAllDay) {
+        // 両方とも時間指定イベントの場合、時刻も比較
+        timeChanged = currentStart.getTime() !== startDate.getTime() || 
+                     currentEnd.getTime() !== endDate.getTime();
+      } else {
+        // 終日と時間指定が異なる場合は変更あり
+        timeChanged = true;
+        Logger.log(`📅 終日/時間指定のタイプが変更: ${isCurrentAllDay} → ${isAllDay}`);
+      }
       const locationChanged = currentLocation !== (event.location || '');
       
       // 説明文のハッシュが同じで、かつタイトル・日時・場所も同じ場合は更新をスキップ（無限ループ防止）
@@ -227,47 +297,90 @@ function upsertCalendarEvent(event: AttendanceEvent): string | null {
         return event.calendarEventId || null;
       }
       
-      // タイトル、日時、場所、説明文を更新
-      if (titleChanged) {
-        calendarEvent.setTitle(event.title);
-      }
-      if (timeChanged) {
-        calendarEvent.setTime(startDate, endDate);
-      }
-      if (locationChanged) {
-        calendarEvent.setLocation(event.location || '');
-      }
-      // 説明文のハッシュが異なる場合のみ説明文を更新
-      if (event.notesHash !== notesHash) {
-        calendarEvent.setDescription(description);
-      }
-      
-      // notesHashを更新（説明文が変更された場合のみ）
-      if (event.notesHash !== notesHash) {
-        updateEventCalendarInfo(event.id, event.calendarEventId || '', notesHash);
-      }
-      
-      Logger.log(`✅ カレンダーイベント更新成功: ${event.id} - ${event.calendarEventId}`);
-      return event.calendarEventId || null;
-    } else {
-      // 新規イベントを作成
-      const newCalendarEvent = calendar.createEvent(
-        event.title,
-        startDate,
-        endDate,
-        {
-          location: event.location || '',
-          description: description
+      // 終日と時間指定のタイプが異なる場合は、既存イベントを削除して新規作成
+      if ((isCurrentAllDay && !isAllDay) || (!isCurrentAllDay && isAllDay)) {
+        Logger.log(`🔄 終日/時間指定のタイプが変更されるため、既存イベントを削除して再作成`);
+        try {
+          calendarEvent.deleteEvent();
+          calendarEvent = null; // 新規作成処理に進む
+        } catch (error) {
+          Logger.log(`⚠️ 既存イベント削除エラー: ${(error as Error).message}`);
         }
-      );
+      } else {
+        // 同じタイプ（終日または時間指定）の場合は直接更新
+        if (titleChanged) {
+          calendarEvent.setTitle(event.title);
+        }
+        if (timeChanged) {
+          if (isAllDay && startDateOnly) {
+            // 終日イベントの場合は日付のみ設定
+            calendarEvent.setAllDayDate(startDateOnly);
+          } else {
+            calendarEvent.setTime(startDate, endDate);
+          }
+        }
+        if (locationChanged) {
+          calendarEvent.setLocation(event.location || '');
+        }
+        // 説明文のハッシュが異なる場合のみ説明文を更新
+        if (event.notesHash !== notesHash) {
+          calendarEvent.setDescription(description);
+        }
+        
+        // notesHashを更新（説明文が変更された場合のみ）
+        if (event.notesHash !== notesHash) {
+          updateEventCalendarInfo(event.id, event.calendarEventId || '', notesHash);
+        }
+        
+        Logger.log(`✅ カレンダーイベント更新成功: ${event.id} - ${event.calendarEventId}`);
+        return event.calendarEventId || null;
+      }
+      // calendarEventがnullの場合は、後続の新規作成処理に進む
+    }
+    
+    // 新規イベントを作成（calendarEventがnullの場合、または既存イベントを削除した場合）
+    Logger.log(`➕ カレンダーイベント作成中: ${event.title} (${startDate.toISOString()} ～ ${endDate.toISOString()})`);
+    try {
+      let newCalendarEvent: GoogleAppsScript.Calendar.CalendarEvent;
+      
+      if (isAllDay && startDateOnly) {
+        // 終日イベントとして作成
+        Logger.log(`📅 終日イベントとして作成: ${startDateOnly.toISOString()}`);
+        newCalendarEvent = calendar.createAllDayEvent(
+          event.title,
+          startDateOnly,
+          {
+            location: event.location || '',
+            description: description
+          }
+        );
+      } else {
+        // 時間指定イベントとして作成
+        Logger.log(`📅 時間指定イベントとして作成`);
+        newCalendarEvent = calendar.createEvent(
+          event.title,
+          startDate,
+          endDate,
+          {
+            location: event.location || '',
+            description: description
+          }
+        );
+      }
       
       const newCalendarEventId = newCalendarEvent.getId();
-      Logger.log(`✅ カレンダーイベント作成成功: ${event.id} - ${newCalendarEventId}`);
+      Logger.log(`✅ カレンダーイベント作成成功: ${event.id} - ${newCalendarEventId} (${isAllDay ? '終日' : '時間指定'})`);
       
       // EventsシートのcalendarEventIdとnotesHashを更新
+      Logger.log(`🔄 スプレッドシートのcalendarEventIdを更新: ${event.id} - ${newCalendarEventId}`);
       updateEventCalendarInfo(event.id, newCalendarEventId, notesHash);
       
+      Logger.log(`✅ upsertCalendarEvent完了: ${event.id} - ${newCalendarEventId}`);
       return newCalendarEventId;
+    } catch (error) {
+      Logger.log(`❌ カレンダーイベント作成エラー: ${event.id} - ${(error as Error).message}`);
+      Logger.log((error as Error).stack);
+      throw error;
     }
     
   } catch (error) {
@@ -600,7 +713,15 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
         spreadsheetEventMap.set(event.calendarEventId, event);
       }
       // タイトルと開始日時で重複チェック用のキーを作成
-      const titleDateKey = `${event.title}|${event.start}`;
+      // 終日イベントの場合は日付のみを使用
+      let titleDateKey: string;
+      if (event.isAllDay) {
+        const eventStart = new Date(event.start);
+        const dateOnly = `${eventStart.getFullYear()}-${String(eventStart.getMonth() + 1).padStart(2, '0')}-${String(eventStart.getDate()).padStart(2, '0')}`;
+        titleDateKey = `${event.title}|${dateOnly}`;
+      } else {
+        titleDateKey = `${event.title}|${event.start}`;
+      }
       // 既に存在する場合は、calendarEventIdが設定されている方を優先
       if (!spreadsheetEventByTitleAndDateMap.has(titleDateKey) || event.calendarEventId) {
         spreadsheetEventByTitleAndDateMap.set(titleDateKey, event);
@@ -619,12 +740,161 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
         const calendarEventUpdated = calendarEvent.getLastUpdated();
         
         // 説明欄に「【出欠状況】」が含まれている場合は、アプリで作成されたイベントと判断
+        // ただし、カレンダーに直接追加したイベントも同期できるようにするため、
+        // 「【出欠状況】」マーカーがない場合でも、タイトルと日時で既存イベントとマッチする場合は処理する
         const isAppCreated = calendarEventDescription.includes('【出欠状況】');
         
+        // アプリで作成されていないイベントの場合、タイトルと日時で既存イベントをチェック
         if (!isAppCreated) {
-          // アプリで作成されていないイベントはスキップ
-          Logger.log(`⚠️ スキップ: アプリで作成されていないイベント - ${calendarEventTitle}`);
-          continue;
+          // 終日イベントの場合は日付のみを使用
+          const isCalendarEventAllDay = calendarEvent.isAllDayEvent();
+          let titleDateKey: string;
+          if (isCalendarEventAllDay) {
+            const dateOnly = `${calendarEventStart.getFullYear()}-${String(calendarEventStart.getMonth() + 1).padStart(2, '0')}-${String(calendarEventStart.getDate()).padStart(2, '0')}`;
+            titleDateKey = `${calendarEventTitle}|${dateOnly}`;
+          } else {
+            titleDateKey = `${calendarEventTitle}|${calendarEventStart.toISOString()}`;
+          }
+          const existingEventByTitle = spreadsheetEventByTitleAndDateMap.get(titleDateKey);
+          
+          if (existingEventByTitle) {
+            // タイトルと日時が一致する既存イベントがある場合、calendarEventIdを設定して同期
+            Logger.log(`🔄 カレンダーイベントを既存イベントに紐付け: ${existingEventByTitle.id} - ${calendarEventTitle}`);
+            
+            const updateResult = updateEvent(existingEventByTitle.id, {
+              calendarEventId: calendarEventId,
+              lastSynced: calendarEventUpdated.toISOString()
+            }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+            
+            if (updateResult) {
+              result.success++;
+              Logger.log(`✅ カレンダーイベント紐付け成功: ${existingEventByTitle.id}`);
+            } else {
+              result.failed++;
+              const errorMsg = `カレンダーイベント紐付け失敗: ${existingEventByTitle.id}`;
+              result.errors.push(errorMsg);
+              Logger.log(`❌ ${errorMsg}`);
+            }
+            continue;
+          } else {
+            // 既存イベントがない場合、より厳密な重複チェックを行う
+            // タイトル、開始日時、終了日時、場所がすべて一致するイベントを検索
+            // 終日イベントの場合は日付のみで比較
+            const isCalendarEventAllDay = calendarEvent.isAllDayEvent();
+            const duplicateEventByAllFields = spreadsheetEvents.find(event => {
+              if (event.status !== 'active') return false;
+              const eventStart = new Date(event.start);
+              const eventEnd = new Date(event.end);
+              
+              // タイトルと場所の一致をチェック
+              if (event.title !== calendarEventTitle || (event.location || '') !== calendarEventLocation) {
+                return false;
+              }
+              
+              // 終日イベントの場合は日付のみで比較
+              if (isCalendarEventAllDay && event.isAllDay) {
+                // 日付のみを比較（時刻部分を無視）
+                const eventStartDate = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
+                const eventEndDate = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
+                const calendarStartDate = new Date(calendarEventStart.getFullYear(), calendarEventStart.getMonth(), calendarEventStart.getDate());
+                const calendarEndDate = new Date(calendarEventEnd.getFullYear(), calendarEventEnd.getMonth(), calendarEventEnd.getDate());
+                return eventStartDate.getTime() === calendarStartDate.getTime() &&
+                       eventEndDate.getTime() === calendarEndDate.getTime();
+              } else if (!isCalendarEventAllDay && !event.isAllDay) {
+                // 時間指定イベントの場合は時刻も含めて比較
+                return eventStart.getTime() === calendarEventStart.getTime() &&
+                       eventEnd.getTime() === calendarEventEnd.getTime();
+              } else {
+                // 終日と時間指定が異なる場合は一致しない
+                return false;
+              }
+            });
+            
+            if (duplicateEventByAllFields) {
+              // 完全一致するイベントが既に存在する場合、calendarEventIdを設定してスキップ
+              Logger.log(`🔄 完全一致する既存イベントを発見: ${duplicateEventByAllFields.id} - ${calendarEventTitle}`);
+              
+              if (!duplicateEventByAllFields.calendarEventId) {
+                // calendarEventIdが未設定の場合は設定
+                const updateResult = updateEvent(duplicateEventByAllFields.id, {
+                  calendarEventId: calendarEventId,
+                  lastSynced: calendarEventUpdated.toISOString()
+                }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+                
+                if (updateResult) {
+                  result.success++;
+                  Logger.log(`✅ calendarEventId設定成功（重複防止）: ${duplicateEventByAllFields.id}`);
+                } else {
+                  result.failed++;
+                  const errorMsg = `calendarEventId設定失敗: ${duplicateEventByAllFields.id}`;
+                  result.errors.push(errorMsg);
+                  Logger.log(`❌ ${errorMsg}`);
+                }
+              } else {
+                // calendarEventIdが既に設定されている場合はスキップ
+                // ただし、lastSyncedが未設定または古い場合は更新する
+                const lastSynced = duplicateEventByAllFields.lastSynced ? new Date(duplicateEventByAllFields.lastSynced) : new Date(0);
+                if (!duplicateEventByAllFields.lastSynced || calendarEventUpdated.getTime() > lastSynced.getTime()) {
+                  Logger.log(`🔄 lastSyncedを更新: ${duplicateEventByAllFields.id}`);
+                  const updateResult = updateEvent(duplicateEventByAllFields.id, {
+                    lastSynced: calendarEventUpdated.toISOString()
+                  }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+                  
+                  if (updateResult) {
+                    result.success++;
+                    Logger.log(`✅ lastSynced更新成功: ${duplicateEventByAllFields.id}`);
+                  } else {
+                    result.failed++;
+                    const errorMsg = `lastSynced更新失敗: ${duplicateEventByAllFields.id}`;
+                    result.errors.push(errorMsg);
+                    Logger.log(`❌ ${errorMsg}`);
+                  }
+                } else {
+                  Logger.log(`⏭️ スキップ: 完全一致する既存イベントにcalendarEventIdが既に設定済み - ${duplicateEventByAllFields.id}`);
+                  result.success++;
+                }
+              }
+              continue;
+            }
+            
+            // 既存イベントがない場合、新規イベントとして追加
+            Logger.log(`➕ カレンダーイベントを新規イベントとして追加: ${calendarEventTitle}`);
+            
+            // 説明欄から出欠サマリーを除去してdescriptionとして保存
+            let description = calendarEventDescription;
+            
+            const newEventId = createEvent(
+              calendarEventTitle,
+              calendarEventStart.toISOString(),
+              calendarEventEnd.toISOString(),
+              calendarEventLocation,
+              description
+            );
+            
+            if (newEventId) {
+              // calendarEventIdとlastSyncedを設定
+              const newEvent = getEventById(newEventId);
+              if (newEvent) {
+                updateEvent(newEventId, {
+                  calendarEventId: calendarEventId,
+                  lastSynced: calendarEventUpdated.toISOString()
+                }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+                result.success++;
+                Logger.log(`✅ 新規イベント追加成功: ${newEventId}`);
+              } else {
+                result.failed++;
+                const errorMsg = `新規イベント取得失敗: ${newEventId}`;
+                result.errors.push(errorMsg);
+                Logger.log(`❌ ${errorMsg}`);
+              }
+            } else {
+              result.failed++;
+              const errorMsg = `新規イベント作成失敗: ${calendarEventTitle}`;
+              result.errors.push(errorMsg);
+              Logger.log(`❌ ${errorMsg}`);
+            }
+            continue;
+          }
         }
         
         const existingEvent = spreadsheetEventMap.get(calendarEventId);
@@ -647,7 +917,7 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
               end: calendarEventEnd.toISOString(),
               location: calendarEventLocation,
               lastSynced: calendarEventUpdated.toISOString()
-            });
+            }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
             
             if (updateResult) {
               result.success++;
@@ -660,12 +930,38 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
             }
           } else {
             // Spreadsheetの方が新しい場合はスキップ
-            Logger.log(`⏭️ スキップ: Spreadsheetの方が新しい - ${existingEvent.id}`);
-            result.success++; // スキップも成功としてカウント
+            // ただし、lastSyncedが未設定の場合は更新する（次回の同期で再度処理されないようにするため）
+            if (!existingEvent.lastSynced) {
+              Logger.log(`🔄 lastSyncedが未設定のため更新: ${existingEvent.id}`);
+              const updateResult = updateEvent(existingEvent.id, {
+                lastSynced: calendarEventUpdated.toISOString()
+              }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+              
+              if (updateResult) {
+                result.success++;
+                Logger.log(`✅ lastSynced更新成功: ${existingEvent.id}`);
+              } else {
+                result.failed++;
+                const errorMsg = `lastSynced更新失敗: ${existingEvent.id}`;
+                result.errors.push(errorMsg);
+                Logger.log(`❌ ${errorMsg}`);
+              }
+            } else {
+              Logger.log(`⏭️ スキップ: Spreadsheetの方が新しい - ${existingEvent.id}`);
+              result.success++; // スキップも成功としてカウント
+            }
           }
         } else {
           // calendarEventIdで見つからなかった場合、タイトルと日時で重複チェック
-          const titleDateKey = `${calendarEventTitle}|${calendarEventStart.toISOString()}`;
+          // 終日イベントの場合は日付のみを使用
+          const isCalendarEventAllDay = calendarEvent.isAllDayEvent();
+          let titleDateKey: string;
+          if (isCalendarEventAllDay) {
+            const dateOnly = `${calendarEventStart.getFullYear()}-${String(calendarEventStart.getMonth() + 1).padStart(2, '0')}-${String(calendarEventStart.getDate()).padStart(2, '0')}`;
+            titleDateKey = `${calendarEventTitle}|${dateOnly}`;
+          } else {
+            titleDateKey = `${calendarEventTitle}|${calendarEventStart.toISOString()}`;
+          }
           const duplicateEvent = spreadsheetEventByTitleAndDateMap.get(titleDateKey);
           
           if (duplicateEvent) {
@@ -677,7 +973,7 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
               const updateResult = updateEvent(duplicateEvent.id, {
                 calendarEventId: calendarEventId,
                 lastSynced: calendarEventUpdated.toISOString()
-              });
+              }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
               
               if (updateResult) {
                 result.success++;
@@ -700,7 +996,7 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
                   end: calendarEventEnd.toISOString(),
                   location: calendarEventLocation,
                   lastSynced: calendarEventUpdated.toISOString()
-                });
+                }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
                 
                 if (updateResult) {
                   result.success++;
@@ -717,50 +1013,148 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
               }
             } else {
               // 同じcalendarEventIdの場合はスキップ（既に処理済み）
-              Logger.log(`⏭️ スキップ: 既に処理済み - ${duplicateEvent.id}`);
-              result.success++;
+              // ただし、lastSyncedが未設定または古い場合は更新する
+              const lastSynced = duplicateEvent.lastSynced ? new Date(duplicateEvent.lastSynced) : new Date(0);
+              if (!duplicateEvent.lastSynced || calendarEventUpdated.getTime() > lastSynced.getTime()) {
+                Logger.log(`🔄 lastSyncedを更新: ${duplicateEvent.id}`);
+                const updateResult = updateEvent(duplicateEvent.id, {
+                  lastSynced: calendarEventUpdated.toISOString()
+                }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+                
+                if (updateResult) {
+                  result.success++;
+                  Logger.log(`✅ lastSynced更新成功: ${duplicateEvent.id}`);
+                } else {
+                  result.failed++;
+                  const errorMsg = `lastSynced更新失敗: ${duplicateEvent.id}`;
+                  result.errors.push(errorMsg);
+                  Logger.log(`❌ ${errorMsg}`);
+                }
+              } else {
+                Logger.log(`⏭️ スキップ: 既に処理済み - ${duplicateEvent.id}`);
+                result.success++;
+              }
             }
           } else {
-            // 新規イベントをSpreadsheetに追加
-            Logger.log(`➕ 新規イベント追加: ${calendarEventTitle}`);
+            // 新規イベントを追加する前に、より厳密な重複チェックを行う
+            // タイトル、開始日時、終了日時、場所がすべて一致するイベントを検索
+            // 終日イベントの場合は日付のみで比較
+            const isCalendarEventAllDay = calendarEvent.isAllDayEvent();
+            const duplicateEventByAllFields = spreadsheetEvents.find(event => {
+              if (event.status !== 'active') return false;
+              const eventStart = new Date(event.start);
+              const eventEnd = new Date(event.end);
+              
+              // タイトルと場所の一致をチェック
+              if (event.title !== calendarEventTitle || (event.location || '') !== calendarEventLocation) {
+                return false;
+              }
+              
+              // 終日イベントの場合は日付のみで比較
+              if (isCalendarEventAllDay && event.isAllDay) {
+                // 日付のみを比較（時刻部分を無視）
+                const eventStartDate = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate());
+                const eventEndDate = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate());
+                const calendarStartDate = new Date(calendarEventStart.getFullYear(), calendarEventStart.getMonth(), calendarEventStart.getDate());
+                const calendarEndDate = new Date(calendarEventEnd.getFullYear(), calendarEventEnd.getMonth(), calendarEventEnd.getDate());
+                return eventStartDate.getTime() === calendarStartDate.getTime() &&
+                       eventEndDate.getTime() === calendarEndDate.getTime();
+              } else if (!isCalendarEventAllDay && !event.isAllDay) {
+                // 時間指定イベントの場合は時刻も含めて比較
+                return eventStart.getTime() === calendarEventStart.getTime() &&
+                       eventEnd.getTime() === calendarEventEnd.getTime();
+              } else {
+                // 終日と時間指定が異なる場合は一致しない
+                return false;
+              }
+            });
             
-            // 説明欄から出欠サマリーを除去してdescriptionとして保存
-            // （説明欄は「【出欠状況】」以降を除去）
-            let description = calendarEventDescription;
-            const attendanceIndex = description.indexOf('【出欠状況】');
-            if (attendanceIndex >= 0) {
-              description = description.substring(0, attendanceIndex).trim();
-            }
-            
-            const newEventId = createEvent(
-              calendarEventTitle,
-              calendarEventStart.toISOString(),
-              calendarEventEnd.toISOString(),
-              calendarEventLocation,
-              description
-            );
-            
-            if (newEventId) {
-              // calendarEventIdとlastSyncedを設定
-              const newEvent = getEventById(newEventId);
-              if (newEvent) {
-                updateEvent(newEventId, {
+            if (duplicateEventByAllFields) {
+              // 完全一致するイベントが既に存在する場合、calendarEventIdを設定してスキップ
+              Logger.log(`🔄 完全一致する既存イベントを発見: ${duplicateEventByAllFields.id} - ${calendarEventTitle}`);
+              
+              if (!duplicateEventByAllFields.calendarEventId) {
+                // calendarEventIdが未設定の場合は設定
+                const updateResult = updateEvent(duplicateEventByAllFields.id, {
                   calendarEventId: calendarEventId,
                   lastSynced: calendarEventUpdated.toISOString()
-                });
-                result.success++;
-                Logger.log(`✅ 新規イベント追加成功: ${newEventId}`);
+                }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+                
+                if (updateResult) {
+                  result.success++;
+                  Logger.log(`✅ calendarEventId設定成功（重複防止）: ${duplicateEventByAllFields.id}`);
+                } else {
+                  result.failed++;
+                  const errorMsg = `calendarEventId設定失敗: ${duplicateEventByAllFields.id}`;
+                  result.errors.push(errorMsg);
+                  Logger.log(`❌ ${errorMsg}`);
+                }
+              } else {
+                // calendarEventIdが既に設定されている場合はスキップ
+                // ただし、lastSyncedが未設定または古い場合は更新する
+                const lastSynced = duplicateEventByAllFields.lastSynced ? new Date(duplicateEventByAllFields.lastSynced) : new Date(0);
+                if (!duplicateEventByAllFields.lastSynced || calendarEventUpdated.getTime() > lastSynced.getTime()) {
+                  Logger.log(`🔄 lastSyncedを更新: ${duplicateEventByAllFields.id}`);
+                  const updateResult = updateEvent(duplicateEventByAllFields.id, {
+                    lastSynced: calendarEventUpdated.toISOString()
+                  }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+                  
+                  if (updateResult) {
+                    result.success++;
+                    Logger.log(`✅ lastSynced更新成功: ${duplicateEventByAllFields.id}`);
+                  } else {
+                    result.failed++;
+                    const errorMsg = `lastSynced更新失敗: ${duplicateEventByAllFields.id}`;
+                    result.errors.push(errorMsg);
+                    Logger.log(`❌ ${errorMsg}`);
+                  }
+                } else {
+                  Logger.log(`⏭️ スキップ: 完全一致する既存イベントにcalendarEventIdが既に設定済み - ${duplicateEventByAllFields.id}`);
+                  result.success++;
+                }
+              }
+            } else {
+              // 新規イベントをSpreadsheetに追加
+              Logger.log(`➕ 新規イベント追加: ${calendarEventTitle}`);
+              
+              // 説明欄から出欠サマリーを除去してdescriptionとして保存
+              // （説明欄は「【出欠状況】」以降を除去）
+              let description = calendarEventDescription;
+              const attendanceIndex = description.indexOf('【出欠状況】');
+              if (attendanceIndex >= 0) {
+                description = description.substring(0, attendanceIndex).trim();
+              }
+              
+              const newEventId = createEvent(
+                calendarEventTitle,
+                calendarEventStart.toISOString(),
+                calendarEventEnd.toISOString(),
+                calendarEventLocation,
+                description
+              );
+              
+              if (newEventId) {
+                // calendarEventIdとlastSyncedを設定
+                const newEvent = getEventById(newEventId);
+                if (newEvent) {
+                  updateEvent(newEventId, {
+                    calendarEventId: calendarEventId,
+                    lastSynced: calendarEventUpdated.toISOString()
+                  }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+                  result.success++;
+                  Logger.log(`✅ 新規イベント追加成功: ${newEventId}`);
+                } else {
+                  result.failed++;
+                  const errorMsg = `新規イベント取得失敗: ${newEventId}`;
+                  result.errors.push(errorMsg);
+                  Logger.log(`❌ ${errorMsg}`);
+                }
               } else {
                 result.failed++;
-                const errorMsg = `新規イベント取得失敗: ${newEventId}`;
+                const errorMsg = `新規イベント作成失敗: ${calendarEventTitle}`;
                 result.errors.push(errorMsg);
                 Logger.log(`❌ ${errorMsg}`);
               }
-            } else {
-              result.failed++;
-              const errorMsg = `新規イベント作成失敗: ${calendarEventTitle}`;
-              result.errors.push(errorMsg);
-              Logger.log(`❌ ${errorMsg}`);
             }
           }
         }
@@ -773,25 +1167,45 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
     }
     
     // Spreadsheetにあってカレンダーにないイベントを処理
-    const calendarEventIds = new Set(calendarEvents.map(e => e.getId()));
+    const calendarEventIds = new Set<string>();
+    for (const calendarEvent of calendarEvents) {
+      try {
+        const id = calendarEvent.getId();
+        calendarEventIds.add(id);
+      } catch (error) {
+        Logger.log(`⚠️ カレンダーイベントID取得エラー: ${(error as Error).message}`);
+      }
+    }
+    Logger.log(`📋 カレンダーに登録されていないイベントをチェック: Spreadsheetイベント ${spreadsheetEvents.length}件, カレンダーイベント ${calendarEvents.length}件, カレンダーイベントID ${calendarEventIds.size}件`);
     
+    let eventsToRevive = 0;
     for (const event of spreadsheetEvents) {
       if (event.status === 'active') {
         if (event.calendarEventId) {
           // calendarEventIdが設定されているが、カレンダーに存在しない場合
           // → カレンダーから削除された可能性があるが、同期で復活させる
           if (!calendarEventIds.has(event.calendarEventId)) {
-            Logger.log(`⚠️ カレンダーに存在しないイベント（同期で復活）: ${event.id} - ${event.title}`);
+            eventsToRevive++;
+            Logger.log(`⚠️ カレンダーに存在しないイベント（同期で復活）: ${event.id} - ${event.title} (calendarEventId: ${event.calendarEventId})`);
             
             try {
               // カレンダーに再作成
+              Logger.log(`🔄 カレンダーイベント復活処理開始: ${event.id}`);
               const newCalendarEventId = upsertCalendarEvent(event);
               if (newCalendarEventId) {
                 result.success++;
                 Logger.log(`✅ カレンダーイベント復活成功: ${event.id} - ${newCalendarEventId}`);
+                
+                // 新しいcalendarEventIdが返された場合、更新する
+                if (newCalendarEventId !== event.calendarEventId) {
+                  Logger.log(`🔄 calendarEventIdを更新: ${event.calendarEventId} → ${newCalendarEventId}`);
+                  updateEvent(event.id, {
+                    calendarEventId: newCalendarEventId
+                  }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+                }
               } else {
                 result.failed++;
-                const errorMsg = `カレンダーイベント復活失敗: ${event.id}`;
+                const errorMsg = `カレンダーイベント復活失敗: ${event.id} - upsertCalendarEventがnullを返しました`;
                 result.errors.push(errorMsg);
                 Logger.log(`❌ ${errorMsg}`);
               }
@@ -800,11 +1214,20 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
               const errorMsg = `カレンダーイベント復活エラー: ${event.id} - ${(error as Error).message}`;
               result.errors.push(errorMsg);
               Logger.log(`❌ ${errorMsg}`);
+              Logger.log((error as Error).stack);
             }
+          } else {
+            Logger.log(`✅ カレンダーイベント存在確認: ${event.id} - ${event.title} (calendarEventId: ${event.calendarEventId})`);
           }
         } else {
           // calendarEventIdが設定されていない場合 → カレンダーに追加
-          Logger.log(`➕ カレンダーに追加: ${event.id} - ${event.title}`);
+          Logger.log(`➕ カレンダーに追加: ${event.id} - ${event.title} (status: ${event.status})`);
+          
+          // statusがactiveでない場合はスキップ（既にチェック済みだが念のため）
+          if (event.status !== 'active') {
+            Logger.log(`⏭️ スキップ: statusがactiveでない - ${event.id} (status: ${event.status})`);
+            continue;
+          }
           
           try {
             const calendarEventId = upsertCalendarEvent(event);
@@ -813,7 +1236,7 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
               Logger.log(`✅ カレンダーイベント追加成功: ${event.id} - ${calendarEventId}`);
             } else {
               result.failed++;
-              const errorMsg = `カレンダーイベント追加失敗: ${event.id}`;
+              const errorMsg = `カレンダーイベント追加失敗: ${event.id} - ${event.title} (upsertCalendarEventがnullを返しました)`;
               result.errors.push(errorMsg);
               Logger.log(`❌ ${errorMsg}`);
             }
@@ -822,13 +1245,20 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
             const errorMsg = `カレンダーイベント追加エラー: ${event.id} - ${(error as Error).message}`;
             result.errors.push(errorMsg);
             Logger.log(`❌ ${errorMsg}`);
+            Logger.log((error as Error).stack);
           }
         }
+      } else {
+        Logger.log(`⏭️ スキップ: statusがactiveでない - ${event.id} (status: ${event.status || 'undefined'})`);
       }
     }
     
+    Logger.log(`📋 カレンダー同期チェック完了: 復活対象 ${eventsToRevive}件`);
     Logger.log(`=== カレンダー → アプリ同期完了 ===`);
     Logger.log(`成功: ${result.success}件, 失敗: ${result.failed}件`);
+    if (result.errors.length > 0) {
+      Logger.log(`エラー詳細: ${result.errors.join('; ')}`);
+    }
     
     return result;
     

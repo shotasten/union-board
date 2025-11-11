@@ -77,12 +77,33 @@ function createEvent(
     const eventId = generateUuid();
     const now = new Date().toISOString();
     
-    // カラム: id, title, start, end, location, description, calendarEventId, notesHash, status, createdAt, updatedAt, lastSynced
+    // 終日イベント判定
+    const allDay = isAllDayEvent(start, end);
+    
+    // 終日イベントの場合、startとendを日付のみ（時刻00:00:00）に正規化
+    let normalizedStart = start;
+    let normalizedEnd = end;
+    if (allDay) {
+      const startDate = new Date(start);
+      const endDate = new Date(end);
+      // 日本時間（JST）で日付を取得
+      const jstOffset = 9 * 60 * 60 * 1000;
+      const jstStart = new Date(startDate.getTime() + jstOffset);
+      const jstEnd = new Date(endDate.getTime() + jstOffset);
+      // 日付のみ（時刻00:00:00 UTC）に正規化
+      const startDateOnly = new Date(Date.UTC(jstStart.getUTCFullYear(), jstStart.getUTCMonth(), jstStart.getUTCDate()));
+      const endDateOnly = new Date(Date.UTC(jstEnd.getUTCFullYear(), jstEnd.getUTCMonth(), jstEnd.getUTCDate()));
+      normalizedStart = startDateOnly.toISOString();
+      normalizedEnd = endDateOnly.toISOString();
+    }
+    
+    // カラム: id, title, start, end, isAllDay, location, description, calendarEventId, notesHash, status, createdAt, updatedAt, lastSynced
     sheet.appendRow([
       eventId,
       title,
-      start,
-      end,
+      normalizedStart,
+      normalizedEnd,
+      allDay, // isAllDay
       location || '',
       description || '',
       '', // calendarEventId
@@ -95,11 +116,14 @@ function createEvent(
     
     Logger.log(`✅ イベント作成成功: ${eventId} - ${title}`);
     
-    // カレンダーに同期
+    // カレンダーに同期（calendarEventIdを即座に設定して初回複製を防止）
     try {
       const event = getEventById(eventId);
       if (event) {
-        upsertCalendarEvent(event);
+        const calendarEventId = upsertCalendarEvent(event);
+        if (calendarEventId) {
+          Logger.log(`✅ カレンダーイベントIDを即座に設定: ${eventId} - ${calendarEventId}`);
+        }
       }
     } catch (error) {
       Logger.log(`⚠️ カレンダー同期失敗（イベントは作成済み）: ${(error as Error).message}`);
@@ -156,23 +180,30 @@ function getEvents(filter?: 'upcoming' | 'past' | 'all'): AttendanceEvent[] {
       const row = data[i];
       
       // status が deleted のイベントは除外
-      if (row[8] === 'deleted') {
+      if (row[9] === 'deleted') {
         continue;
       }
+      
+      // isAllDayカラムが存在することを前提とする
+      // 存在しない場合はinitializeSpreadsheet()を実行してカラムを追加する必要がある
+      const isAllDayValue = row[4];
+      const isAllDay = isAllDayValue === true || isAllDayValue === 'TRUE' || isAllDayValue === 1 || isAllDayValue === '1' ? true : 
+                      (isAllDayValue === false || isAllDayValue === 'FALSE' || isAllDayValue === 0 || isAllDayValue === '0' ? false : undefined);
       
       const event: AttendanceEvent = {
         id: row[0],
         title: row[1],
         start: row[2],
         end: row[3],
-        location: row[4],
-        description: row[5],
-        calendarEventId: row[6] || undefined,
-        notesHash: row[7] || undefined,
-        status: row[8],
-        createdAt: row[9],
-        updatedAt: row[10],
-        lastSynced: row[11] || undefined
+        location: row[5],
+        description: row[6],
+        calendarEventId: row[7] || undefined,
+        notesHash: row[8] || undefined,
+        status: row[9],
+        createdAt: row[10],
+        updatedAt: row[11],
+        lastSynced: row[12] || undefined,
+        isAllDay: isAllDay
       };
       
       // 表示期間フィルター適用
@@ -236,24 +267,30 @@ function getEventById(eventId: string): AttendanceEvent | null {
       
       if (row[0] === eventId) {
         // status が deleted のイベントは除外
-        if (row[8] === 'deleted') {
+        if (row[9] === 'deleted') {
           Logger.log(`⚠️ イベントは削除済みです: ${eventId}`);
           return null;
         }
+        
+        // isAllDayカラムが存在することを前提とする
+        const isAllDayValue = row[4];
+        const isAllDay = isAllDayValue === true || isAllDayValue === 'TRUE' || isAllDayValue === 1 || isAllDayValue === '1' ? true : 
+                        (isAllDayValue === false || isAllDayValue === 'FALSE' || isAllDayValue === 0 || isAllDayValue === '0' ? false : undefined);
         
         const event: AttendanceEvent = {
           id: row[0],
           title: row[1],
           start: row[2],
           end: row[3],
-          location: row[4],
-          description: row[5],
-          calendarEventId: row[6] || undefined,
-          notesHash: row[7] || undefined,
-          status: row[8],
-          createdAt: row[9],
-          updatedAt: row[10],
-          lastSynced: row[11] || undefined
+          location: row[5],
+          description: row[6],
+          calendarEventId: row[7] || undefined,
+          notesHash: row[8] || undefined,
+          status: row[9],
+          createdAt: row[10],
+          updatedAt: row[11],
+          lastSynced: row[12] || undefined,
+          isAllDay: isAllDay
         };
         
         Logger.log(`✅ イベント取得成功: ${eventId}`);
@@ -275,9 +312,10 @@ function getEventById(eventId: string): AttendanceEvent | null {
  * イベントを更新
  * @param eventId イベントID
  * @param updates 更新データ（Partial<AttendanceEvent>）
+ * @param skipCalendarSync カレンダー同期をスキップするか（デフォルト: false）
  * @returns 成功: true, 失敗: false
  */
-function updateEvent(eventId: string, updates: Partial<AttendanceEvent>): boolean {
+function updateEvent(eventId: string, updates: Partial<AttendanceEvent>, skipCalendarSync: boolean = false): boolean {
   try {
     if (!eventId) {
       Logger.log('❌ エラー: イベントIDが指定されていません');
@@ -293,7 +331,7 @@ function updateEvent(eventId: string, updates: Partial<AttendanceEvent>): boolea
       
       if (row[0] === eventId) {
         // status が deleted のイベントは更新不可
-        if (row[8] === 'deleted') {
+        if (row[9] === 'deleted') {
           Logger.log(`❌ エラー: 削除済みのイベントは更新できません: ${eventId}`);
           return false;
         }
@@ -328,30 +366,67 @@ function updateEvent(eventId: string, updates: Partial<AttendanceEvent>): boolea
           updateValues.push({ col: 2, value: updates.title });
         }
         if (updates.start !== undefined) {
-          updateValues.push({ col: 3, value: updates.start });
+          // 終日イベントの場合、startを日付のみに正規化
+          let normalizedStart = updates.start;
+          const currentIsAllDay = updates.isAllDay !== undefined ? updates.isAllDay : (row[4] === true || row[4] === 'TRUE' || row[4] === 1 || row[4] === '1');
+          if (currentIsAllDay) {
+            const startDate = new Date(updates.start);
+            const jstOffset = 9 * 60 * 60 * 1000;
+            const jstStart = new Date(startDate.getTime() + jstOffset);
+            const startDateOnly = new Date(Date.UTC(jstStart.getUTCFullYear(), jstStart.getUTCMonth(), jstStart.getUTCDate()));
+            normalizedStart = startDateOnly.toISOString();
+          }
+          updateValues.push({ col: 3, value: normalizedStart });
         }
         if (updates.end !== undefined) {
-          updateValues.push({ col: 4, value: updates.end });
+          // 終日イベントの場合、endを日付のみに正規化
+          let normalizedEnd = updates.end;
+          const currentIsAllDay = updates.isAllDay !== undefined ? updates.isAllDay : (row[4] === true || row[4] === 'TRUE' || row[4] === 1 || row[4] === '1');
+          if (currentIsAllDay) {
+            const endDate = new Date(updates.end);
+            const jstOffset = 9 * 60 * 60 * 1000;
+            const jstEnd = new Date(endDate.getTime() + jstOffset);
+            const endDateOnly = new Date(Date.UTC(jstEnd.getUTCFullYear(), jstEnd.getUTCMonth(), jstEnd.getUTCDate()));
+            normalizedEnd = endDateOnly.toISOString();
+          }
+          updateValues.push({ col: 4, value: normalizedEnd });
+        }
+        if (updates.isAllDay !== undefined) {
+          updateValues.push({ col: 5, value: updates.isAllDay });
+          // isAllDayがtrueに変更された場合、startとendも正規化
+          if (updates.isAllDay === true) {
+            const currentStart = updates.start !== undefined ? updates.start : row[2];
+            const currentEnd = updates.end !== undefined ? updates.end : row[3];
+            const startDate = new Date(currentStart);
+            const endDate = new Date(currentEnd);
+            const jstOffset = 9 * 60 * 60 * 1000;
+            const jstStart = new Date(startDate.getTime() + jstOffset);
+            const jstEnd = new Date(endDate.getTime() + jstOffset);
+            const startDateOnly = new Date(Date.UTC(jstStart.getUTCFullYear(), jstStart.getUTCMonth(), jstStart.getUTCDate()));
+            const endDateOnly = new Date(Date.UTC(jstEnd.getUTCFullYear(), jstEnd.getUTCMonth(), jstEnd.getUTCDate()));
+            updateValues.push({ col: 3, value: startDateOnly.toISOString() });
+            updateValues.push({ col: 4, value: endDateOnly.toISOString() });
+          }
         }
         if (updates.location !== undefined) {
-          updateValues.push({ col: 5, value: updates.location });
+          updateValues.push({ col: 6, value: updates.location });
         }
         if (updates.description !== undefined) {
-          updateValues.push({ col: 6, value: updates.description });
+          updateValues.push({ col: 7, value: updates.description });
         }
         if (updates.calendarEventId !== undefined) {
-          updateValues.push({ col: 7, value: updates.calendarEventId });
+          updateValues.push({ col: 8, value: updates.calendarEventId });
         }
         if (updates.notesHash !== undefined) {
-          updateValues.push({ col: 8, value: updates.notesHash });
+          updateValues.push({ col: 9, value: updates.notesHash });
         }
         if (updates.status !== undefined) {
-          updateValues.push({ col: 9, value: updates.status });
+          updateValues.push({ col: 10, value: updates.status });
         }
         // updatedAtを自動更新
-        updateValues.push({ col: 11, value: now });
+        updateValues.push({ col: 12, value: now });
         if (updates.lastSynced !== undefined) {
-          updateValues.push({ col: 12, value: updates.lastSynced });
+          updateValues.push({ col: 13, value: updates.lastSynced });
         }
         
         // バッチ更新: 可能な限りまとめて更新
@@ -387,14 +462,18 @@ function updateEvent(eventId: string, updates: Partial<AttendanceEvent>): boolea
         
         Logger.log(`✅ イベント更新成功: ${eventId}`);
         
-        // カレンダーに同期
-        try {
-          const event = getEventById(eventId);
-          if (event) {
-            upsertCalendarEvent(event);
+        // カレンダーに同期（スキップフラグがfalseの場合のみ）
+        if (!skipCalendarSync) {
+          try {
+            const event = getEventById(eventId);
+            if (event) {
+              upsertCalendarEvent(event);
+            }
+          } catch (error) {
+            Logger.log(`⚠️ カレンダー同期失敗（イベントは更新済み）: ${(error as Error).message}`);
           }
-        } catch (error) {
-          Logger.log(`⚠️ カレンダー同期失敗（イベントは更新済み）: ${(error as Error).message}`);
+        } else {
+          Logger.log(`⏭️ カレンダー同期をスキップしました: ${eventId}`);
         }
         
         return true;
@@ -605,4 +684,82 @@ function testEventCrud() {
     Logger.log(`❌ エラー: テスト実行中にエラーが発生しました - ${(error as Error).message}`);
     Logger.log((error as Error).stack);
   }
+}
+
+/**
+ * 既存イベントのisAllDayフラグを一括設定
+ * すべてのイベントに対して終日判定を行い、isAllDayフラグを設定します
+ * @returns 処理結果（更新件数、エラー数など）
+ */
+function batchUpdateIsAllDayFlags(): { 
+  total: number; 
+  updated: number; 
+  skipped: number; 
+  errors: string[];
+} {
+  Logger.log('=== isAllDayフラグ一括設定開始 ===');
+  
+  const result = {
+    total: 0,
+    updated: 0,
+    skipped: 0,
+    errors: [] as string[]
+  };
+  
+  try {
+    // すべてのイベントを取得
+    const events = getEvents('all');
+    result.total = events.length;
+    
+    Logger.log(`📋 処理対象イベント数: ${result.total}件`);
+    
+    for (const event of events) {
+      try {
+        // 既にisAllDayフラグが設定されている場合はスキップ
+        if (event.isAllDay !== undefined) {
+          result.skipped++;
+          Logger.log(`⏭️ スキップ: ${event.id} - ${event.title} (既にisAllDayが設定済み: ${event.isAllDay})`);
+          continue;
+        }
+        
+        // 終日イベント判定
+        const isAllDay = isAllDayEvent(event.start, event.end);
+        
+        // フラグを更新
+        const updateResult = updateEvent(event.id, { isAllDay: isAllDay });
+        
+        if (updateResult) {
+          result.updated++;
+          Logger.log(`✅ 更新: ${event.id} - ${event.title} (isAllDay: ${isAllDay})`);
+        } else {
+          result.errors.push(`更新失敗: ${event.id} - ${event.title}`);
+          Logger.log(`❌ 更新失敗: ${event.id} - ${event.title}`);
+        }
+      } catch (error) {
+        result.errors.push(`エラー: ${event.id} - ${event.title} - ${(error as Error).message}`);
+        Logger.log(`❌ エラー: ${event.id} - ${event.title} - ${(error as Error).message}`);
+      }
+    }
+    
+    Logger.log(`\n=== isAllDayフラグ一括設定完了 ===`);
+    Logger.log(`📊 処理結果:`);
+    Logger.log(`  総数: ${result.total}件`);
+    Logger.log(`  更新: ${result.updated}件`);
+    Logger.log(`  スキップ: ${result.skipped}件`);
+    Logger.log(`  エラー: ${result.errors.length}件`);
+    
+    if (result.errors.length > 0) {
+      Logger.log(`\n❌ エラー詳細:`);
+      result.errors.forEach((error, index) => {
+        Logger.log(`  ${index + 1}. ${error}`);
+      });
+    }
+    
+  } catch (error) {
+    Logger.log(`❌ エラー: 一括設定処理中にエラーが発生しました - ${(error as Error).message}`);
+    Logger.log((error as Error).stack);
+    result.errors.push(`一括処理エラー: ${(error as Error).message}`);
+  }
+  
+  return result;
 }

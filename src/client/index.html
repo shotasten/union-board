@@ -3588,244 +3588,265 @@
       const commentsDiv = document.getElementById('event-detail-comments');
       const titleDiv = document.getElementById('event-detail-title');
       
-      if (infoDiv) infoDiv.innerHTML = '<div style="padding: 20px; text-align: center;">読み込み中...</div>';
+      // 初期化
+      if (infoDiv) infoDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">読み込み中...</div>';
       if (breakdownDiv) breakdownDiv.innerHTML = '';
       if (commentsDiv) commentsDiv.innerHTML = '';
       if (titleDiv) titleDiv.textContent = 'イベント詳細';
 
-      // イベント情報を取得
-      google.script.run
-        .withSuccessHandler((result) => {
-          if (!result.success || !result.event) {
-            if (infoDiv) infoDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">イベント情報の取得に失敗しました</div>';
-            return;
+      // キャッシュからデータを取得（API呼び出しなし！）
+      const event = currentEvents.find(e => e.id === eventId);
+      const responses = (window.allResponsesCache && window.allResponsesCache[eventId]) || [];
+      
+      console.log('✅ キャッシュからイベント詳細を表示:', {
+        eventId: eventId,
+        eventTitle: event?.title,
+        出欠数: responses.length
+      });
+      
+      if (!event) {
+        if (infoDiv) infoDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">イベント情報の取得に失敗しました</div>';
+        return;
+      }
+      
+      // 集計処理（クライアントサイドで実行）
+      const tally = {
+        attendCount: responses.filter(r => r.status === '○').length,
+        maybeCount: responses.filter(r => r.status === '△').length,
+        absentCount: responses.filter(r => r.status === '×').length,
+        undecidedCount: responses.filter(r => r.status === '-').length
+      };
+      
+      // タイトル設定
+      if (titleDiv) {
+        titleDiv.textContent = event.title || 'イベント詳細';
+      }
+      
+      // グローバル変数のmemberListを使用
+
+      // イベント情報を表示
+      if (infoDiv) {
+        // UTCをJSTに変換
+        const startDate = utcToJST(event.start);
+        const endDate = utcToJST(event.end);
+        
+        // 終日かどうかを判定（event.isAllDayフラグを使用）
+        const isAllDay = event.isAllDay === true || event.isAllDay === 'TRUE' || event.isAllDay === 1 || event.isAllDay === '1';
+        
+        // 開始日と終了日が異なる日付かどうかを判定（UTC文字列から直接日付部分を抽出）
+        // 終日イベントの場合、endが翌日の00:00:00でも1日の終日として扱う
+        let startDateOnlyStr = getDateFromUTC(event.start);
+        let endDateOnlyStr = getDateFromUTC(event.end);
+        
+        if (isAllDay) {
+          // 終日イベントの場合、endが翌日の00:00:00の場合は前日の日付として扱う
+          const endDateUTC = new Date(event.end);
+          const endDateOnly = new Date(endDateUTC.getUTCFullYear(), endDateUTC.getUTCMonth(), endDateUTC.getUTCDate());
+          const startDateOnly = new Date(new Date(event.start).getUTCFullYear(), new Date(event.start).getUTCMonth(), new Date(event.start).getUTCDate());
+          // endがstartの翌日で、時刻が00:00:00の場合は1日の終日として扱う
+          if (endDateOnly.getTime() - startDateOnly.getTime() === 24 * 60 * 60 * 1000 && 
+              endDateUTC.getUTCHours() === 0 && endDateUTC.getUTCMinutes() === 0 && endDateUTC.getUTCSeconds() === 0) {
+            endDateOnlyStr = startDateOnlyStr; // 同じ日として扱う
           }
+        }
+        
+        const isMultiDay = startDateOnlyStr !== endDateOnlyStr;
+        
+        let dateStr;
+        if (isMultiDay) {
+          // 複数日の場合は開始日～終了日を表示
+          const startDateDisplayStr = `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
+          const endDateDisplayStr = `${endDate.getFullYear()}年${endDate.getMonth() + 1}月${endDate.getDate()}日(${['日','月','火','水','木','金','土'][endDate.getDay()]})`;
+          dateStr = `${startDateDisplayStr}～${endDateDisplayStr}`;
+        } else {
+          // 単日の場合は開始日のみ
+          dateStr = `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
+        }
+        
+        let timeDisplay;
+        if (isAllDay) {
+          timeDisplay = '終日';
+        } else {
+          // 時刻フォーマット（JSTで表示）
+          const startTimeStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
+          const endTimeStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
+          timeDisplay = `${startTimeStr}～${endTimeStr}`;
+        }
 
-          const event = result.event;
-          const responses = result.responses || [];
-          // グローバル変数のmemberListを使用
+        infoDiv.innerHTML = `
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+            <h3 style="margin: 0 0 10px 0; font-size: 1.2rem;">${event.title || '予定'}</h3>
+            <div style="color: #666; font-size: 0.9rem; line-height: 1.8;">
+              <div><strong>日付:</strong> ${dateStr}</div>
+              <div><strong>時刻:</strong> ${timeDisplay}</div>
+              ${event.location ? `<div><strong>場所:</strong> ${event.location}</div>` : ''}
+              ${event.description ? `<div style="margin-top: 10px;"><strong>説明:</strong><br>${event.description.replace(/\n/g, '<br>')}</div>` : ''}
+            </div>
+          </div>
+        `;
+      }
 
-          // イベント情報を表示
-          if (infoDiv) {
-            // UTCをJSTに変換
-            const startDate = utcToJST(event.start);
-            const endDate = utcToJST(event.end);
-            
-            // 終日かどうかを判定（event.isAllDayフラグを使用）
-            const isAllDay = event.isAllDay === true || event.isAllDay === 'TRUE' || event.isAllDay === 1 || event.isAllDay === '1';
-            
-            // 開始日と終了日が異なる日付かどうかを判定（UTC文字列から直接日付部分を抽出）
-            // 終日イベントの場合、endが翌日の00:00:00でも1日の終日として扱う
-            let startDateOnlyStr = getDateFromUTC(event.start);
-            let endDateOnlyStr = getDateFromUTC(event.end);
-            
-            if (isAllDay) {
-              // 終日イベントの場合、endが翌日の00:00:00の場合は前日の日付として扱う
-              const endDateUTC = new Date(event.end);
-              const endDateOnly = new Date(endDateUTC.getUTCFullYear(), endDateUTC.getUTCMonth(), endDateUTC.getUTCDate());
-              const startDateOnly = new Date(new Date(event.start).getUTCFullYear(), new Date(event.start).getUTCMonth(), new Date(event.start).getUTCDate());
-              // endがstartの翌日で、時刻が00:00:00の場合は1日の終日として扱う
-              if (endDateOnly.getTime() - startDateOnly.getTime() === 24 * 60 * 60 * 1000 && 
-                  endDateUTC.getUTCHours() === 0 && endDateUTC.getUTCMinutes() === 0 && endDateUTC.getUTCSeconds() === 0) {
-                endDateOnlyStr = startDateOnlyStr; // 同じ日として扱う
-              }
-            }
-            
-            const isMultiDay = startDateOnlyStr !== endDateOnlyStr;
-            
-            let dateStr;
-            if (isMultiDay) {
-              // 複数日の場合は開始日～終了日を表示
-              const startDateDisplayStr = `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
-              const endDateDisplayStr = `${endDate.getFullYear()}年${endDate.getMonth() + 1}月${endDate.getDate()}日(${['日','月','火','水','木','金','土'][endDate.getDay()]})`;
-              dateStr = `${startDateDisplayStr}～${endDateDisplayStr}`;
-            } else {
-              // 単日の場合は開始日のみ
-              dateStr = `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
-            }
-            
-            let timeDisplay;
-            if (isAllDay) {
-              timeDisplay = '終日';
-            } else {
-              // 時刻フォーマット（JSTで表示）
-              const startTimeStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
-              const endTimeStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-              timeDisplay = `${startTimeStr}～${endTimeStr}`;
-            }
-
-            infoDiv.innerHTML = `
-              <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
-                <h3 style="margin: 0 0 10px 0; font-size: 1.2rem;">${event.title || '予定'}</h3>
-                <div style="color: #666; font-size: 0.9rem; line-height: 1.8;">
-                  <div><strong>日付:</strong> ${dateStr}</div>
-                  <div><strong>時刻:</strong> ${timeDisplay}</div>
-                  ${event.location ? `<div><strong>場所:</strong> ${event.location}</div>` : ''}
-                  ${event.description ? `<div style="margin-top: 10px;"><strong>説明:</strong><br>${event.description.replace(/\n/g, '<br>')}</div>` : ''}
-                </div>
-              </div>
-            `;
-          }
-
-          if (titleDiv) {
-            titleDiv.textContent = event.title || 'イベント詳細';
-          }
-
-          // 全体の集計（未選択も含む）
-          const totalCounts = { '○': 0, '△': 0, '×': 0, '-': 0 };
+      // 全体の集計（未選択も含む）
+      const totalCounts = { '○': 0, '△': 0, '×': 0, '-': 0 };
+      
+      // ステータスごとのパート内訳を集計（未選択も含む）
+      const statusBreakdown = { '○': {}, '△': {}, '×': {}, '-': {} }; // {status: {part: [names]}}
+      
+      responses.forEach(response => {
+        if (response.status === '○' || response.status === '△' || response.status === '×' || response.status === '-') {
+          totalCounts[response.status]++;
           
-          // ステータスごとのパート内訳を集計（未選択も含む）
-          const statusBreakdown = { '○': {}, '△': {}, '×': {}, '-': {} }; // {status: {part: [names]}}
+          // userKeyからメンバー情報を取得
+          let part = '';
+          let name = '';
           
-          responses.forEach(response => {
-            if (response.status === '○' || response.status === '△' || response.status === '×' || response.status === '-') {
-              totalCounts[response.status]++;
-              
-              // userKeyからメンバー情報を取得
-              let part = '';
-              let name = '';
-              
-              const member = memberList.find(m => m.userKey === response.userKey);
-              
-              if (member && typeof member === 'object') {
-                part = member.part || '';
-                name = member.name || '';
-              } else {
-                // メンバーが見つからない場合、userKeyから推測を試みる
-                // userKeyがanon-で始まる場合は匿名ユーザー
-                if (response.userKey && response.userKey.startsWith('anon-')) {
-                  const userName = response.userKey.replace('anon-', '');
-                  const parsed = parseMemberName(userName);
-                  part = parsed.part || '';
-                  name = parsed.name || userName;
-                } else {
-                  // userKeyから推測できない場合
-                  part = '';
-                  name = '不明';
-                }
-              }
-
-              // パートが空の場合は「その他」として扱う
-              const partKey = part || 'その他';
-              if (!statusBreakdown[response.status][partKey]) {
-                statusBreakdown[response.status][partKey] = [];
-              }
-              
-              statusBreakdown[response.status][partKey].push(name);
+          const member = memberList.find(m => m.userKey === response.userKey);
+          
+          if (member && typeof member === 'object') {
+            part = member.part || '';
+            name = member.name || '';
+          } else {
+            // メンバーが見つからない場合、userKeyから推測を試みる
+            // userKeyがanon-で始まる場合は匿名ユーザー
+            if (response.userKey && response.userKey.startsWith('anon-')) {
+              const userName = response.userKey.replace('anon-', '');
+              const parsed = parseMemberName(userName);
+              part = parsed.part || '';
+              name = parsed.name || userName;
+            } else {
+              // userKeyから推測できない場合
+              part = '';
+              name = '不明';
             }
+          }
+
+          // パートが空の場合は「その他」として扱う
+          const partKey = part || 'その他';
+          if (!statusBreakdown[response.status][partKey]) {
+            statusBreakdown[response.status][partKey] = [];
+          }
+          
+          statusBreakdown[response.status][partKey].push(name);
+        }
+      });
+
+      // パートごとの内訳を表示
+      if (breakdownDiv) {
+        const partOrder = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc', 'その他'];
+        
+        function sortParts(parts) {
+          return parts.sort((a, b) => {
+            const indexA = partOrder.indexOf(a);
+            const indexB = partOrder.indexOf(b);
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA === -1 && indexB !== -1) return 1;
+            if (indexA !== -1 && indexB === -1) return -1;
+            return a.localeCompare(b, 'ja');
           });
+        }
 
-          // パートごとの内訳を表示
-          if (breakdownDiv) {
-            const partOrder = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc', 'その他'];
+        if (responses.length === 0) {
+          breakdownDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">出欠回答がありません</div>';
+        } else {
+          let html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">';
+          
+          // 全体の集計を表示（未選択も含む）
+          html += '<h3 style="margin: 0 0 15px 0; font-size: 1.1rem;">全体の集計</h3>';
+          html += '<div style="margin-bottom: 20px; padding: 12px; background: white; border-radius: 6px; display: flex; gap: 20px; justify-content: center;">';
+          html += `<div style="text-align: center;"><span style="color: #4caf50; font-weight: bold; font-size: 1.2rem;">○</span><br><span style="font-size: 0.9rem; color: #666;">${totalCounts['○']}人</span></div>`;
+          html += `<div style="text-align: center;"><span style="color: #ff9800; font-weight: bold; font-size: 1.2rem;">△</span><br><span style="font-size: 0.9rem; color: #666;">${totalCounts['△']}人</span></div>`;
+          html += `<div style="text-align: center;"><span style="color: #f44336; font-weight: bold; font-size: 1.2rem;">×</span><br><span style="font-size: 0.9rem; color: #666;">${totalCounts['×']}人</span></div>`;
+          html += `<div style="text-align: center;"><span style="color: #999; font-weight: bold; font-size: 1.2rem;">-</span><br><span style="font-size: 0.9rem; color: #666;">${totalCounts['-']}人</span></div>`;
+          html += '</div>';
+          
+          // 各ステータスごとの内訳を表示（未選択も含む）
+          ['○', '△', '×', '-'].forEach(status => {
+            const partData = statusBreakdown[status];
+            const sortedParts = sortParts(Object.keys(partData));
+            const statusColor = status === '○' ? '#4caf50' : status === '△' ? '#ff9800' : status === '×' ? '#f44336' : '#999';
+            const statusLabel = status === '○' ? '出席' : status === '△' ? '遅刻/早退' : status === '×' ? '欠席' : '未定';
             
-            function sortParts(parts) {
-              return parts.sort((a, b) => {
-                const indexA = partOrder.indexOf(a);
-                const indexB = partOrder.indexOf(b);
-                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-                if (indexA === -1 && indexB !== -1) return 1;
-                if (indexA !== -1 && indexB === -1) return -1;
-                return a.localeCompare(b, 'ja');
-              });
+            if (sortedParts.length === 0) {
+              return; // このステータスの回答がない場合はスキップ
             }
+            
+            html += `<div style="margin-bottom: 20px;">`;
+            html += `<h4 style="margin: 0 0 10px 0; font-size: 1rem; color: ${statusColor}; font-weight: bold;">${status} (${statusLabel}) の内訳</h4>`;
+            
+            sortedParts.forEach(part => {
+              const names = partData[part];
+              if (names.length === 0) return;
+              
+              html += `<div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 6px; border-left: 4px solid ${statusColor};">`;
+              html += `<div style="font-weight: bold; margin-bottom: 5px; font-size: 0.95rem;">${part || 'その他'} (${names.length}人)</div>`;
+              html += `<div style="color: #666; font-size: 0.9rem;">${names.join('、')}</div>`;
+              html += `</div>`;
+            });
+            
+            html += `</div>`;
+          });
+          
+          html += '</div>';
+          breakdownDiv.innerHTML = html;
+        }
+      }
 
-            if (responses.length === 0) {
-              breakdownDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">出欠回答がありません</div>';
+      // コメント一覧を表示
+      const comments = responses.filter(r => r.comment && r.comment.trim());
+      if (commentsDiv) {
+        if (comments.length === 0) {
+          commentsDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">コメントはありません</div>';
+        } else {
+          let html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px;"><h3 style="margin: 0 0 15px 0; font-size: 1.1rem;">コメント一覧</h3>';
+          
+          comments.forEach(response => {
+            // userKeyからメンバー情報を取得
+            let part = '';
+            let name = '';
+            
+            const member = memberList.find(m => m.userKey === response.userKey);
+            
+            if (member && typeof member === 'object') {
+              part = member.part || '';
+              name = member.name || '';
+            } else if (response.userKey && response.userKey.startsWith('anon-')) {
+              // 匿名ユーザーの場合、userKeyから名前を推測
+              const userName = response.userKey.replace('anon-', '');
+              const parsed = parseMemberName(userName);
+              part = parsed.part || '';
+              name = parsed.name || userName;
             } else {
-              let html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">';
-              
-              // 全体の集計を表示（未選択も含む）
-              html += '<h3 style="margin: 0 0 15px 0; font-size: 1.1rem;">全体の集計</h3>';
-              html += '<div style="margin-bottom: 20px; padding: 12px; background: white; border-radius: 6px; display: flex; gap: 20px; justify-content: center;">';
-              html += `<div style="text-align: center;"><span style="color: #4caf50; font-weight: bold; font-size: 1.2rem;">○</span><br><span style="font-size: 0.9rem; color: #666;">${totalCounts['○']}人</span></div>`;
-              html += `<div style="text-align: center;"><span style="color: #ff9800; font-weight: bold; font-size: 1.2rem;">△</span><br><span style="font-size: 0.9rem; color: #666;">${totalCounts['△']}人</span></div>`;
-              html += `<div style="text-align: center;"><span style="color: #f44336; font-weight: bold; font-size: 1.2rem;">×</span><br><span style="font-size: 0.9rem; color: #666;">${totalCounts['×']}人</span></div>`;
-              html += `<div style="text-align: center;"><span style="color: #999; font-weight: bold; font-size: 1.2rem;">-</span><br><span style="font-size: 0.9rem; color: #666;">${totalCounts['-']}人</span></div>`;
-              html += '</div>';
-              
-              // 各ステータスごとの内訳を表示（未選択も含む）
-              ['○', '△', '×', '-'].forEach(status => {
-                const partData = statusBreakdown[status];
-                const sortedParts = sortParts(Object.keys(partData));
-                const statusColor = status === '○' ? '#4caf50' : status === '△' ? '#ff9800' : status === '×' ? '#f44336' : '#999';
-                const statusLabel = status === '○' ? '出席' : status === '△' ? '遅刻/早退' : status === '×' ? '欠席' : '未定';
-                
-                if (sortedParts.length === 0) {
-                  return; // このステータスの回答がない場合はスキップ
-                }
-                
-                html += `<div style="margin-bottom: 20px;">`;
-                html += `<h4 style="margin: 0 0 10px 0; font-size: 1rem; color: ${statusColor}; font-weight: bold;">${status} (${statusLabel}) の内訳</h4>`;
-                
-                sortedParts.forEach(part => {
-                  const names = partData[part];
-                  if (names.length === 0) return;
-                  
-                  html += `<div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 6px; border-left: 4px solid ${statusColor};">`;
-                  html += `<div style="font-weight: bold; margin-bottom: 5px; font-size: 0.95rem;">${part || 'その他'} (${names.length}人)</div>`;
-                  html += `<div style="color: #666; font-size: 0.9rem;">${names.join('、')}</div>`;
-                  html += `</div>`;
-                });
-                
-                html += `</div>`;
-              });
-              
-              html += '</div>';
-              breakdownDiv.innerHTML = html;
+              // メンバーが見つからない場合
+              part = '';
+              name = '不明';
             }
-          }
 
-          // コメント一覧を表示
-          const comments = responses.filter(r => r.comment && r.comment.trim());
-          if (commentsDiv) {
-            if (comments.length === 0) {
-              commentsDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">コメントはありません</div>';
-            } else {
-              let html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px;"><h3 style="margin: 0 0 15px 0; font-size: 1.1rem;">コメント一覧</h3>';
-              
-              comments.forEach(response => {
-                // userKeyからメンバー情報を取得
-                let part = '';
-                let name = '';
-                
-                const member = memberList.find(m => m.userKey === response.userKey);
-                
-                if (member && typeof member === 'object') {
-                  part = member.part || '';
-                  name = member.name || '';
-                } else if (response.userKey && response.userKey.startsWith('anon-')) {
-                  // 匿名ユーザーの場合、userKeyから名前を推測
-                  const userName = response.userKey.replace('anon-', '');
-                  const parsed = parseMemberName(userName);
-                  part = parsed.part || '';
-                  name = parsed.name || userName;
-                } else {
-                  // メンバーが見つからない場合
-                  part = '';
-                  name = '不明';
-                }
+            const statusColor = response.status === '○' ? '#4caf50' : response.status === '△' ? '#ff9800' : response.status === '×' ? '#f44336' : '#999';
+            html += `<div style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid ${statusColor};">`;
+            html += `<div style="font-weight: bold; margin-bottom: 5px; font-size: 0.95rem;">`;
+            html += `<span style="color: ${statusColor}; margin-right: 5px;">${response.status}</span>`;
+            html += `<span>${part ? part + ' ' : ''}${name}</span>`;
+            html += `</div>`;
+            html += `<div style="color: #333; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap;">${response.comment.replace(/\n/g, '<br>')}</div>`;
+            html += `</div>`;
+          });
+          
+          html += '</div>';
+          commentsDiv.innerHTML = html;
+        }
+      }
 
-                const statusColor = response.status === '○' ? '#4caf50' : response.status === '△' ? '#ff9800' : response.status === '×' ? '#f44336' : '#999';
-                html += `<div style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid ${statusColor};">`;
-                html += `<div style="font-weight: bold; margin-bottom: 5px; font-size: 0.95rem;">`;
-                html += `<span style="color: ${statusColor}; margin-right: 5px;">${response.status}</span>`;
-                html += `<span>${part ? part + ' ' : ''}${name}</span>`;
-                html += `</div>`;
-                html += `<div style="color: #333; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap;">${response.comment.replace(/\n/g, '<br>')}</div>`;
-                html += `</div>`;
-              });
-              
-              html += '</div>';
-              commentsDiv.innerHTML = html;
-            }
-          }
-        })
-        .withFailureHandler((error) => {
-          console.error('イベント詳細取得エラー:', error);
-          if (infoDiv) infoDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">エラーが発生しました</div>';
-        })
-        .getEventWithResponses(eventId);
+      // 削除ボタンの設定（管理者のみ表示）
+      const deleteBtn = document.getElementById('event-detail-delete-btn');
+      if (deleteBtn) {
+        deleteBtn.onclick = () => {
+          closeEventDetailModal();
+          openDeleteConfirm(eventId, event.title || 'イベント');
+        };
+        
+        // 管理者UIの表示/非表示を更新
+        deleteBtn.style.display = isAdminUser ? 'inline-block' : 'none';
+      }
     }
 
     /**

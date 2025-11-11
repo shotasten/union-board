@@ -898,7 +898,8 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
               calendarEventStart.toISOString(),
               calendarEventEnd.toISOString(),
               calendarEventLocation,
-              description
+              description,
+              true // skipCalendarSync: true（カレンダーから追加する場合、既にカレンダーにあるため新規作成しない）
             );
             
             if (newEventId) {

@@ -44,3 +44,365 @@ Q4. パフォーマンス計測データの有無
 
 Q5. 調査スコープ
 Q3.でこたえた優先度で対応してほしい
+
+
+
+# GAS出欠管理アプリ パフォーマンス改善実装プロンプト
+
+あなたは熟練のフルスタックエンジニアです。GAS出欠管理アプリのパフォーマンス改善を実装してください。
+
+## 📋 作業概要
+
+現在、アプリの初回読み込みに13-14秒かかっており、N+1クエリ問題が原因で遅延しています。
+以下の5つのPhaseに分けて改善を実装し、**各Phase完了ごとにコミット**してください。
+**全てのPhaseが完了するまで作業を中断しないでください。**
+
+**目標**: 初回読み込み 13-14秒 → **2秒以下**（85-90%改善）
+
+---
+
+## 📚 参照ドキュメント
+
+以下の順序で必ず参照してください：
+
+### 必読（実装前）
+1. **`docs/performance/QUICKSTART_IMPLEMENTATION.md`**
+   - クイックスタートガイド（10分）
+   - 全体の流れと各Phaseの概要
+
+2. **`docs/performance/performance_improvement_samples.md`**
+   - 実装サンプルコード集
+   - コピペで使える具体的なコード例
+   - **各Phaseの実装時にこのファイルを必ず参照**
+
+### 参考（詳細確認時）
+3. **`docs/performance/performance_investigation_report.md`**
+   - 詳細調査レポート
+   - N+1問題の技術的背景
+
+4. **`docs/performance/performance_implementation_plan.md`**
+   - 実装計画書
+   - テスト項目とチェックリスト
+
+---
+
+## 🎯 実装指示
+
+### 重要な実装ルール
+
+1. **各Phase完了後、必ずコミット**してください
+2. **コミットメッセージは以下の形式**:
+   ```
+   Phase N: [機能名] パフォーマンス改善
+   
+   - 実装内容の箇条書き
+   - 期待効果: XX秒 → YY秒
+   ```
+
+3. **全Phaseが完了するまで作業を止めない**
+4. **エラーが発生したら、必ずログを確認して修正**
+5. **コードは `performance_improvement_samples.md` から正確にコピー**
+
+---
+
+## 📦 Phase 1: バッチ取得API実装（最重要・3時間）
+
+### 参照資料
+- `docs/performance/performance_improvement_samples.md` の「Phase 1」セクション
+
+### 実装内容
+
+#### 1-1. サーバーサイド: `getAllResponses()` 追加
+- **ファイル**: `src/server/responses.ts`
+- **追加場所**: `getResponses()` 関数の後
+- **コード**: `performance_improvement_samples.md` の「Phase 1 - 1」を参照
+
+#### 1-2. サーバーサイド: `getAllEventsWithResponses()` 追加
+- **ファイル**: `src/main.ts`
+- **追加場所**: `getEventWithResponses()` 関数の後
+- **コード**: `performance_improvement_samples.md` の「Phase 1 - 2」を参照
+
+#### 1-3. クライアントサイド: グローバルキャッシュ追加
+- **ファイル**: `src/client/index.html`
+- **追加場所**: `<script>` タグ内の先頭（約1830行目）
+- **追加コード**:
+  window.allResponsesCache = {};#### 1-4. クライアントサイド: `renderGrid()` 書き換え
+- **ファイル**: `src/client/index.html`
+- **変更箇所**: `renderGrid()` 関数（約2458-2508行目）
+- **コード**: `performance_improvement_samples.md` の「Phase 1 - 3」を参照
+- **重要**: 既存の12個のループを削除し、1回のAPI呼び出しに置き換える
+
+#### 1-5. ビルド・デプロイ・動作確認
+npm run build
+npm run push#### 1-6. テスト
+- ブラウザでアプリを開く
+- Network タブで `exec?` リクエストが2-3回になっていることを確認
+- 表形式で出欠データが正しく表示されることを確認
+
+### ✅ Phase 1 完了後、以下でコミット:
+git add -A
+git commit -m "Phase 1: バッチ取得API実装 パフォーマンス改善
+
+- getAllResponses()関数を追加（全出欠データ一括取得）
+- getAllEventsWithResponses()関数を追加（バッチAPI）
+- renderGrid()をバッチAPI使用に書き換え
+- グローバルキャッシュ（window.allResponsesCache）を追加
+
+期待効果: API呼び出し 14回 → 2-3回（約80%削減）"---
+
+## 📦 Phase 2: モーダルのキャッシュ活用（1時間）
+
+### 参照資料
+- `docs/performance/performance_improvement_samples.md` の「Phase 2」セクション
+
+### 実装内容
+
+#### 2-1. `renderEventStatusList()` 書き換え
+- **ファイル**: `src/client/index.html`
+- **変更箇所**: `renderEventStatusList()` 関数（約3245-3297行目）
+- **コード**: `performance_improvement_samples.md` の「Phase 2」を参照
+- **重要**: 12個のAPI呼び出しループを削除し、キャッシュを使用
+
+#### 2-2. テスト
+- メンバー名をクリック
+- モーダルが即座に表示されることを確認（6秒 → 0.1秒）
+- Network タブでAPI呼び出しが発生しないことを確認
+
+### ✅ Phase 2 完了後、以下でコミット:
+git add -A
+git commit -m "Phase 2: 出欠登録モーダルのキャッシュ活用 パフォーマンス改善
+
+- renderEventStatusList()をキャッシュ使用に書き換え
+- API呼び出し12回を0回に削減
+
+期待効果: モーダル表示 6秒 → 0.1秒（約98%改善）"---
+
+## 📦 Phase 3: loadInitData統合（1時間）
+
+### 参照資料
+- `docs/performance/performance_improvement_samples.md` の「Phase 3」セクション
+
+### 実装内容
+
+#### 3-1. `getInitData()` 拡張
+- **ファイル**: `src/main.ts`
+- **変更箇所**: `getInitData()` 関数（71-111行目）
+- **コード**: `performance_improvement_samples.md` の「Phase 3 - 1」を参照
+- **重要**: 返り値の型に `responsesMap` を追加
+
+#### 3-2. `loadInitData()` 修正
+- **ファイル**: `src/client/index.html`
+- **変更箇所**: `loadInitData()` の `withSuccessHandler` 内
+- **コード**: `performance_improvement_samples.md` の「Phase 3 - 2」を参照
+- **追加内容**: キャッシュ保存処理
+
+#### 3-3. `renderGrid()` 最終形
+- **ファイル**: `src/client/index.html`
+- **変更箇所**: `renderGrid()` 関数
+- **コード**: `performance_improvement_samples.md` の「Phase 3 - 3」を参照
+- **重要**: API呼び出しを完全に削除し、キャッシュから取得
+
+#### 3-4. ビルド・デプロイ・テスト
+npm run build
+npm run push#### 3-5. テスト
+- Network タブで `exec?` リクエストが **1回のみ** になることを確認
+- 初回読み込み速度を測定（目標: 2-3秒）
+
+### ✅ Phase 3 完了後、以下でコミット:
+git add -A
+git commit -m "Phase 3: loadInitData統合 パフォーマンス改善
+
+- getInitData()にresponsesMap追加
+- loadInitData()でキャッシュ保存
+- renderGrid()を最終形に変更（API呼び出しなし）
+
+期待効果: 初回読み込み API呼び出し 2-3回 → 1回"---
+
+## 📦 Phase 4: イベント詳細モーダル最適化（30分）
+
+### 参照資料
+- `docs/performance/performance_improvement_samples.md` の「Phase 4」セクション
+
+### 実装内容
+
+#### 4-1. `showEventDetailModal()` 書き換え
+- **ファイル**: `src/client/index.html`
+- **変更箇所**: `showEventDetailModal()` 関数（約3575行目～）
+- **コード**: `performance_improvement_samples.md` の「Phase 4」を参照
+- **重要**: API呼び出しを削除し、キャッシュとクライアント側集計に変更
+
+#### 4-2. テスト
+- イベント名をクリック
+- モーダルが即座に表示されることを確認（1.5秒 → 0.1秒）
+- 集計、コメントが正しく表示されることを確認
+
+### ✅ Phase 4 完了後、以下でコミット:
+git add -A
+git commit -m "Phase 4: イベント詳細モーダル最適化 パフォーマンス改善
+
+- showEventDetailModal()をキャッシュ使用に書き換え
+- 集計処理をクライアントサイドで実行
+
+期待効果: モーダル表示 1.5秒 → 0.1秒（約93%改善）"---
+
+## 📦 Phase 5: 出欠保存のバッチ化（2時間）
+
+### 参照資料
+- `docs/performance/performance_improvement_samples.md` の「Phase 3（問題3）」セクション
+
+### 実装内容
+
+#### 5-1. `userSubmitResponsesBatch()` 追加
+- **ファイル**: `src/main.ts`
+- **追加場所**: `userSubmitResponse()` 関数の後
+- **コード**: `performance_improvement_samples.md` の「Phase 3（問題3）- 1」を参照
+
+#### 5-2. `bulkUpdateResponsesForSelectedMember()` 書き換え
+- **ファイル**: `src/client/index.html`
+- **変更箇所**: `bulkUpdateResponsesForSelectedMember()` 関数（約4330-4380行目）
+- **コード**: `performance_improvement_samples.md` の「Phase 3（問題3）- 2」を参照
+- **重要**: ループでのAPI呼び出しを削除し、1回のバッチAPI呼び出しに変更
+
+#### 5-3. ビルド・デプロイ・テスト
+npm run build
+npm run push#### 5-4. テスト
+- 複数の出欠を変更して保存
+- 保存が1秒以内に完了することを確認（5件で3-5秒 → 1秒）
+- Network タブでAPI呼び出しが1回のみであることを確認
+
+### ✅ Phase 5 完了後、以下でコミット:
+git add -A
+git commit -m "Phase 5: 出欠保存のバッチ化 パフォーマンス改善
+
+- userSubmitResponsesBatch()関数を追加（バッチ保存API）
+- bulkUpdateResponsesForSelectedMember()をバッチAPI使用に書き換え
+- キャッシュ更新処理を追加
+
+期待効果: 出欠保存（5件） 3-5秒 → 1秒以下（約70%改善）"---
+
+## 🎉 全Phase完了後の最終確認
+
+### 最終テスト
+
+1. **初回読み込み速度測定**
+   // Chrome DevTools Console で実行
+   console.time('初回読み込み');
+   location.reload();
+   // 読み込み完了後
+   console.timeEnd('初回読み込み');   - **目標**: 2秒以下
+
+2. **API呼び出し数確認**
+   - Network タブ → XHR フィルタ
+   - `exec?` で始まるリクエスト数をカウント
+   - **目標**: 1回のみ
+
+3. **機能確認**
+   - [ ] 表形式で出欠データが正しく表示
+   - [ ] メンバー名クリックでモーダルが即座に表示
+   - [ ] イベント名クリックで詳細モーダルが即座に表示
+   - [ ] 出欠の変更と保存が高速に完了
+   - [ ] エラーが発生していない
+
+### 最終コミット
+
+全てのPhaseが完了し、テストもパスしたら、以下でまとめコミット:
+
+git add -A
+git commit -m "パフォーマンス改善完了: 全5Phase実装
+
+【改善結果】
+- 初回読み込み: 13-14秒 → 2秒以下（85-90%改善）
+- API呼び出し数: 14回 → 1回（93%削減）
+- モーダル表示: 6秒 → 0.1秒（98%改善）
+- 出欠保存: 3-5秒 → 1秒以下（70%改善）
+
+【実装内容】
+Phase 1: バッチ取得API実装
+Phase 2: モーダルキャッシュ活用
+Phase 3: loadInitData統合
+Phase 4: イベント詳細モーダル最適化
+Phase 5: 出欠保存バッチ化
+
+【技術的変更】
+- N+1クエリ問題の解消
+- グローバルキャッシュの導入
+- クライアントサイド集計の実装
+- バッチAPIの実装"---
+
+## 🚨 重要な注意事項
+
+### 必ず守ること
+
+1. **各Phase完了後に必ずコミット**
+   - Phase 1 → コミット
+   - Phase 2 → コミット
+   - Phase 3 → コミット
+   - Phase 4 → コミット
+   - Phase 5 → コミット
+   - 最終確認 → コミット
+
+2. **`performance_improvement_samples.md` からコードをコピー**
+   - 自分でコードを書かない
+   - サンプルコードを正確にコピーして使用
+
+3. **エラーが発生したら即座に対応**
+   - GAS実行ログを確認
+   - ブラウザコンソールを確認
+   - サンプルコードと比較して修正
+
+4. **全Phase完了まで中断しない**
+   - 途中で止まらない
+   - 問題が発生しても解決して進める
+
+### トラブルシューティング
+
+エラーが発生したら、以下を確認:
+
+1. **ビルドエラー**
+   npm run build   - TypeScriptの型エラーを確認
+   - `performance_improvement_samples.md` のコードと比較
+
+2. **実行時エラー**
+   - GAS: Apps Script エディタ → 実行ログ
+   - ブラウザ: F12 → Console
+   - `performance_investigation_report.md` のトラブルシューティングセクションを参照
+
+3. **速度が改善されない**
+   - Network タブでAPI呼び出し数を確認
+   - `window.allResponsesCache` にデータが入っているか確認
+   - スーパーリロード（Ctrl+Shift+R）を試す
+
+---
+
+## 📊 進捗報告
+
+各Phase完了時に、以下の形式で進捗を報告してください:
+
+```
+✅ Phase N 完了
+- 実装時間: X時間Y分
+- テスト結果: 合格/不合格
+- コミットハッシュ: [hash]
+- 次のPhase: Phase N+1
+```
+
+---
+
+## 🎯 最終目標の確認
+
+全Phase完了時に、以下を達成していること:
+
+- ✅ 初回読み込み: **2秒以下**
+- ✅ API呼び出し数: **1回**
+- ✅ モーダル表示: **0.5秒以下**
+- ✅ 出欠保存: **1秒以下**
+- ✅ 全機能が正常動作
+- ✅ エラーなし
+- ✅ 各Phase完了ごとにコミット済み
+
+---
+
+それでは、**Phase 1から順番に実装を開始してください。**
+**全てのPhaseが完了するまで、作業を中断しないでください。**
+
+Good luck! 🚀

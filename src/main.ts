@@ -509,6 +509,55 @@ function getEventWithResponses(eventId: string): {
 }
 
 /**
+ * 全イベントと全出欠データを一括取得するAPI
+ * @returns イベント一覧と出欠データのマップ
+ */
+function getAllEventsWithResponses(): {
+  success: boolean;
+  events: AttendanceEvent[];
+  responsesMap: { [eventId: string]: Response[] };
+  error?: string;
+} {
+  try {
+    Logger.log('=== getAllEventsWithResponses 開始 ===');
+    
+    // イベント一覧を取得（既存関数を使用）
+    const events = getEvents('upcoming');
+    Logger.log(`✅ イベント取得: ${events.length}件`);
+    
+    // 全出欠データを1回で取得
+    const allResponses = getAllResponses();
+    Logger.log(`✅ 全出欠データ取得: ${allResponses.length}件`);
+    
+    // イベントIDごとにグループ化
+    const responsesMap: { [eventId: string]: Response[] } = {};
+    allResponses.forEach(response => {
+      if (!responsesMap[response.eventId]) {
+        responsesMap[response.eventId] = [];
+      }
+      responsesMap[response.eventId].push(response);
+    });
+    
+    Logger.log(`✅ グループ化完了: ${Object.keys(responsesMap).length}イベント分`);
+    Logger.log('=== getAllEventsWithResponses 終了 ===');
+    
+    return {
+      success: true,
+      events: events,
+      responsesMap: responsesMap
+    };
+  } catch (error) {
+    Logger.log(`❌ エラー: 全イベント・出欠データ取得失敗 - ${(error as Error).message}`);
+    return {
+      success: false,
+      events: [],
+      responsesMap: {},
+      error: (error as Error).message
+    };
+  }
+}
+
+/**
  * テスト関数: サーバーサイドAPI
  */
 function testApiFunctions() {

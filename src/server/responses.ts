@@ -162,6 +162,42 @@ function getResponses(eventId: string): Response[] {
 }
 
 /**
+ * 全出欠回答を一括取得
+ * @returns 全出欠回答配列
+ */
+function getAllResponses(): Response[] {
+  try {
+    const sheet = getResponsesSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    const responses: Response[] = [];
+    
+    // ヘッダー行をスキップ
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      
+      const response: Response = {
+        eventId: row[0],
+        userKey: row[1],
+        status: row[2],
+        comment: row[3] || undefined,
+        createdAt: row[4],
+        updatedAt: row[5]
+      };
+      
+      responses.push(response);
+    }
+    
+    Logger.log(`✅ 全出欠回答取得成功: ${responses.length}件`);
+    return responses;
+    
+  } catch (error) {
+    Logger.log(`❌ エラー: 全出欠回答取得失敗 - ${(error as Error).message}`);
+    return [];
+  }
+}
+
+/**
  * 特定イベント・特定ユーザーの出欠回答を取得
  * @param eventId イベントID
  * @param userKey ユーザー識別子

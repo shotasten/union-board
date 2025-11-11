@@ -32,6 +32,8 @@ declare interface AttendanceEvent {
   updatedAt: string;
   /** 最終同期日時（ISO 8601形式） */
   lastSynced?: string;
+  /** 終日イベントフラグ */
+  isAllDay?: boolean;
 }
 
 /**

@@ -69,21 +69,91 @@ function initializeSpreadsheet(): void {
   const eventsHasData = sheet.getLastRow() > 1;
   if (!eventsHasData) {
     sheet.clear();
-    sheet.getRange('A1:L1').setValues([[
-      'id', 'title', 'start', 'end', 'location', 'description', 
+    sheet.getRange('A1:M1').setValues([[
+      'id', 'title', 'start', 'end', 'isAllDay', 'location', 'description', 
       'calendarEventId', 'notesHash', 'status', 'createdAt', 'updatedAt', 'lastSynced'
     ]]);
-    sheet.getRange('A1:L1').setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
+    sheet.getRange('A1:M1').setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
     sheet.setFrozenRows(1);
     Logger.log('✅ Eventsシート作成完了');
   } else {
-    // ヘッダーのみ確認・更新
-    const headerRange = sheet.getRange('A1:L1');
+    // ヘッダーのみ確認・更新（isAllDayカラムを追加・移動）
+    const lastColumn = sheet.getLastColumn();
+    const headerRange = sheet.getRange(1, 1, 1, Math.max(13, lastColumn));
     const headerValues = headerRange.getValues()[0];
-    const expectedHeaders = ['id', 'title', 'start', 'end', 'location', 'description', 'calendarEventId', 'notesHash', 'status', 'createdAt', 'updatedAt', 'lastSynced'];
-    if (JSON.stringify(headerValues) !== JSON.stringify(expectedHeaders)) {
+    const expectedHeaders = ['id', 'title', 'start', 'end', 'isAllDay', 'location', 'description', 'calendarEventId', 'notesHash', 'status', 'createdAt', 'updatedAt', 'lastSynced'];
+    
+    // isAllDayカラムの現在位置を確認
+    const currentIsAllDayIndex = headerValues.indexOf('isAllDay');
+    const expectedIsAllDayIndex = 4; // start(2), end(3)の次（0ベースなので4）
+    
+    // 既存のヘッダーにisAllDayがない場合は追加
+    if (currentIsAllDayIndex === -1) {
+      // isAllDayカラムが存在しない場合、最後に追加してから移動
+      if (headerValues.length < 13) {
+        // ヘッダー行を13列に拡張
+        const newHeaderRange = sheet.getRange('A1:M1');
+        newHeaderRange.setValues([expectedHeaders]);
+        newHeaderRange.setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
+        Logger.log('✅ EventsシートのヘッダーにisAllDayカラムを追加しました');
+      } else {
+        // 既に13列以上ある場合、最後の列をisAllDayに変更してから移動
+        const lastCol = sheet.getLastColumn();
+        sheet.getRange(1, lastCol).setValue('isAllDay');
+        // 列を移動
+        const lastRow = sheet.getLastRow();
+        if (lastRow > 1) {
+          const sourceRange = sheet.getRange(1, lastCol, lastRow, 1);
+          const values = sourceRange.getValues();
+          // endの後に列を挿入
+          sheet.insertColumnAfter(4);
+          // データを新しい位置に書き込む
+          sheet.getRange(1, 5, lastRow, 1).setValues(values);
+          // 元の位置の列を削除
+          sheet.deleteColumn(lastCol + 1); // 挿入したので+1
+        }
+        // ヘッダーを更新
+        headerRange.setValues([expectedHeaders]);
+        headerRange.setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
+        Logger.log('✅ EventsシートのisAllDayカラムをstart/endの後に移動しました');
+      }
+    } else if (currentIsAllDayIndex !== expectedIsAllDayIndex) {
+      // isAllDayカラムが存在するが、正しい位置にない場合、移動
+      Logger.log(`🔄 isAllDayカラムを位置${currentIsAllDayIndex + 1}から位置${expectedIsAllDayIndex + 1}に移動します`);
+      
+      const lastRow = sheet.getLastRow();
+      if (lastRow > 1) {
+        // データがある場合、列全体を移動
+        const sourceCol = currentIsAllDayIndex + 1; // 1ベース
+        const sourceRange = sheet.getRange(1, sourceCol, lastRow, 1);
+        const values = sourceRange.getValues();
+        
+        // 正しい位置に列を挿入
+        sheet.insertColumnAfter(4); // endの後に挿入（列E、1ベースで5）
+        const targetCol = 5; // 挿入後のisAllDayの位置
+        sheet.getRange(1, targetCol, lastRow, 1).setValues(values);
+        
+        // 元の位置の列を削除
+        // 挿入した位置によって削除する列番号が変わる
+        if (currentIsAllDayIndex < expectedIsAllDayIndex) {
+          // 右に移動する場合、元の位置はそのまま
+          sheet.deleteColumn(sourceCol);
+        } else {
+          // 左に移動する場合、挿入した分だけ右にずれる
+          sheet.deleteColumn(sourceCol + 1);
+        }
+      }
+      
+      // ヘッダーを更新
       headerRange.setValues([expectedHeaders]);
       headerRange.setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
+      Logger.log('✅ EventsシートのisAllDayカラムをstart/endの後に移動しました');
+    } else {
+      // 既に正しい位置にある場合、ヘッダーのみ確認
+      if (JSON.stringify(headerValues.slice(0, 13)) !== JSON.stringify(expectedHeaders)) {
+        headerRange.setValues([expectedHeaders]);
+        headerRange.setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
+      }
     }
     sheet.setFrozenRows(1);
     Logger.log('⚠️ Eventsシートは既にデータが存在するため、データを保持しました');

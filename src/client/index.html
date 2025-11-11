@@ -4376,71 +4376,91 @@
         return;
       }
 
-      let completed = 0;
-      let failed = 0;
-
-      // 各日程ごとに個別に更新（ステータスとコメント）
-      updates.forEach(update => {
-        google.script.run
-          .withSuccessHandler((result) => {
-            completed++;
-            if (completed + failed === updates.length) {
-              // 保存ボタンを元に戻す
-              if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.textContent = originalText;
+      // 1回のAPI呼び出しで全件保存
+      google.script.run
+        .withSuccessHandler((result) => {
+          // 保存ボタンを元に戻す
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = originalText;
+          }
+          
+          if (result.failed === 0) {
+            // 更新成功
+            showToast(`${result.success}件の出欠を更新しました`, 'success');
+            
+            // キャッシュを更新
+            updates.forEach(update => {
+              if (!window.allResponsesCache[update.eventId]) {
+                window.allResponsesCache[update.eventId] = [];
               }
+              const existingIndex = window.allResponsesCache[update.eventId]
+                .findIndex(r => r.userKey === update.memberUserKey);
               
-              if (failed === 0) {
-                // 更新成功
-                showToast(`${updates.length}件の出欠を更新しました`, 'success');
-                
-                // 更新完了後、変更をクリア
-                currentEvents.forEach(event => {
-                  if (gridData[event.id] && gridData[event.id][memberName]) {
-                    delete gridData[event.id][memberName];
-                  }
-                });
-                renderGrid(); // グリッドを再描画
-                
-                // イベント詳細モーダルが開いている場合は再読み込み
-                const eventDetailModal = document.getElementById('event-detail-modal');
-                if (eventDetailModal && eventDetailModal.style.display !== 'none') {
-                  // モーダルに表示されているイベントIDを取得
-                  const currentEventId = eventDetailModal.dataset.currentEventId;
-                  if (currentEventId) {
-                    // 更新されたイベントIDのリストに含まれている場合は再読み込み
-                    const updatedEventIds = updates.map(u => u.eventId);
-                    if (updatedEventIds.includes(currentEventId)) {
-                      // モーダルを再読み込み
-                      showEventDetailModal(currentEventId);
-                    }
-                  }
-                }
-                
-                // メンバー編集モーダルを閉じる
-                closeMemberEditModal();
+              if (existingIndex >= 0) {
+                window.allResponsesCache[update.eventId][existingIndex].status = update.status;
+                window.allResponsesCache[update.eventId][existingIndex].comment = update.comment || '';
+                window.allResponsesCache[update.eventId][existingIndex].updatedAt = new Date().toISOString();
               } else {
-                showToast(`${completed}件成功、${failed}件失敗しました`, 'error');
-                renderGrid(); // エラーがあっても再描画
+                window.allResponsesCache[update.eventId].push({
+                  eventId: update.eventId,
+                  userKey: update.memberUserKey,
+                  status: update.status,
+                  comment: update.comment || '',
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString()
+                });
+              }
+            });
+            
+            // 更新完了後、変更をクリア
+            currentEvents.forEach(event => {
+              if (gridData[event.id] && gridData[event.id][memberName]) {
+                delete gridData[event.id][memberName];
+              }
+            });
+            renderGrid(); // グリッドを再描画
+            
+            // イベント詳細モーダルが開いている場合は再読み込み
+            const eventDetailModal = document.getElementById('event-detail-modal');
+            if (eventDetailModal && eventDetailModal.style.display !== 'none') {
+              // モーダルに表示されているイベントIDを取得
+              const currentEventId = eventDetailModal.dataset.currentEventId;
+              if (currentEventId) {
+                // 更新されたイベントIDのリストに含まれている場合は再読み込み
+                const updatedEventIds = updates.map(u => u.eventId);
+                if (updatedEventIds.includes(currentEventId)) {
+                  // モーダルを再読み込み
+                  showEventDetailModal(currentEventId);
+                }
               }
             }
-          })
-          .withFailureHandler((error) => {
-            failed++;
-            console.error('更新エラー:', error);
-            if (completed + failed === updates.length) {
-              // 保存ボタンを元に戻す
-              if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.textContent = originalText;
-              }
-              showToast(`${completed}件成功、${failed}件失敗しました`, 'error');
-              renderGrid(); // エラーがあっても再描画
+            
+            // メンバー編集モーダルを閉じる
+            closeMemberEditModal();
+          } else {
+            showToast(`${result.success}件成功、${result.failed}件失敗しました`, 'warning');
+            if (result.errors && result.errors.length > 0) {
+              console.error('保存エラー詳細:', result.errors);
             }
-          })
-          .userSubmitResponse(update.eventId, update.memberUserKey, update.status, update.comment);
-      });
+            renderGrid(); // エラーがあっても再描画
+          }
+        })
+        .withFailureHandler((error) => {
+          // 保存ボタンを元に戻す
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = originalText;
+          }
+          showToast('保存に失敗しました', 'error');
+          console.error('バッチ保存エラー:', error);
+        })
+        .userSubmitResponsesBatch(updates.map(u => ({
+          eventId: u.eventId,
+          userKey: u.memberUserKey,
+          status: u.status,
+          comment: u.comment
+        })));
     }
 
 

@@ -345,6 +345,51 @@ function userSubmitResponse(
 }
 
 /**
+ * 複数の出欠回答を一括登録
+ * @param responses 出欠回答の配列
+ * @returns 成功した件数と失敗した件数
+ */
+function userSubmitResponsesBatch(
+  responses: Array<{
+    eventId: string;
+    userKey: string;
+    status: '○' | '△' | '×' | '-';
+    comment?: string;
+  }>
+): { success: number; failed: number; errors: string[] } {
+  let successCount = 0;
+  let failedCount = 0;
+  const errors: string[] = [];
+  
+  Logger.log(`=== userSubmitResponsesBatch 開始: ${responses.length}件 ===`);
+  
+  responses.forEach((response, index) => {
+    try {
+      const result = submitResponse(
+        response.eventId,
+        response.userKey,
+        response.status,
+        response.comment
+      );
+      
+      if (result) {
+        successCount++;
+      } else {
+        failedCount++;
+        errors.push(`${index + 1}件目の保存に失敗しました`);
+      }
+    } catch (error) {
+      failedCount++;
+      errors.push(`${index + 1}件目: ${(error as Error).message}`);
+    }
+  });
+  
+  Logger.log(`✅ バッチ保存完了: 成功 ${successCount}件, 失敗 ${failedCount}件`);
+  
+  return { success: successCount, failed: failedCount, errors: errors };
+}
+
+/**
  * メンバー一覧取得API
  * @returns メンバー一覧
  */

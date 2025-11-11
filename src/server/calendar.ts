@@ -1145,7 +1145,8 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
               }
             } else {
               // 新規イベントをSpreadsheetに追加
-              Logger.log(`➕ 新規イベント追加: ${calendarEventTitle}`);
+              Logger.log(`➕ [新規追加開始] カレンダーから新規イベント追加: ${calendarEventTitle}`);
+              Logger.log(`➕ [新規追加詳細] カレンダーイベントID: ${calendarEventId}`);
               
               // 説明欄から出欠サマリーを除去してdescriptionとして保存
               // （説明欄は「【出欠状況】」以降を除去）
@@ -1155,30 +1156,26 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
                 description = description.substring(0, attendanceIndex).trim();
               }
               
+              Logger.log(`➕ [createEvent呼び出し前] これからcreateEvent()を呼び出します（skipCalendarSync=true）`);
               const newEventId = createEvent(
                 calendarEventTitle,
                 calendarEventStart.toISOString(),
                 calendarEventEnd.toISOString(),
                 calendarEventLocation,
-                description
+                description,
+                true // skipCalendarSync: true（カレンダーから追加する場合、既にカレンダーにあるため新規作成しない）
               );
+              Logger.log(`➕ [createEvent呼び出し後] 返り値: ${newEventId || 'null'}`);
               
               if (newEventId) {
                 // calendarEventIdとlastSyncedを設定
-                const newEvent = getEventById(newEventId);
-                if (newEvent) {
-                  updateEvent(newEventId, {
-                    calendarEventId: calendarEventId,
-                    lastSynced: calendarEventUpdated.toISOString()
-                  }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
-                  result.success++;
-                  Logger.log(`✅ 新規イベント追加成功: ${newEventId}`);
-                } else {
-                  result.failed++;
-                  const errorMsg = `新規イベント取得失敗: ${newEventId}`;
-                  result.errors.push(errorMsg);
-                  Logger.log(`❌ ${errorMsg}`);
-                }
+                Logger.log(`🔄 [updateEvent呼び出し] calendarEventIdを設定: ${calendarEventId}`);
+                updateEvent(newEventId, {
+                  calendarEventId: calendarEventId,
+                  lastSynced: calendarEventUpdated.toISOString()
+                }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+                result.success++;
+                Logger.log(`✅ 新規イベント追加成功: ${newEventId} (calendarEventId: ${calendarEventId})`);
               } else {
                 result.failed++;
                 const errorMsg = `新規イベント作成失敗: ${calendarEventTitle}`;
@@ -1287,7 +1284,8 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
           }
         } else {
           // calendarEventIdが設定されていない場合 → カレンダーに追加
-          Logger.log(`➕ カレンダーに追加: ${event.id} - ${event.title} (status: ${event.status})`);
+          Logger.log(`➕ [calendarEventId未設定] カレンダーに追加: ${event.id} - ${event.title} (status: ${event.status})`);
+          Logger.log(`➕ [calendarEventId未設定詳細] start=${event.start}, end=${event.end}, location=${event.location || '未設定'}`);
           
           // statusがactiveでない場合はスキップ（既にチェック済みだが念のため）
           if (event.status !== 'active') {
@@ -1296,6 +1294,7 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
           }
           
           try {
+            Logger.log(`🔄 [upsertCalendarEvent呼び出し] calendarEventId未設定イベントをカレンダーに追加: ${event.id}`);
             const calendarEventId = upsertCalendarEvent(event);
             if (calendarEventId) {
               result.success++;

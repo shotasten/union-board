@@ -169,9 +169,10 @@ function buildDescription(eventId: string): string {
 /**
  * カレンダーイベントを作成または更新
  * @param event イベントデータ
+ * @param forceCreate 強制的に新規作成する（既存イベント検索をスキップ）
  * @returns カレンダーイベントID（成功時）、null（失敗時）
  */
-function upsertCalendarEvent(event: AttendanceEvent): string | null {
+function upsertCalendarEvent(event: AttendanceEvent, forceCreate: boolean = false): string | null {
   try {
     Logger.log(`🔄 upsertCalendarEvent開始: ${event.id} - ${event.title} (calendarEventId: ${event.calendarEventId || '未設定'})`);
     
@@ -246,7 +247,11 @@ function upsertCalendarEvent(event: AttendanceEvent): string | null {
     let calendarEvent: GoogleAppsScript.Calendar.CalendarEvent | null = null;
     let eventFoundInCalendar = false;
     
-    if (event.calendarEventId) {
+    // forceCreateがtrueの場合は既存イベント検索をスキップ
+    if (forceCreate) {
+      Logger.log(`🚀 [強制新規作成] forceCreate=true のため、既存イベント検索をスキップして新規作成します`);
+      Logger.log(`🚀 [強制新規作成詳細] イベントID: ${event.id}, タイトル: ${event.title}, 元のcalendarEventId: ${event.calendarEventId || '未設定'}`);
+    } else if (event.calendarEventId) {
       Logger.log(`🔍 [検索開始] 既存カレンダーイベントを検索: ${event.calendarEventId}`);
       Logger.log(`🔍 [検索詳細] イベントID: ${event.id}, タイトル: ${event.title}`);
       try {
@@ -265,7 +270,9 @@ function upsertCalendarEvent(event: AttendanceEvent): string | null {
       Logger.log(`➕ [未設定] calendarEventIdが未設定のため、新規カレンダーイベントを作成します`);
     }
     
-    Logger.log(`📊 [検索結果] calendarEvent is ${calendarEvent ? 'not null' : 'null'}, eventFoundInCalendar: ${eventFoundInCalendar}`);
+    if (!forceCreate) {
+      Logger.log(`📊 [検索結果] calendarEvent is ${calendarEvent ? 'not null' : 'null'}, eventFoundInCalendar: ${eventFoundInCalendar}`);
+    }
     
     if (calendarEvent) {
       // 既存イベントを更新
@@ -1239,8 +1246,12 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
               // カレンダーに再作成
               Logger.log(`🔄 カレンダーイベント復活処理開始: ${event.id}`);
               Logger.log(`🔄 upsertCalendarEvent呼び出し前の状態: calendarEventId=${event.calendarEventId}`);
+              Logger.log(`🔄 forceCreate=true で呼び出し（API遅延対策）`);
               
-              const newCalendarEventId = upsertCalendarEvent(event);
+              // forceCreate=trueを渡して、既存イベント検索をスキップし強制的に新規作成
+              // これにより、Google Calendar APIの遅延（getEventsで削除済みと判定されても
+              // getEventByIdでキャッシュから見つかる問題）を回避
+              const newCalendarEventId = upsertCalendarEvent(event, true);
               
               Logger.log(`🔄 upsertCalendarEvent呼び出し後: 返り値=${newCalendarEventId || 'null'}`);
               

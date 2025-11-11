@@ -244,20 +244,28 @@ function upsertCalendarEvent(event: AttendanceEvent): string | null {
     
     // 既存のカレンダーイベントIDがあるか確認
     let calendarEvent: GoogleAppsScript.Calendar.CalendarEvent | null = null;
+    let eventFoundInCalendar = false;
     
     if (event.calendarEventId) {
-      Logger.log(`🔍 既存カレンダーイベントを検索: ${event.calendarEventId}`);
+      Logger.log(`🔍 [検索開始] 既存カレンダーイベントを検索: ${event.calendarEventId}`);
+      Logger.log(`🔍 [検索詳細] イベントID: ${event.id}, タイトル: ${event.title}`);
       try {
         calendarEvent = calendar.getEventById(event.calendarEventId);
-        Logger.log(`✅ 既存カレンダーイベントが見つかりました: ${event.calendarEventId}`);
+        eventFoundInCalendar = true;
+        Logger.log(`✅ [検索成功] 既存カレンダーイベントが見つかりました: ${event.calendarEventId}`);
+        Logger.log(`✅ [検索詳細] タイトル: ${calendarEvent.getTitle()}, 開始: ${calendarEvent.getStartTime().toISOString()}`);
       } catch (error) {
-        Logger.log(`⚠️ 既存のカレンダーイベントが見つかりません: ${event.calendarEventId} - ${(error as Error).message}`);
+        Logger.log(`⚠️ [検索失敗] 既存のカレンダーイベントが見つかりません: ${event.calendarEventId}`);
+        Logger.log(`⚠️ [エラー詳細] ${(error as Error).message}`);
+        Logger.log(`⚠️ [エラースタック] ${(error as Error).stack}`);
         // 既存イベントが見つからない場合は新規作成
-        Logger.log(`➕ 新規カレンダーイベントを作成します`);
+        Logger.log(`➕ [次の処理] 新規カレンダーイベントを作成します`);
       }
     } else {
-      Logger.log(`➕ calendarEventIdが未設定のため、新規カレンダーイベントを作成します`);
+      Logger.log(`➕ [未設定] calendarEventIdが未設定のため、新規カレンダーイベントを作成します`);
     }
+    
+    Logger.log(`📊 [検索結果] calendarEvent is ${calendarEvent ? 'not null' : 'null'}, eventFoundInCalendar: ${eventFoundInCalendar}`);
     
     if (calendarEvent) {
       // 既存イベントを更新
@@ -339,13 +347,19 @@ function upsertCalendarEvent(event: AttendanceEvent): string | null {
     }
     
     // 新規イベントを作成（calendarEventがnullの場合、または既存イベントを削除した場合）
-    Logger.log(`➕ カレンダーイベント作成中: ${event.title} (${startDate.toISOString()} ～ ${endDate.toISOString()})`);
+    Logger.log(`➕ [作成開始] カレンダーイベント作成中: ${event.title}`);
+    Logger.log(`➕ [作成詳細] イベントID: ${event.id}`);
+    Logger.log(`➕ [作成詳細] 日時: ${startDate.toISOString()} ～ ${endDate.toISOString()}`);
+    Logger.log(`➕ [作成詳細] 終日判定: ${isAllDay ? '終日' : '時間指定'}`);
+    Logger.log(`➕ [作成詳細] 場所: ${event.location || '未設定'}`);
+    
     try {
       let newCalendarEvent: GoogleAppsScript.Calendar.CalendarEvent;
       
       if (isAllDay && startDateOnly) {
         // 終日イベントとして作成
-        Logger.log(`📅 終日イベントとして作成: ${startDateOnly.toISOString()}`);
+        Logger.log(`📅 [終日作成] 終日イベントとして作成: ${startDateOnly.toISOString()}`);
+        Logger.log(`📅 [終日作成] calendar.createAllDayEvent呼び出し開始`);
         newCalendarEvent = calendar.createAllDayEvent(
           event.title,
           startDateOnly,
@@ -354,9 +368,11 @@ function upsertCalendarEvent(event: AttendanceEvent): string | null {
             description: description
           }
         );
+        Logger.log(`📅 [終日作成] calendar.createAllDayEvent呼び出し完了`);
       } else {
         // 時間指定イベントとして作成
-        Logger.log(`📅 時間指定イベントとして作成`);
+        Logger.log(`📅 [時間作成] 時間指定イベントとして作成`);
+        Logger.log(`📅 [時間作成] calendar.createEvent呼び出し開始`);
         newCalendarEvent = calendar.createEvent(
           event.title,
           startDate,
@@ -366,20 +382,27 @@ function upsertCalendarEvent(event: AttendanceEvent): string | null {
             description: description
           }
         );
+        Logger.log(`📅 [時間作成] calendar.createEvent呼び出し完了`);
       }
       
       const newCalendarEventId = newCalendarEvent.getId();
-      Logger.log(`✅ カレンダーイベント作成成功: ${event.id} - ${newCalendarEventId} (${isAllDay ? '終日' : '時間指定'})`);
+      Logger.log(`✅ [作成成功] カレンダーイベント作成成功`);
+      Logger.log(`✅ [作成成功] イベントID: ${event.id}`);
+      Logger.log(`✅ [作成成功] カレンダーイベントID: ${newCalendarEventId}`);
+      Logger.log(`✅ [作成成功] タイプ: ${isAllDay ? '終日' : '時間指定'}`);
       
       // EventsシートのcalendarEventIdとnotesHashを更新
-      Logger.log(`🔄 スプレッドシートのcalendarEventIdを更新: ${event.id} - ${newCalendarEventId}`);
+      Logger.log(`🔄 [シート更新] スプレッドシートのcalendarEventIdを更新開始`);
+      Logger.log(`🔄 [シート更新] イベントID: ${event.id}, カレンダーイベントID: ${newCalendarEventId}`);
       updateEventCalendarInfo(event.id, newCalendarEventId, notesHash);
+      Logger.log(`🔄 [シート更新] スプレッドシートのcalendarEventIdを更新完了`);
       
-      Logger.log(`✅ upsertCalendarEvent完了: ${event.id} - ${newCalendarEventId}`);
+      Logger.log(`✅ [完了] upsertCalendarEvent完了: ${event.id} - ${newCalendarEventId}`);
       return newCalendarEventId;
     } catch (error) {
-      Logger.log(`❌ カレンダーイベント作成エラー: ${event.id} - ${(error as Error).message}`);
-      Logger.log((error as Error).stack);
+      Logger.log(`❌ [エラー] カレンダーイベント作成エラー: ${event.id}`);
+      Logger.log(`❌ [エラー詳細] ${(error as Error).message}`);
+      Logger.log(`❌ [エラースタック] ${(error as Error).stack}`);
       throw error;
     }
     
@@ -1167,8 +1190,18 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
     }
     
     // Spreadsheetにあってカレンダーにないイベントを処理
+    // カレンダーイベント処理中に新規イベントが追加された可能性があるため、
+    // カレンダーから最新のイベントリストを再取得する
+    Logger.log(`📋 カレンダーに登録されていないイベントをチェック開始`);
+    const nowForRevive = new Date();
+    const startDateForRevive = new Date(nowForRevive.getTime() - 30 * 24 * 60 * 60 * 1000); // 30日前
+    const endDateForRevive = new Date(nowForRevive.getTime() + 365 * 24 * 60 * 60 * 1000); // 1年後
+    const calendarEventsForRevive = calendar.getEvents(startDateForRevive, endDateForRevive);
+    Logger.log(`📋 復活チェック用カレンダーイベント取得: ${calendarEventsForRevive.length}件`);
+    
+    // カレンダーイベントIDのSetを構築（最新の状態を反映）
     const calendarEventIds = new Set<string>();
-    for (const calendarEvent of calendarEvents) {
+    for (const calendarEvent of calendarEventsForRevive) {
       try {
         const id = calendarEvent.getId();
         calendarEventIds.add(id);
@@ -1176,22 +1209,41 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
         Logger.log(`⚠️ カレンダーイベントID取得エラー: ${(error as Error).message}`);
       }
     }
-    Logger.log(`📋 カレンダーに登録されていないイベントをチェック: Spreadsheetイベント ${spreadsheetEvents.length}件, カレンダーイベント ${calendarEvents.length}件, カレンダーイベントID ${calendarEventIds.size}件`);
+    
+    // Spreadsheetのイベントも再取得（カレンダーイベント処理中に新規追加された可能性があるため）
+    const spreadsheetEventsForRevive = getEvents('all');
+    Logger.log(`📋 カレンダーに登録されていないイベントをチェック: Spreadsheetイベント ${spreadsheetEventsForRevive.length}件, カレンダーイベント ${calendarEventsForRevive.length}件, カレンダーイベントID ${calendarEventIds.size}件`);
     
     let eventsToRevive = 0;
-    for (const event of spreadsheetEvents) {
+    let eventsChecked = 0;
+    let eventsSkippedDueToExistingId = 0;
+    
+    Logger.log(`🔍 復活処理詳細チェック開始`);
+    for (const event of spreadsheetEventsForRevive) {
+      eventsChecked++;
+      Logger.log(`🔍 [${eventsChecked}/${spreadsheetEventsForRevive.length}] イベントチェック: ${event.id} - ${event.title} (status: ${event.status}, calendarEventId: ${event.calendarEventId || '未設定'})`);
+      
       if (event.status === 'active') {
         if (event.calendarEventId) {
           // calendarEventIdが設定されているが、カレンダーに存在しない場合
           // → カレンダーから削除された可能性があるが、同期で復活させる
-          if (!calendarEventIds.has(event.calendarEventId)) {
+          const existsInCalendar = calendarEventIds.has(event.calendarEventId);
+          Logger.log(`🔍 calendarEventId存在チェック: ${event.calendarEventId} → ${existsInCalendar ? '存在する' : '存在しない'}`);
+          
+          if (!existsInCalendar) {
             eventsToRevive++;
-            Logger.log(`⚠️ カレンダーに存在しないイベント（同期で復活）: ${event.id} - ${event.title} (calendarEventId: ${event.calendarEventId})`);
+            Logger.log(`⚠️ [復活対象 ${eventsToRevive}] カレンダーに存在しないイベント（同期で復活）: ${event.id} - ${event.title} (calendarEventId: ${event.calendarEventId})`);
+            Logger.log(`📅 イベント詳細: start=${event.start}, end=${event.end}, isAllDay=${event.isAllDay}, location=${event.location || '未設定'}`);
             
             try {
               // カレンダーに再作成
               Logger.log(`🔄 カレンダーイベント復活処理開始: ${event.id}`);
+              Logger.log(`🔄 upsertCalendarEvent呼び出し前の状態: calendarEventId=${event.calendarEventId}`);
+              
               const newCalendarEventId = upsertCalendarEvent(event);
+              
+              Logger.log(`🔄 upsertCalendarEvent呼び出し後: 返り値=${newCalendarEventId || 'null'}`);
+              
               if (newCalendarEventId) {
                 result.success++;
                 Logger.log(`✅ カレンダーイベント復活成功: ${event.id} - ${newCalendarEventId}`);
@@ -1202,6 +1254,8 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
                   updateEvent(event.id, {
                     calendarEventId: newCalendarEventId
                   }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+                } else {
+                  Logger.log(`ℹ️ calendarEventIdは変更なし: ${newCalendarEventId}`);
                 }
               } else {
                 result.failed++;
@@ -1217,7 +1271,8 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
               Logger.log((error as Error).stack);
             }
           } else {
-            Logger.log(`✅ カレンダーイベント存在確認: ${event.id} - ${event.title} (calendarEventId: ${event.calendarEventId})`);
+            eventsSkippedDueToExistingId++;
+            Logger.log(`✅ カレンダーイベント存在確認（スキップ）: ${event.id} - ${event.title} (calendarEventId: ${event.calendarEventId})`);
           }
         } else {
           // calendarEventIdが設定されていない場合 → カレンダーに追加
@@ -1253,6 +1308,10 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
       }
     }
     
+    Logger.log(`📋 復活処理チェック完了サマリー:`);
+    Logger.log(`  - チェックしたイベント総数: ${eventsChecked}件`);
+    Logger.log(`  - 復活対象として検出: ${eventsToRevive}件`);
+    Logger.log(`  - カレンダーに存在するためスキップ: ${eventsSkippedDueToExistingId}件`);
     Logger.log(`📋 カレンダー同期チェック完了: 復活対象 ${eventsToRevive}件`);
     Logger.log(`=== カレンダー → アプリ同期完了 ===`);
     Logger.log(`成功: ${result.success}件, 失敗: ${result.failed}件`);

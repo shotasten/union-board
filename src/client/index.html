@@ -1906,6 +1906,17 @@
               currentEvents = data.events;
             }
             
+            // 出欠データをグローバルキャッシュに保存
+            if (data.responsesMap) {
+              window.allResponsesCache = data.responsesMap;
+              console.log('✅ 出欠データキャッシュ保存:', {
+                イベント数: Object.keys(data.responsesMap).length,
+                合計出欠数: Object.values(data.responsesMap).reduce((sum, responses) => sum + responses.length, 0)
+              });
+            } else {
+              window.allResponsesCache = {};
+            }
+            
             // 表示期間を更新
             updateDisplayPeriodInfo(data.config);
             
@@ -2462,58 +2473,42 @@
      * 表形式グリッドを描画
      */
     function renderGrid() {
-      // メンバーリストは既にloadInitDataで取得済み（必要に応じて再取得）
+      // メンバーリストは既にloadInitDataで取得済み
       if (memberList.length === 0) {
         loadMemberList();
       }
       
       const gridContainer = document.getElementById('attendance-grid');
-      gridContainer.innerHTML = '<div style="padding: 20px; text-align: center;">読み込み中...</div>';
 
       if (currentEvents.length === 0) {
         gridContainer.innerHTML = '<p style="padding: 20px; text-align: center;">イベントがありません</p>';
         return;
       }
 
-      // 1回のAPI呼び出しで全データを取得
-      google.script.run
-        .withSuccessHandler((result) => {
-          if (result.success && result.responsesMap) {
-            console.log('✅ バッチデータ取得成功:', {
-              イベント数: result.events.length,
-              出欠データあるイベント数: Object.keys(result.responsesMap).length
-            });
-            
-            // responsesMapをallResponses形式に変換
-            const allResponses = {}; // {eventId: {displayName: status}}
-            
-            Object.keys(result.responsesMap).forEach(eventId => {
-              allResponses[eventId] = {};
-              result.responsesMap[eventId].forEach(response => {
-                // userKeyからメンバー情報を取得してdisplayNameを取得
-                const member = memberList.find(m => m.userKey === response.userKey);
-                if (member) {
-                  const displayName = getMemberDisplayName(member);
-                  allResponses[eventId][displayName] = response.status;
-                }
-              });
-            });
-            
-            // グローバルキャッシュに保存（他の機能でも使用）
-            window.allResponsesCache = result.responsesMap;
-            
-            // テーブルを描画
-            renderGridTable(allResponses);
-          } else {
-            gridContainer.innerHTML = '<p style="padding: 20px; text-align: center; color: #f44336;">データの取得に失敗しました</p>';
-            console.error('❌ データ取得失敗:', result.error);
+      // キャッシュからデータを取得（API呼び出しなし！）
+      const responsesMap = window.allResponsesCache || {};
+      
+      console.log('✅ キャッシュからデータを描画:', {
+        イベント数: currentEvents.length,
+        キャッシュあるイベント数: Object.keys(responsesMap).length
+      });
+      
+      // allResponses形式に変換
+      const allResponses = {}; // {eventId: {displayName: status}}
+      
+      Object.keys(responsesMap).forEach(eventId => {
+        allResponses[eventId] = {};
+        responsesMap[eventId].forEach(response => {
+          const member = memberList.find(m => m.userKey === response.userKey);
+          if (member) {
+            const displayName = getMemberDisplayName(member);
+            allResponses[eventId][displayName] = response.status;
           }
-        })
-        .withFailureHandler((error) => {
-          console.error('❌ 全イベント・出欠データ取得エラー:', error);
-          gridContainer.innerHTML = '<p style="padding: 20px; text-align: center; color: #f44336;">データの取得に失敗しました</p>';
-        })
-        .getAllEventsWithResponses();  // ← 新しいバッチAPI（1回のみ！）
+        });
+      });
+      
+      // テーブルを即座に描画（API呼び出しなし！）
+      renderGridTable(allResponses);
     }
 
     /**

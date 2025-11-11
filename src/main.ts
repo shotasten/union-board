@@ -68,9 +68,13 @@ function getAllEventsForLocationHistory(): AttendanceEvent[] {
  * フロントエンドの初期表示に必要なデータを返す
  * @returns イベント一覧と設定情報
  */
-function getInitData(): { events: AttendanceEvent[]; config: Config; members: Array<{userKey: string, part: string, name: string, displayName: string}> } {
+function getInitData(): { events: AttendanceEvent[]; config: Config; members: Array<{userKey: string, part: string, name: string, displayName: string}>; responsesMap: { [eventId: string]: Response[] } } {
   try {
+    Logger.log('=== getInitData 開始 ===');
+    
     const events = getEvents('upcoming');
+    Logger.log(`✅ イベント取得: ${events.length}件`);
+    
     const config: Config = {
       AUTH_MODE: 'anonymous' as 'google' | 'anonymous',
       ADMIN_TOKEN: getConfig('ADMIN_TOKEN', ''),
@@ -88,11 +92,28 @@ function getInitData(): { events: AttendanceEvent[]; config: Config; members: Ar
       name: m.name,
       displayName: m.displayName
     }));
+    Logger.log(`✅ メンバー取得: ${members.length}人`);
+    
+    // 全出欠データを取得してイベントIDごとにグループ化
+    const allResponses = getAllResponses();
+    Logger.log(`✅ 全出欠データ取得: ${allResponses.length}件`);
+    
+    const responsesMap: { [eventId: string]: Response[] } = {};
+    allResponses.forEach(response => {
+      if (!responsesMap[response.eventId]) {
+        responsesMap[response.eventId] = [];
+      }
+      responsesMap[response.eventId].push(response);
+    });
+    Logger.log(`✅ グループ化完了: ${Object.keys(responsesMap).length}イベント分`);
+    
+    Logger.log('=== getInitData 終了 ===');
     
     return {
       events: events,
       config: config,
-      members: members
+      members: members,
+      responsesMap: responsesMap
     };
   } catch (error) {
     Logger.log(`❌ エラー: 初期データ取得失敗 - ${(error as Error).message}`);
@@ -105,7 +126,8 @@ function getInitData(): { events: AttendanceEvent[]; config: Config; members: Ar
         CACHE_EXPIRE_HOURS: '6',
         TIMEZONE: 'Asia/Tokyo'
       },
-      members: []
+      members: [],
+      responsesMap: {}
     };
   }
 }

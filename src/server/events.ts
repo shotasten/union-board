@@ -27,6 +27,7 @@ function getEventsSheet(): GoogleAppsScript.Spreadsheet.Sheet {
  * @param end 終了日時（ISO 8601形式）
  * @param location 場所（オプション）
  * @param description 説明（オプション）
+ * @param skipCalendarSync カレンダー同期をスキップするか（デフォルト: false）
  * @returns イベントID（成功時）、null（失敗時）
  */
 function createEvent(
@@ -34,7 +35,8 @@ function createEvent(
   start: string,
   end: string,
   location?: string,
-  description?: string
+  description?: string,
+  skipCalendarSync: boolean = false
 ): string | null {
   try {
     // バリデーション
@@ -116,34 +118,40 @@ function createEvent(
     
     Logger.log(`✅ イベント作成成功: ${eventId} - ${title}`);
     
-    // カレンダーに同期（calendarEventIdを即座に設定して初回複製を防止）
-    try {
-      const event = getEventById(eventId);
-      if (event) {
-        const calendarEventId = upsertCalendarEvent(event);
-        if (calendarEventId) {
-          Logger.log(`✅ カレンダーイベントIDを即座に設定: ${eventId} - ${calendarEventId}`);
-          
-          // calendarEventIdをスプレッドシートに即座に保存（複製防止のため）
-          // この更新により、pullFromCalendar()の後続処理で「calendarEventId未設定」として
-          // 検出されることを防ぐ
-          Logger.log(`🔄 calendarEventIdをスプレッドシートに即座に保存: ${eventId}`);
-          const data = sheet.getDataRange().getValues();
-          for (let i = 1; i < data.length; i++) {
-            if (data[i][0] === eventId) {
-              const rowIndex = i + 1;
-              // calendarEventId (列8) と lastSynced (列13) を更新
-              const now = new Date().toISOString();
-              sheet.getRange(rowIndex, 8).setValue(calendarEventId);
-              sheet.getRange(rowIndex, 13).setValue(now);
-              Logger.log(`✅ calendarEventIdをスプレッドシートに保存完了: ${eventId} - ${calendarEventId}`);
-              break;
+    // カレンダーに同期（skipCalendarSync=falseの場合のみ実行）
+    // カレンダーから新規追加する場合は、skipCalendarSync=trueを渡して複製を防止
+    if (!skipCalendarSync) {
+      Logger.log(`🔄 カレンダー同期実行: ${eventId}`);
+      try {
+        const event = getEventById(eventId);
+        if (event) {
+          const calendarEventId = upsertCalendarEvent(event);
+          if (calendarEventId) {
+            Logger.log(`✅ カレンダーイベントIDを即座に設定: ${eventId} - ${calendarEventId}`);
+            
+            // calendarEventIdをスプレッドシートに即座に保存（複製防止のため）
+            // この更新により、pullFromCalendar()の後続処理で「calendarEventId未設定」として
+            // 検出されることを防ぐ
+            Logger.log(`🔄 calendarEventIdをスプレッドシートに即座に保存: ${eventId}`);
+            const data = sheet.getDataRange().getValues();
+            for (let i = 1; i < data.length; i++) {
+              if (data[i][0] === eventId) {
+                const rowIndex = i + 1;
+                // calendarEventId (列8) と lastSynced (列13) を更新
+                const now = new Date().toISOString();
+                sheet.getRange(rowIndex, 8).setValue(calendarEventId);
+                sheet.getRange(rowIndex, 13).setValue(now);
+                Logger.log(`✅ calendarEventIdをスプレッドシートに保存完了: ${eventId} - ${calendarEventId}`);
+                break;
+              }
             }
           }
         }
+      } catch (error) {
+        Logger.log(`⚠️ カレンダー同期失敗（イベントは作成済み）: ${(error as Error).message}`);
       }
-    } catch (error) {
-      Logger.log(`⚠️ カレンダー同期失敗（イベントは作成済み）: ${(error as Error).message}`);
+    } else {
+      Logger.log(`⏭️ カレンダー同期スキップ（skipCalendarSync=true）: ${eventId}`);
     }
     
     return eventId;

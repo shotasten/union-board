@@ -21,7 +21,7 @@ function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutp
   
   // HTMLファイルを読み込む
   let htmlOutput = HtmlService.createHtmlOutputFromFile('index')
-    .setTitle('出欠管理アプリ')
+    .setTitle('UnionBoard')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
   
   // 管理者トークンがURLパラメータに含まれている場合、HTMLに埋め込む

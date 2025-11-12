@@ -47,12 +47,14 @@
       align-items: center;
       margin-bottom: 10px;
       width: 100%;
+      flex-wrap: nowrap;
     }
 
     .header-action-group {
       display: flex;
       gap: 8px;
       align-items: center;
+      flex-shrink: 0;
     }
 
     header h1 {
@@ -60,6 +62,8 @@
       font-weight: bold;
       color: #333;
       margin: 0;
+      flex-shrink: 1;
+      min-width: 0;
     }
 
     header p {
@@ -71,8 +75,9 @@
     .header-actions {
       display: flex;
       gap: 8px;
-      flex-wrap: wrap;
+      flex-wrap: nowrap;
       align-items: center;
+      flex-shrink: 0;
     }
 
     /* ログインボタン（アウトラインスタイル、アイコン+テキスト） */
@@ -221,6 +226,12 @@
     }
 
     /* 表形式UI */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
     .attendance-grid-wrapper {
       position: relative;
       width: 100%;
@@ -1182,10 +1193,7 @@
       }
 
       .header-top {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-        margin-bottom: 8px;
+        flex-wrap: wrap;
       }
 
       header h1 {
@@ -1202,15 +1210,10 @@
         font-size: 0.9rem;
       }
 
-      .header-actions {
-        flex-direction: column;
-        gap: 8px;
-      }
-
       .admin-login-btn {
-        width: 100%;
         font-size: 0.9rem;
-        padding: 12px 16px;
+        padding: 10px 14px;
+        min-width: auto;
       }
 
       .icon-action-btn {
@@ -1320,6 +1323,32 @@
       }
     }
 
+    /* 600px以下: ボタン群を縦に積み重ね */
+    @media (max-width: 600px) {
+      .main-actions-bar {
+        flex-direction: column;
+        align-items: stretch !important;
+      }
+
+      .left-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .right-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .left-actions .primary-btn,
+      .right-actions .primary-btn,
+      .right-actions .secondary-btn {
+        width: 100%;
+      }
+    }
+
     @media (max-width: 480px) {
       body {
         padding: 5px;
@@ -1336,10 +1365,7 @@
       }
 
       .header-top {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 8px;
-        margin-bottom: 6px;
+        flex-wrap: wrap;
       }
 
       header h1 {
@@ -1355,7 +1381,8 @@
 
       .admin-login-btn {
         font-size: 0.8rem;
-        padding: 6px 12px;
+        padding: 8px 12px;
+        min-width: auto;
       }
 
       .icon-action-btn {
@@ -1496,7 +1523,7 @@
               </div>
             </div>
           </div>
-          <div class="attendance-grid-wrapper">
+          <div class="table-responsive attendance-grid-wrapper">
             <div id="attendance-grid-scrollbar-top" class="attendance-grid-scrollbar-top"></div>
             <div id="attendance-grid" class="attendance-grid-container">
               <!-- 表形式のグリッドがここに動的に生成されます -->

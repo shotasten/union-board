@@ -122,9 +122,9 @@ function createEvent(
     // カレンダーから新規追加する場合は、skipCalendarSync=trueを渡して複製を防止
     if (!skipCalendarSync) {
       Logger.log(`🔄 カレンダー同期実行: ${eventId}`);
-      try {
-        const event = getEventById(eventId);
-        if (event) {
+    try {
+      const event = getEventById(eventId);
+      if (event) {
           const calendarEventId = upsertCalendarEvent(event);
           if (calendarEventId) {
             Logger.log(`✅ カレンダーイベントIDを即座に設定: ${eventId} - ${calendarEventId}`);
@@ -146,9 +146,9 @@ function createEvent(
               }
             }
           }
-        }
-      } catch (error) {
-        Logger.log(`⚠️ カレンダー同期失敗（イベントは作成済み）: ${(error as Error).message}`);
+      }
+    } catch (error) {
+      Logger.log(`⚠️ カレンダー同期失敗（イベントは作成済み）: ${(error as Error).message}`);
       }
     } else {
       Logger.log(`⏭️ カレンダー同期スキップ（skipCalendarSync=true）: ${eventId}`);
@@ -489,13 +489,13 @@ function updateEvent(eventId: string, updates: Partial<AttendanceEvent>, skipCal
         
         // カレンダーに同期（スキップフラグがfalseの場合のみ）
         if (!skipCalendarSync) {
-          try {
-            const event = getEventById(eventId);
-            if (event) {
-              upsertCalendarEvent(event);
-            }
-          } catch (error) {
-            Logger.log(`⚠️ カレンダー同期失敗（イベントは更新済み）: ${(error as Error).message}`);
+        try {
+          const event = getEventById(eventId);
+          if (event) {
+            upsertCalendarEvent(event);
+          }
+        } catch (error) {
+          Logger.log(`⚠️ カレンダー同期失敗（イベントは更新済み）: ${(error as Error).message}`);
           }
         } else {
           Logger.log(`⏭️ カレンダー同期をスキップしました: ${eventId}`);

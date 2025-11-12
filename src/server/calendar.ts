@@ -1481,12 +1481,51 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
 }
 
 /**
- * 全イベントの同期処理（カレンダー → アプリ）
+ * 全イベントの同期処理（カレンダー → アプリ、アプリ → カレンダー説明欄）
  * @returns 同期結果
  */
 function syncAll(): { success: number, failed: number, errors: string[] } {
   Logger.log('=== 全イベント同期開始 ===');
-  return pullFromCalendar();
+  
+  // カレンダー → アプリ同期
+  const pullResult = pullFromCalendar();
+  Logger.log(`📋 カレンダー → アプリ同期完了: 成功 ${pullResult.success}件, 失敗 ${pullResult.failed}件`);
+  
+  // アプリ → カレンダー説明欄同期
+  Logger.log('=== アプリ → カレンダー説明欄同期開始 ===');
+  let descriptionSyncSuccess = 0;
+  let descriptionSyncFailed = 0;
+  
+  try {
+    // 全イベントを取得
+    const events = getEvents('all');
+    Logger.log(`📋 説明欄同期対象イベント数: ${events.length}件`);
+    
+    events.forEach(event => {
+      if (event.calendarEventId) {
+        try {
+          syncCalendarDescriptionForEvent(event.id);
+          descriptionSyncSuccess++;
+        } catch (error) {
+          Logger.log(`⚠️ 説明欄同期失敗: ${event.id} - ${(error as Error).message}`);
+          descriptionSyncFailed++;
+        }
+      } else {
+        Logger.log(`⏭️ スキップ（calendarEventId未設定）: ${event.id}`);
+      }
+    });
+    
+    Logger.log(`📋 説明欄同期完了: 成功 ${descriptionSyncSuccess}件, 失敗 ${descriptionSyncFailed}件`);
+  } catch (error) {
+    Logger.log(`❌ エラー: 説明欄同期処理失敗 - ${(error as Error).message}`);
+  }
+  
+  // 合計を返す
+  return {
+    success: pullResult.success + descriptionSyncSuccess,
+    failed: pullResult.failed + descriptionSyncFailed,
+    errors: pullResult.errors
+  };
 }
 
 /**

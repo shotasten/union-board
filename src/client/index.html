@@ -189,6 +189,15 @@
       border-color: #00796B;
     }
 
+    /* 表示期間テキストの固定幅コンテナ */
+    .fixed-width-period {
+      min-width: 250px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
     /* 管理者専用機能のスタイル */
     /* .admin-feature クラスは管理者専用機能であることを示すマーカーとして使用 */
 
@@ -1273,6 +1282,11 @@
         width: 100%;
       }
 
+      .fixed-width-period {
+        min-width: auto;
+        width: 100%;
+      }
+
       main {
         padding: 15px;
       }
@@ -1419,6 +1433,11 @@
         width: 100%;
       }
 
+      .fixed-width-period {
+        min-width: auto;
+        width: 100%;
+      }
+
       main {
         padding: 10px;
       }
@@ -1489,8 +1508,11 @@
             <div class="left-actions" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
               <!-- 表示期間表示 -->
               <div id="display-period-info" style="padding: 12px 16px; background: #f5f5f5; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                <span style="font-weight: 500; color: #333;">表示期間:</span>
-                <span id="display-period-text" style="color: #666;">全期間</span>
+                <!-- 固定幅の期間テキストコンテナ -->
+                <div class="fixed-width-period">
+                  <span style="font-weight: 500; color: #333;">表示期間:</span>
+                  <span id="display-period-text" style="color: #666;">全期間</span>
+                </div>
                 <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" class="secondary-btn" style="display: none;">期間を設定</button>
               </div>
               <!-- メンバー登録ボタン（すべてのユーザー） -->

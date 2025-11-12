@@ -46,6 +46,7 @@ Google Apps Script (GAS) とHTML Serviceを使用した、TMU（Tokyo Music Unio
 - **年度単位の管理**: `DISPLAY_START_DATE` ～ `DISPLAY_END_DATE` で表示期間を設定
 - **過去のイベント表示**: 表示期間内であれば過去のイベントも表示
 - **効率的な同期**: 表示期間のみを同期対象にすることで処理時間を短縮
+- **デフォルト期間**: 表示期間が未指定の場合、自動的に30日前～1年後が適用されます
 
 #### 定期同期機能（2025-11）
 - **cron対応**: Google Apps Script のトリガーで定期的にカレンダー同期

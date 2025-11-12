@@ -190,96 +190,6 @@ function parseMemberNameFromString(displayName: string): { part: string; name: s
 }
 
 /**
- * 出欠サマリーを含む説明文を生成（キャッシュデータ使用版）
- * syncAll() から呼び出される際のパフォーマンス最適化版
- * @param eventId イベントID
- * @param userDescription ユーザーが入力した説明（オプション）
- * @param responses 事前取得した出欠データ
- * @param members 事前取得したメンバーデータ
- * @returns 説明文
- */
-function buildDescriptionWithCache(
-  eventId: string, 
-  userDescription: string | undefined, 
-  responses: Response[], 
-  members: Member[]
-): string {
-  try {
-    // 集計処理
-    let attendCount = 0;
-    let maybeCount = 0;
-    let absentCount = 0;
-    
-    responses.forEach(response => {
-      if (response.status === '○') {
-        attendCount++;
-      } else if (response.status === '△') {
-        maybeCount++;
-      } else if (response.status === '×') {
-        absentCount++;
-      }
-    });
-    
-    const totalCount = attendCount + maybeCount + absentCount;
-    const now = new Date();
-    const formattedDate = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm');
-
-    let description = '';
-
-    if (userDescription && userDescription.trim()) {
-      description += userDescription.trim() + '\n\n';
-    }
-
-    description += '【出欠状況】\n';
-    description += `○ 参加: ${attendCount}人\n`;
-    description += `△ 未定: ${maybeCount}人\n`;
-    description += `× 欠席: ${absentCount}人\n`;
-    description += `合計: ${totalCount}人\n\n`;
-
-    description += '【コメント】\n';
-    
-    const comments = responses.filter(r => r.comment && r.comment.trim());
-
-    if (comments.length === 0) {
-      description += '（コメントなし）\n';
-    } else {
-      // メンバー情報のマップを作成
-      const memberMap = new Map<string, Member>();
-      members.forEach(m => {
-        memberMap.set(m.userKey, m);
-      });
-
-      comments.forEach(response => {
-        let displayName = '不明';
-        let part = '';
-        const member = memberMap.get(response.userKey);
-
-        if (member) {
-          part = member.part || '';
-          displayName = member.displayName || (member.part + member.name);
-        } else if (response.userKey && response.userKey.startsWith('anon-')) {
-          const userName = response.userKey.replace('anon-', '');
-          const parsed = parseMemberNameFromString(userName);
-          part = parsed.part || '';
-          displayName = parsed.name || userName;
-        }
-
-        const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';
-        const partLabel = part ? `[${part}] ` : '';
-        description += `${statusLabel} ${partLabel}${displayName}: ${response.comment}\n`;
-      });
-    }
-
-    description += `\n最終更新: ${formattedDate}`;
-
-    return description;
-  } catch (error) {
-    Logger.log(`❌ エラー: 説明文生成失敗 - ${(error as Error).message}`);
-    return '';
-  }
-}
-
-/**
  * 出欠サマリーを含む説明文を生成
  * @param eventId イベントID
  * @param userDescription ユーザーが入力した説明（オプション）
@@ -1629,52 +1539,10 @@ function syncAll(limitToDisplayPeriod: boolean = false): { success: number, fail
     const events = getEvents('all');
     Logger.log(`📋 説明欄同期対象イベント数: ${events.length}件`);
     
-    // 🚀 パフォーマンス最適化: 全データを一括取得
-    Logger.log('📊 全データ一括取得開始（パフォーマンス最適化）');
-    const allResponses = getAllResponses();
-    const allMembers = getMembers();
-    const calendarId = getOrCreateCalendar();
-    const calendar = CalendarApp.getCalendarById(calendarId);
-    Logger.log(`📊 データ取得完了: 出欠 ${allResponses.length}件, メンバー ${allMembers.length}人`);
-    
-    if (!calendar) {
-      Logger.log(`❌ エラー: カレンダーが見つかりません: ${calendarId}`);
-      return {
-        success: pullResult.success,
-        failed: pullResult.failed + events.filter(e => e.calendarEventId).length,
-        errors: [...pullResult.errors, 'カレンダーが見つかりません']
-      };
-    }
-    
-    // 出欠データをイベントIDごとにマッピング（高速検索用）
-    const responsesMap = new Map<string, Response[]>();
-    allResponses.forEach(response => {
-      if (!responsesMap.has(response.eventId)) {
-        responsesMap.set(response.eventId, []);
-      }
-      responsesMap.get(response.eventId)!.push(response);
-    });
-    
     events.forEach(event => {
       if (event.calendarEventId) {
         try {
-          // カレンダーイベントを取得
-          const calendarEvent = calendar.getEventById(event.calendarEventId);
-          
-          // 説明文を生成（キャッシュされたデータを使用）
-          const eventResponses = responsesMap.get(event.id) || [];
-          const description = buildDescriptionWithCache(event.id, event.description, eventResponses, allMembers);
-          const notesHash = computeHash(description);
-          
-          // 説明文のハッシュが同じ場合は更新をスキップ
-          if (event.notesHash === notesHash) {
-            Logger.log(`✅ 説明欄同期スキップ（変更なし）: ${event.id}`);
-          } else {
-            calendarEvent.setDescription(description);
-            updateEventCalendarInfo(event.id, event.calendarEventId, notesHash);
-            Logger.log(`✅ 説明欄同期成功: ${event.id}`);
-          }
-          
+          syncCalendarDescriptionForEvent(event.id);
           descriptionSyncSuccess++;
         } catch (error) {
           Logger.log(`⚠️ 説明欄同期失敗: ${event.id} - ${(error as Error).message}`);

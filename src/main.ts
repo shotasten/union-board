@@ -3,6 +3,7 @@
 /// <reference path="server/utils.ts" /> // checkRateLimit, resetRateLimit を参照するため追加
 /// <reference path="server/calendar.ts" /> // upsertCalendarEvent を参照するため追加
 /// <reference path="server/members.ts" /> // メンバー管理関数を参照するため追加
+/// <reference path="server/responses.ts" /> // getAllResponses を参照するため追加
 
 /**
  * メインエントリーポイント
@@ -363,28 +364,98 @@ function userSubmitResponsesBatch(
   
   Logger.log(`=== userSubmitResponsesBatch 開始: ${responses.length}件 ===`);
   
-  responses.forEach((response, index) => {
-    try {
-      const result = submitResponse(
-        response.eventId,
-        response.userKey,
-        response.status,
-        response.comment
-      );
-      
-      if (result) {
-        successCount++;
-      } else {
-        failedCount++;
-        errors.push(`${index + 1}件目の保存に失敗しました`);
-      }
-    } catch (error) {
-      failedCount++;
-      errors.push(`${index + 1}件目: ${(error as Error).message}`);
+  try {
+    // シートを1回だけ取得
+    const sheet = getResponsesSheet();
+    const data = sheet.getDataRange().getValues();
+    const now = new Date().toISOString();
+    
+    // 既存データのインデックスを作成（高速検索用）
+    const existingRows = new Map<string, number>();
+    for (let i = 1; i < data.length; i++) {
+      const key = `${data[i][0]}_${data[i][1]}`; // eventId_userKey
+      existingRows.set(key, i);
     }
-  });
-  
-  Logger.log(`✅ バッチ保存完了: 成功 ${successCount}件, 失敗 ${failedCount}件`);
+    
+    // 更新・追加データを準備
+    const rowsToUpdate: Array<{ row: number; data: any[] }> = [];
+    const rowsToAdd: any[][] = [];
+    
+    responses.forEach((response, index) => {
+      try {
+        // バリデーション
+        if (!response.eventId || !response.userKey) {
+          errors.push(`${index + 1}件目: eventId, userKeyは必須です`);
+          failedCount++;
+          return;
+        }
+        
+        if (response.status !== '○' && response.status !== '△' && response.status !== '×' && response.status !== '-') {
+          errors.push(`${index + 1}件目: statusは○、△、×、-のいずれかである必要があります`);
+          failedCount++;
+          return;
+        }
+        
+        const key = `${response.eventId}_${response.userKey}`;
+        const existingRowIndex = existingRows.get(key);
+        
+        if (existingRowIndex !== undefined) {
+          // 既存データを更新
+          rowsToUpdate.push({
+            row: existingRowIndex,
+            data: [
+              response.eventId,
+              response.userKey,
+              response.status,
+              response.comment || '',
+              data[existingRowIndex][4], // createdAt（変更しない）
+              now // updatedAt
+            ]
+          });
+        } else {
+          // 新規データを追加
+          rowsToAdd.push([
+            response.eventId,
+            response.userKey,
+            response.status,
+            response.comment || '',
+            now, // createdAt
+            now  // updatedAt
+          ]);
+        }
+        
+        successCount++;
+      } catch (error) {
+        failedCount++;
+        errors.push(`${index + 1}件目: ${(error as Error).message}`);
+      }
+    });
+    
+    // 一括更新（既存データ）
+    if (rowsToUpdate.length > 0) {
+      Logger.log(`✅ 既存データ更新: ${rowsToUpdate.length}件`);
+      rowsToUpdate.forEach(update => {
+        const range = sheet.getRange(update.row + 1, 1, 1, 6);
+        range.setValues([update.data]);
+      });
+    }
+    
+    // 一括追加（新規データ）
+    if (rowsToAdd.length > 0) {
+      Logger.log(`✅ 新規データ追加: ${rowsToAdd.length}件`);
+      const lastRow = sheet.getLastRow();
+      const range = sheet.getRange(lastRow + 1, 1, rowsToAdd.length, 6);
+      range.setValues(rowsToAdd);
+    }
+    
+    Logger.log(`✅ バッチ保存完了: 成功 ${successCount}件, 失敗 ${failedCount}件`);
+    
+  } catch (error) {
+    Logger.log(`❌ バッチ保存エラー: ${(error as Error).message}`);
+    errors.push(`バッチ処理エラー: ${(error as Error).message}`);
+    failedCount = responses.length;
+    successCount = 0;
+  }
   
   return { success: successCount, failed: failedCount, errors: errors };
 }

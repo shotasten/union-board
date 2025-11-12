@@ -374,19 +374,22 @@
         min-width: 600px;
       }
 
-      /* 名前列の最小幅を確保 */
+      /* 名前列の幅固定（モバイル表示: 日本語4文字程度、2行表示） */
       .member-name-col {
-        min-width: 80px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+        width: 70px !important;
       }
 
-      /* 名前列のリンク内テキストの折り返し制御 */
+      /* 名前列のリンク内テキストの折り返し制御（2行表示） */
       .member-name-col a {
-        display: block;
-        white-space: nowrap;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
         overflow: hidden;
         text-overflow: ellipsis;
-        -webkit-box-orient: unset;
-        -webkit-line-clamp: unset;
+        word-break: break-all;
+        line-height: 1.3;
       }
 
       /* 出欠状況セルの固定幅 */
@@ -402,19 +405,22 @@
         min-width: 500px;
       }
 
-      /* 名前列の最小幅を確保 */
+      /* 名前列の幅固定（小画面モバイル表示: 日本語4文字程度、2行表示） */
       .member-name-col {
-        min-width: 80px !important;
+        min-width: 70px !important;
+        max-width: 70px !important;
+        width: 70px !important;
       }
 
-      /* 名前列のリンク内テキストの折り返し制御 */
+      /* 名前列のリンク内テキストの折り返し制御（2行表示） */
       .member-name-col a {
-        display: block;
-        white-space: nowrap;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
         overflow: hidden;
         text-overflow: ellipsis;
-        -webkit-box-orient: unset;
-        -webkit-line-clamp: unset;
+        word-break: break-all;
+        line-height: 1.3;
       }
 
       /* 出欠状況セルの固定幅 */
@@ -435,12 +441,27 @@
       vertical-align: middle;
     }
 
-    /* 名前列の最小幅確保 */
+    /* 名前列の幅固定（PC表示: 日本語5文字程度、2行表示） */
     .member-name-col {
-      min-width: 80px !important;
-      white-space: nowrap;
+      min-width: 100px;
+      max-width: 100px;
+      width: 100px;
+      overflow: hidden;
+      height: auto;
+      min-height: 48px; /* 2行分の高さを確保 */
+      vertical-align: middle;
+      /* white-space: nowrapを削除して2行表示を有効化 */
+    }
+    
+    /* 名前列内のリンクのスタイル（2行表示） */
+    .member-name-col a {
+      display: -webkit-box;
+      -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2;
       overflow: hidden;
       text-overflow: ellipsis;
+      word-break: break-all;
+      line-height: 1.3;
     }
 
     /* 出欠状況セルの固定幅（名前列の領域を確保） */
@@ -1580,14 +1601,14 @@
           <div class="main-actions-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
             <!-- 左寄せエリア（設定・管理） -->
             <div class="left-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <!-- メンバー登録ボタン（すべてのユーザー、セカンダリーボタン） -->
-              <button class="member-register-btn secondary-btn" onclick="showMemberRegisterModal()">メンバー登録</button>
+              <!-- メンバー登録ボタン（すべてのユーザー、プライマリーボタン） -->
+              <button class="member-register-btn primary-btn" onclick="showMemberRegisterModal()">メンバー登録</button>
             </div>
             <!-- 右寄せエリア（主要アクション） -->
             <div class="right-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
               <!-- 表示期間設定ボタン（管理者のみ、セカンダリーボタン） -->
               <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" class="secondary-btn" style="display: none;">表示期間を設定</button>
-              <!-- イベント登録ボタン（管理者のみ、唯一のプライマリーボタン） -->
+              <!-- イベント登録ボタン（管理者のみ、プライマリーボタン） -->
               <button class="admin-feature primary-btn create-event-btn" onclick="openCreateEventModal()" id="create-event-btn" style="display: none;">イベント登録</button>
             </div>
           </div>
@@ -1827,6 +1848,55 @@
           <button type="button" class="form-btn cancel" onclick="closeMemberInfoEditModal()" style="flex: 1;">キャンセル</button>
           <button type="button" class="form-btn primary" onclick="saveMemberInfo()" style="flex: 2;">保存</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 同期確認モーダル -->
+  <div id="sync-confirmation-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>イベント同期の確認</h2>
+        <button class="close-btn" onclick="closeSyncConfirmationModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 15px; line-height: 1.6;">
+          表示期間内の全てのイベント情報をGoogleカレンダーと同期します。
+        </p>
+        <div style="padding: 12px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; margin-bottom: 15px;">
+          <p style="margin: 0; color: #856404; font-size: 0.9rem; line-height: 1.5;">
+            <strong>⚠️ 注意:</strong> イベント数が多い場合、処理に時間がかかることがあります。
+          </p>
+        </div>
+        <p style="margin: 0; font-size: 0.9rem; color: #666; line-height: 1.5;">
+          同期を実行しますか？
+        </p>
+      </div>
+      <div class="form-actions" style="margin-top: 20px;">
+        <button type="button" class="form-btn cancel" onclick="closeSyncConfirmationModal()">キャンセル</button>
+        <button type="button" class="form-btn primary" onclick="confirmSyncAllEvents()">同期</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ログアウト確認モーダル -->
+  <div id="logout-confirmation-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>管理者ログアウトの確認</h2>
+        <button class="close-btn" onclick="closeLogoutConfirmationModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 15px; line-height: 1.6;">
+          管理者としてログアウトしますか？
+        </p>
+        <p style="margin: 0; font-size: 0.9rem; color: #666; line-height: 1.5;">
+          ログアウト後は、管理者機能（イベント登録・編集・削除など）が使用できなくなります。
+        </p>
+      </div>
+      <div class="form-actions" style="margin-top: 20px;">
+        <button type="button" class="form-btn cancel" onclick="closeLogoutConfirmationModal()">キャンセル</button>
+        <button type="button" class="form-btn primary" onclick="confirmLogoutAdmin()">ログアウト</button>
       </div>
     </div>
   </div>
@@ -2189,13 +2259,27 @@
     }
 
     /**
-     * 管理者ログアウト
+     * 管理者ログアウト（確認モーダルを表示）
      */
     function logoutAdmin() {
-      // 確認ダイアログを表示
-      if (!confirm('管理者ログアウトしますか？')) {
-        return;
-      }
+      const modal = document.getElementById('logout-confirmation-modal');
+      modal.style.display = 'block';
+    }
+
+    /**
+     * ログアウト確認モーダルを閉じる
+     */
+    function closeLogoutConfirmationModal() {
+      const modal = document.getElementById('logout-confirmation-modal');
+      modal.style.display = 'none';
+    }
+
+    /**
+     * ログアウトを実行（確認後）
+     */
+    function confirmLogoutAdmin() {
+      // モーダルを閉じる
+      closeLogoutConfirmationModal();
 
       // localStorageから管理者トークンを削除
       localStorage.removeItem('adminToken');
@@ -2588,20 +2672,14 @@
         nameHeader.className = 'member-name-col';
         nameHeader.style.padding = '6px 8px';
         nameHeader.style.lineHeight = '1.3';
-        nameHeader.style.maxWidth = '150px';
-        nameHeader.style.minWidth = '120px';
-        nameHeader.style.width = '150px';
+        // 幅はCSSで制御（PC: 100px, モバイル: 70px）
         // z-indexを明示的に設定して、イベント列より低くする
         nameHeader.style.zIndex = '9';
         
         // 名前をリンクスタイルで表示
         const nameLink = document.createElement('a');
         nameLink.href = '#';
-        nameLink.style.display = '-webkit-box';
-        nameLink.style.webkitBoxOrient = 'vertical';
-        nameLink.style.webkitLineClamp = '2';
-        nameLink.style.overflow = 'hidden';
-        nameLink.style.textOverflow = 'ellipsis';
+        // 2行表示の設定はCSSで制御
         nameHeader.style.textAlign = 'center';
         nameLink.style.color = selectedMember === displayName ? '#667eea' : '#0066cc';
         nameLink.style.textDecoration = selectedMember === displayName ? 'underline' : 'underline';
@@ -2609,8 +2687,6 @@
         nameLink.style.fontWeight = selectedMember === displayName ? 'bold' : 'normal';
         nameLink.style.cursor = 'pointer';
         nameLink.style.transition = 'all 0.2s';
-        nameLink.style.wordBreak = 'break-word';
-        nameLink.style.lineHeight = '1.3';
         
         // 名前をそのまま表示（2行で表示される）
         nameLink.textContent = name || '';
@@ -3449,28 +3525,23 @@
         topRow.appendChild(statusGroup);
         eventRow.appendChild(topRow);
 
-        // 下部：コメント入力欄
+        // 下部：コメント入力欄（ラベルを削除し、プレースホルダーで対応）
         const commentRow = document.createElement('div');
         commentRow.style.display = 'flex';
         commentRow.style.flexDirection = 'column';
         commentRow.style.gap = '4px';
-
-        const commentLabel = document.createElement('label');
-        commentLabel.textContent = 'コメント（任意）';
-        commentLabel.style.fontSize = '0.85rem';
-        commentLabel.style.color = '#666';
-        commentRow.appendChild(commentLabel);
+        commentRow.style.marginTop = '8px';
 
         const commentInput = document.createElement('textarea');
         commentInput.id = `comment-${event.id}-${memberName}`;
         commentInput.className = 'comment-input';
-        commentInput.placeholder = 'コメントを入力';
+        commentInput.placeholder = 'コメントを入力（任意）';
         commentInput.style.width = '100%';
         commentInput.style.padding = '6px 8px';
         commentInput.style.border = '1px solid #ddd';
         commentInput.style.borderRadius = '4px';
         commentInput.style.fontSize = '0.85rem';
-        commentInput.style.minHeight = '50px';
+        commentInput.style.minHeight = '40px';
         commentInput.style.resize = 'vertical';
         
         // 既存のコメントを設定
@@ -5389,9 +5460,28 @@
     }
 
     /**
-     * 全イベント一括同期
+     * 全イベント一括同期（確認モーダルを表示）
      */
     function syncAllEvents() {
+      const modal = document.getElementById('sync-confirmation-modal');
+      modal.style.display = 'block';
+    }
+
+    /**
+     * 同期確認モーダルを閉じる
+     */
+    function closeSyncConfirmationModal() {
+      const modal = document.getElementById('sync-confirmation-modal');
+      modal.style.display = 'none';
+    }
+
+    /**
+     * 同期を実行（確認後）
+     */
+    function confirmSyncAllEvents() {
+      // モーダルを閉じる
+      closeSyncConfirmationModal();
+
       const syncAllBtn = document.getElementById('sync-all-btn');
       if (!syncAllBtn) {
         return;

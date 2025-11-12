@@ -118,8 +118,8 @@ clasp login
 # 新規プロジェクト作成
 clasp create --type standalone --title "UnionBoard" --rootDir ./dist
 
-# ビルドとプッシュ
-npm run build && clasp push
+# ビルドとプッシュ（--force で強制プッシュ）
+npm run push
 ```
 
 **詳細な手順**: [セットアップ手順（完全版）](docs/セットアップ手順.md) を参照してください。
@@ -130,15 +130,14 @@ npm run build && clasp push
 # TypeScriptをコンパイル
 npm run build
 
-# GASにプッシュ
-clasp push
+# GASにプッシュ（--force で強制プッシュ）
+npm run push
 
 # Webアプリとしてデプロイ（GASエディタで実施）
 # 1. https://script.google.com でプロジェクトを開く
-# 2. 「デプロイ」→「新しいデプロイ」
-# 3. 種類: ウェブアプリ
-# 4. アクセス権限: 全員
-# 5. デプロイ
+# 2. 「デプロイ」→ 既存のデプロイメントを選択 → 「編集」
+# 3. 「バージョン」を「新規」に変更
+# 4. 「デプロイ」をクリック
 ```
 
 ### 便利なコマンド
@@ -147,12 +146,14 @@ clasp push
 # ビルド
 npm run build
 
-# ビルド + プッシュ
+# ビルド + プッシュ（--force で強制プッシュ、変更検出の問題を回避）
 npm run push
 
 # ビルド + プッシュ + デプロイ
 npm run deploy
 ```
+
+**注意**: `npm run push` は `--force` フラグを使用して強制プッシュします。これにより、clasp の変更検出の問題を回避し、確実にコードが更新されます。
 
 ### 初回セットアップ後の作業
 

@@ -2597,14 +2597,14 @@
       dateHeader.textContent = 'イベント';
       headerRow1.appendChild(dateHeader);
 
-      // ステータス凡例 - 2行結合（幅を固定）
+      // ステータス凡例 - 2行結合（幅を狭く）
       const legendHeader = document.createElement('th');
       legendHeader.rowSpan = 2;
       legendHeader.colSpan = 3;
-      legendHeader.style.minWidth = '120px';
-      legendHeader.style.width = '120px';
-      legendHeader.style.maxWidth = '120px';
-      legendHeader.innerHTML = '<div style="display: flex; gap: 10px; justify-content: center;"><span>○</span><span>△</span><span>×</span></div>';
+      legendHeader.style.minWidth = '90px';
+      legendHeader.style.width = '90px';
+      legendHeader.style.maxWidth = '90px';
+      legendHeader.innerHTML = '<div style="display: flex; gap: 8px; justify-content: center;"><span>○</span><span>△</span><span>×</span></div>';
       headerRow1.appendChild(legendHeader);
 
       // メンバー列（パートごとにソート）
@@ -2860,31 +2860,44 @@
           }
         });
         
-        // ○/△/×の合計数を表示（幅を固定）
+        // ○/△/×の合計数を表示（数字のみ、罫線付き、幅を狭く）
         ['○', '△', '×'].forEach(status => {
           const legendCell = document.createElement('td');
           legendCell.style.textAlign = 'center';
-          legendCell.style.fontSize = '1.1rem';
-          legendCell.style.fontWeight = 'bold';
           legendCell.style.verticalAlign = 'middle';
-          legendCell.style.minWidth = '40px';
-          legendCell.style.width = '40px';
-          legendCell.style.maxWidth = '40px';
+          legendCell.style.minWidth = '30px';
+          legendCell.style.width = '30px';
+          legendCell.style.maxWidth = '30px';
+          legendCell.style.padding = '4px 2px';
+          legendCell.style.border = '1px solid #e0e0e0';
           
           const count = statusCounts[status];
           if (count > 0) {
-            legendCell.textContent = `${status} ${count}`;
+            // 数字のみを表示（記号は非表示）
+            const number = document.createElement('div');
+            number.textContent = count.toString();
+            number.style.fontSize = '1.1rem';
+            number.style.fontWeight = 'bold';
+            number.style.lineHeight = '1.2';
+            
             // ステータスに応じた色を設定
             if (status === '○') {
-              legendCell.style.color = '#4caf50';
+              number.style.color = '#4caf50';
             } else if (status === '△') {
-              legendCell.style.color = '#ff9800';
+              number.style.color = '#ff9800';
             } else if (status === '×') {
-              legendCell.style.color = '#f44336';
+              number.style.color = '#f44336';
             }
+            
+            legendCell.appendChild(number);
           } else {
-            legendCell.textContent = status;
-            legendCell.style.color = '#ccc';
+            // カウントが0の場合は「-」を表示
+            const dash = document.createElement('div');
+            dash.textContent = '-';
+            dash.style.fontSize = '0.9rem';
+            dash.style.color = '#ccc';
+            dash.style.lineHeight = '1.2';
+            legendCell.appendChild(dash);
           }
           
           row.appendChild(legendCell);
@@ -4348,25 +4361,38 @@
         const commentInput = document.getElementById(`comment-${eventId}-${memberName}`);
         const comment = commentInput ? commentInput.value.trim() : '';
         
+        // 元のデータを取得（変更検知用）
+        const existingResponses = window.allResponsesCache[eventId] || [];
+        const existingResponse = existingResponses.find(r => r.userKey === memberUserKey);
+        const originalStatus = existingResponse ? existingResponse.status : null;
+        const originalComment = existingResponse ? (existingResponse.comment || '') : '';
+        
+        // 現在のステータス（未定義の場合はnull）
+        const currentStatus = status !== undefined ? status : null;
+        
+        // 変更があったかチェック
+        const statusChanged = currentStatus !== originalStatus;
+        const commentChanged = comment !== originalComment;
+        
         // デバッグ用ログ（本番環境では削除可能）
         console.log('更新チェック:', {
           eventId: eventId,
           memberName: memberName,
-          status: status,
-          comment: comment,
-          commentInputExists: !!commentInput,
-          commentInputId: commentInput ? commentInput.id : 'not found'
+          currentStatus: currentStatus,
+          originalStatus: originalStatus,
+          statusChanged: statusChanged,
+          currentComment: comment,
+          originalComment: originalComment,
+          commentChanged: commentChanged
         });
         
-        // ステータスが設定されている場合、またはコメントがある場合は更新対象に含める
-        // 未選択（'-'）も更新対象に含める
-        if (status !== undefined || comment) {
-          // ステータスが未設定の場合は"-"（未選択）として保存
+        // ステータスまたはコメントに変更があった場合のみ更新対象に含める
+        if (statusChanged || commentChanged) {
           updates.push({
             eventId: eventId,
             memberName: memberName,
             memberUserKey: memberUserKey,
-            status: status !== undefined ? status : '-',
+            status: currentStatus !== null ? currentStatus : '-',
             comment: comment
           });
         }

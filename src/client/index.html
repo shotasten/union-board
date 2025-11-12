@@ -152,25 +152,7 @@
       border-color: #00695C;
     }
 
-    .create-event-btn {
-      background: #00796B;
-      color: white;
-      border: 1px solid #00796B;
-      padding: 10px 20px;
-      font-size: 0.95rem;
-      border-radius: 6px;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-weight: 500;
-      white-space: nowrap;
-    }
-
-    .create-event-btn:hover {
-      background: #00695C;
-      border-color: #00695C;
-    }
-
-    /* セカンダリーボタン（表示期間設定、メンバー登録） */
+    /* セカンダリーボタン（表示期間設定、メンバー登録、イベント登録） */
     .secondary-btn {
       background: transparent;
       color: #00796B;
@@ -187,15 +169,6 @@
     .secondary-btn:hover {
       background: #E0F2F1;
       border-color: #00796B;
-    }
-
-    /* 表示期間テキストの固定幅コンテナ */
-    .fixed-width-period {
-      min-width: 250px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      white-space: nowrap;
     }
 
     /* 管理者専用機能のスタイル */
@@ -1273,20 +1246,6 @@
         align-items: stretch;
       }
 
-      .right-actions {
-        width: 100%;
-        justify-content: stretch;
-      }
-
-      .right-actions .create-event-btn {
-        width: 100%;
-      }
-
-      .fixed-width-period {
-        min-width: auto;
-        width: 100%;
-      }
-
       main {
         padding: 15px;
       }
@@ -1424,20 +1383,6 @@
         align-items: stretch;
       }
 
-      .right-actions {
-        width: 100%;
-        justify-content: stretch;
-      }
-
-      .right-actions .create-event-btn {
-        width: 100%;
-      }
-
-      .fixed-width-period {
-        min-width: auto;
-        width: 100%;
-      }
-
       main {
         padding: 10px;
       }
@@ -1503,25 +1448,15 @@
         <!-- 表形式表示 -->
         <div id="grid-view" style="display: block;">
           <!-- メインコンテンツ上部のボタンエリア -->
-          <div class="main-actions-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
-            <!-- 左寄せエリア（フィルタ/設定） -->
-            <div class="left-actions" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-              <!-- 表示期間表示 -->
-              <div id="display-period-info" style="padding: 12px 16px; background: #f5f5f5; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                <!-- 固定幅の期間テキストコンテナ -->
-                <div class="fixed-width-period">
-                  <span style="font-weight: 500; color: #333;">表示期間:</span>
-                  <span id="display-period-text" style="color: #666;">全期間</span>
-                </div>
-                <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" class="secondary-btn" style="display: none;">期間を設定</button>
-              </div>
+          <div class="main-actions-bar" style="display: flex; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <!-- 左寄せエリア（すべてのボタンを横並び） -->
+            <div class="left-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <!-- 表示期間設定ボタン（管理者のみ） -->
+              <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" class="secondary-btn" style="display: none;">表示期間を設定</button>
               <!-- メンバー登録ボタン（すべてのユーザー） -->
-              <button class="member-register-btn secondary-btn" onclick="showMemberRegisterModal()">+ メンバー登録</button>
-            </div>
-            <!-- 右寄せエリア（主要アクション） -->
-            <div class="right-actions" style="display: flex; align-items: center; gap: 12px;">
-              <!-- 新規作成ボタン（管理者のみ、唯一のプライマリーボタン） -->
-              <button class="admin-feature primary-btn create-event-btn" onclick="openCreateEventModal()" id="create-event-btn" style="display: none;">新規作成</button>
+              <button class="member-register-btn secondary-btn" onclick="showMemberRegisterModal()">メンバー登録</button>
+              <!-- イベント登録ボタン（管理者のみ） -->
+              <button class="admin-feature secondary-btn create-event-btn" onclick="openCreateEventModal()" id="create-event-btn" style="display: none;">イベント登録</button>
             </div>
           </div>
           <!-- 凡例 -->
@@ -2142,33 +2077,10 @@
     }
 
     /**
-     * 表示期間情報を更新
+     * 表示期間情報を更新（表示期間テキストは削除されたため、この関数は空）
      */
     function updateDisplayPeriodInfo(config) {
-      const periodText = document.getElementById('display-period-text');
-      if (!periodText) return;
-      
-      const startDate = config.DISPLAY_START_DATE || '';
-      const endDate = config.DISPLAY_END_DATE || '';
-
-      if (!startDate && !endDate) {
-        periodText.textContent = '全期間';
-      } else {
-        let startStr = '制限なし';
-        let endStr = '制限なし';
-        
-        if (startDate) {
-          const start = new Date(startDate);
-          startStr = `${start.getFullYear()}年${start.getMonth() + 1}月${start.getDate()}日`;
-        }
-        
-        if (endDate) {
-          const end = new Date(endDate);
-          endStr = `${end.getFullYear()}年${end.getMonth() + 1}月${end.getDate()}日`;
-        }
-        
-        periodText.textContent = `${startStr} ～ ${endStr}`;
-      }
+      // 表示期間テキスト表示は削除されたため、何もしない
     }
 
     /**

@@ -1214,6 +1214,11 @@
         font-size: 0.9rem;
         padding: 10px 14px;
         min-width: auto;
+        flex-shrink: 0;
+      }
+
+      .header-action-group {
+        flex-shrink: 0;
       }
 
       .icon-action-btn {
@@ -1328,24 +1333,40 @@
       .main-actions-bar {
         flex-direction: column;
         align-items: stretch !important;
+        gap: 10px;
       }
 
       .left-actions {
         width: 100%;
         flex-direction: column;
         align-items: stretch;
+        gap: 10px;
       }
 
       .right-actions {
         width: 100%;
         flex-direction: column;
         align-items: stretch;
+        gap: 10px;
       }
 
       .left-actions .primary-btn,
+      .left-actions .secondary-btn,
       .right-actions .primary-btn,
       .right-actions .secondary-btn {
         width: 100%;
+        margin-bottom: 0;
+      }
+    }
+
+    /* 500px以下: サブタイトルを非表示 */
+    @media (max-width: 500px) {
+      header p {
+        display: none;
+      }
+
+      header {
+        padding: 12px 15px;
       }
     }
 
@@ -1383,6 +1404,11 @@
         font-size: 0.8rem;
         padding: 8px 12px;
         min-width: auto;
+        flex-shrink: 0;
+      }
+
+      .header-action-group {
+        flex-shrink: 0;
       }
 
       .icon-action-btn {
@@ -1488,16 +1514,16 @@
         <div id="grid-view" style="display: block;">
           <!-- メインコンテンツ上部のボタンエリア -->
           <div class="main-actions-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-            <!-- 左寄せエリア（最重要アクション） -->
+            <!-- 左寄せエリア（設定・管理） -->
             <div class="left-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <!-- メンバー登録ボタン（すべてのユーザー、プライマリーボタン） -->
-              <button class="member-register-btn primary-btn" onclick="showMemberRegisterModal()">メンバー登録</button>
+              <!-- メンバー登録ボタン（すべてのユーザー、セカンダリーボタン） -->
+              <button class="member-register-btn secondary-btn" onclick="showMemberRegisterModal()">メンバー登録</button>
             </div>
-            <!-- 右寄せエリア（補助アクション） -->
+            <!-- 右寄せエリア（主要アクション） -->
             <div class="right-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
               <!-- 表示期間設定ボタン（管理者のみ、セカンダリーボタン） -->
               <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" class="secondary-btn" style="display: none;">表示期間を設定</button>
-              <!-- イベント登録ボタン（管理者のみ、プライマリーボタン） -->
+              <!-- イベント登録ボタン（管理者のみ、唯一のプライマリーボタン） -->
               <button class="admin-feature primary-btn create-event-btn" onclick="openCreateEventModal()" id="create-event-btn" style="display: none;">イベント登録</button>
             </div>
           </div>

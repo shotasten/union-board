@@ -3487,6 +3487,16 @@
           currentStatus = null;
         }
         
+        // gridDataに既存ステータスを初期化（モーダルを開いたとき）
+        // これにより、変更がない場合は保存時にスキップされる
+        if (!gridData[event.id]) {
+          gridData[event.id] = {};
+        }
+        if (gridStatus === null && existingStatus) {
+          // gridDataにまだ値がない場合、既存値で初期化
+          gridData[event.id][memberName] = existingStatus;
+        }
+        
         statuses.forEach(status => {
           const btn = document.createElement('button');
           btn.type = 'button';

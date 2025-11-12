@@ -142,6 +142,54 @@ function computeHash(text: string): string {
 }
 
 /**
+ * メンバー名をパートと名前に分離（サーバー側用）
+ * @param displayName 表示名（例: "Fl山田太郎"）
+ * @returns {part: string, name: string}
+ */
+function parseMemberNameFromString(displayName: string): { part: string; name: string } {
+  const parts = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc', 'その他'];
+  const partsWithDot = ['Fl.', 'Ob.', 'Cl.', 'Sax.', 'Hr.', 'Tp', 'Tb.', 'Bass', 'Tuba', 'Perc.', 'その他'];
+  
+  // ユーフォニアムとチューバをバスパートに変換
+  if (displayName.startsWith('Eu') || displayName.startsWith('Eu.') || 
+      displayName.startsWith('Tuba') || displayName.startsWith('Tuba.')) {
+    let name = displayName;
+    if (displayName.startsWith('Eu.')) {
+      name = 'Bass' + displayName.substring(3);
+    } else if (displayName.startsWith('Eu')) {
+      name = 'Bass' + displayName.substring(2);
+    } else if (displayName.startsWith('Tuba.')) {
+      name = 'Bass' + displayName.substring(5);
+    } else if (displayName.startsWith('Tuba')) {
+      name = 'Bass' + displayName.substring(4);
+    }
+    return {
+      part: 'Bass',
+      name: name.substring(4) // 'Bass'を除いた部分
+    };
+  }
+  
+  // まず`.`付きでチェック
+  for (let i = 0; i < parts.length; i++) {
+    const part = parts[i];
+    const partWithDot = partsWithDot[i];
+    if (partWithDot && displayName.startsWith(partWithDot)) {
+      return {
+        part: part, // `.`なしで返す
+        name: displayName.substring(partWithDot.length)
+      };
+    }
+    if (displayName.startsWith(part)) {
+      return {
+        part: part,
+        name: displayName.substring(part.length)
+      };
+    }
+  }
+  return { part: '', name: displayName };
+}
+
+/**
  * 出欠サマリーを含む説明文を生成
  * @param eventId イベントID
  * @param userDescription ユーザーが入力した説明（オプション）
@@ -171,13 +219,16 @@ function buildDescription(eventId: string, userDescription?: string): string {
     description += '【コメント】\n';
     try {
       const responses = getResponses(eventId);
+      Logger.log(`📝 コメント取得: ${responses.length}件の回答を取得`);
       const comments = responses.filter(r => r.comment && r.comment.trim());
+      Logger.log(`📝 コメントあり: ${comments.length}件`);
       
       if (comments.length === 0) {
         description += '（コメントなし）\n';
       } else {
         // メンバー情報を取得（キャッシュ用）
         const members = getMembers();
+        Logger.log(`📝 メンバー情報取得: ${members.length}人`);
         const memberMap = new Map<string, Member>();
         members.forEach(m => {
           memberMap.set(m.userKey, m);
@@ -186,23 +237,32 @@ function buildDescription(eventId: string, userDescription?: string): string {
         comments.forEach(response => {
           // メンバー情報を取得
           let displayName = '不明';
+          let part = '';
           const member = memberMap.get(response.userKey);
           
           if (member) {
+            part = member.part || '';
             displayName = member.displayName || (member.part + member.name);
+            Logger.log(`📝 メンバー情報: ${response.userKey} → [${part}] ${displayName}`);
           } else if (response.userKey && response.userKey.startsWith('anon-')) {
             // 匿名ユーザーの場合、userKeyから名前を推測
             const userName = response.userKey.replace('anon-', '');
-            displayName = userName;
+            // 名前からパートを推測（例: "Fl山田太郎" → part: "Fl", name: "山田太郎"）
+            const parsed = parseMemberNameFromString(userName);
+            part = parsed.part || '';
+            displayName = parsed.name || userName;
+            Logger.log(`📝 匿名ユーザー: ${response.userKey} → [${part}] ${displayName}`);
           }
           
-          // ステータスと名前、コメントを表示
+          // ステータス、パート、名前、コメントを表示
           const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';
-          description += `${statusLabel} ${displayName}: ${response.comment}\n`;
+          const partLabel = part ? `[${part}] ` : '';
+          description += `${statusLabel} ${partLabel}${displayName}: ${response.comment}\n`;
         });
       }
     } catch (error) {
       Logger.log(`⚠️ コメント取得エラー（処理は続行）: ${(error as Error).message}`);
+      Logger.log(`⚠️ スタックトレース: ${(error as Error).stack}`);
       description += '（コメント取得エラー）\n';
     }
     
@@ -528,8 +588,13 @@ function syncCalendarDescriptionForEvent(eventId: string): void {
     
     try {
       const calendarEvent = calendar.getEventById(event.calendarEventId);
+      Logger.log(`📝 説明文生成開始: ${eventId}`);
       const description = buildDescription(eventId, event.description);
+      Logger.log(`📝 説明文生成完了: ${description.length}文字`);
+      Logger.log(`📝 説明文内容（最初の200文字）:\n${description.substring(0, 200)}`);
       const notesHash = computeHash(description);
+      Logger.log(`📝 notesHash: ${notesHash}`);
+      Logger.log(`📝 現在のnotesHash: ${event.notesHash || '未設定'}`);
       
       // 説明文のハッシュが同じ場合は更新をスキップ（無限ループ防止）
       if (event.notesHash === notesHash) {
@@ -537,7 +602,9 @@ function syncCalendarDescriptionForEvent(eventId: string): void {
         return;
       }
       
+      Logger.log(`📝 カレンダー説明欄を更新開始: ${eventId}`);
       calendarEvent.setDescription(description);
+      Logger.log(`📝 カレンダー説明欄を更新完了: ${eventId}`);
       
       // notesHashを更新
       updateEventCalendarInfo(eventId, event.calendarEventId, notesHash);

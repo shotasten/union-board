@@ -167,14 +167,22 @@ function getResponses(eventId: string): Response[] {
  */
 function getAllResponses(): Response[] {
   try {
+    Logger.log('=== getAllResponses 開始 ===');
     const sheet = getResponsesSheet();
+    Logger.log('✅ Responsesシート取得成功');
     const data = sheet.getDataRange().getValues();
+    Logger.log(`✅ データ取得: ${data.length}行`);
     
     const responses: Response[] = [];
     
     // ヘッダー行をスキップ
     for (let i = 1; i < data.length; i++) {
       const row = data[i];
+      
+      // 空行をスキップ
+      if (!row[0] || !row[1]) {
+        continue;
+      }
       
       const response: Response = {
         eventId: row[0],
@@ -189,10 +197,12 @@ function getAllResponses(): Response[] {
     }
     
     Logger.log(`✅ 全出欠回答取得成功: ${responses.length}件`);
+    Logger.log('=== getAllResponses 終了 ===');
     return responses;
     
   } catch (error) {
     Logger.log(`❌ エラー: 全出欠回答取得失敗 - ${(error as Error).message}`);
+    Logger.log(`❌ スタックトレース: ${(error as Error).stack}`);
     return [];
   }
 }

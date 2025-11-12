@@ -1935,13 +1935,18 @@
             resolve(data);
           })
           .withFailureHandler((error) => {
-            console.error('初期データ取得失敗:', error);
+            console.error('❌ 初期データ取得失敗:', error);
+            console.error('❌ エラー詳細:', {
+              message: error.message || error,
+              stack: error.stack,
+              toString: error.toString()
+            });
             initializeUser();
             // ローディングを非表示
             hideLoading();
             // 管理者ステータスを確認してからエラー表示
             checkAdminStatus().then(() => {
-              showError('データの取得に失敗しました');
+              showError('データの取得に失敗しました。ブラウザのコンソールを確認してください。');
             });
             reject(error);
           })
@@ -3836,15 +3841,8 @@
         }
       }
 
-      // 削除ボタンの設定（管理者のみ表示）
-      const deleteBtn = document.getElementById('event-detail-delete-btn');
+      // 削除ボタンの表示/非表示を更新（既に3553行目で宣言済み）
       if (deleteBtn) {
-        deleteBtn.onclick = () => {
-          closeEventDetailModal();
-          openDeleteConfirm(eventId, event.title || 'イベント');
-        };
-        
-        // 管理者UIの表示/非表示を更新
         deleteBtn.style.display = isAdminUser ? 'inline-block' : 'none';
       }
     }
@@ -5364,7 +5362,10 @@
             if (result.success) {
               showToast('イベントを更新しました', 'success');
               closeEventModal();
-              loadEvents();
+              // 全データを再読み込み（出欠データも含む）
+              loadInitData().then(() => {
+                renderEvents();
+              });
             } else {
               showToast(result.error || '更新に失敗しました', 'error');
             }
@@ -5385,7 +5386,10 @@
             if (result.success) {
               showToast('イベントを作成しました', 'success');
               closeEventModal();
-              loadEvents();
+              // 全データを再読み込み（出欠データも含む）
+              loadInitData().then(() => {
+                renderEvents();
+              });
             } else {
               showToast(result.error || '作成に失敗しました', 'error');
             }
@@ -5443,7 +5447,10 @@
           if (result.success) {
             showToast('イベントを削除しました', 'success');
             closeDeleteConfirm();
-            loadEvents();
+            // 全データを再読み込み（出欠データも含む）
+            loadInitData().then(() => {
+              renderEvents();
+            });
           } else {
             showToast(result.error || '削除に失敗しました', 'error');
           }

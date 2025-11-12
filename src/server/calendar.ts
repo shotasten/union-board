@@ -166,7 +166,47 @@ function buildDescription(eventId: string, userDescription?: string): string {
     description += `△ 未定: ${tally.maybeCount}人\n`;
     description += `× 欠席: ${tally.absentCount}人\n`;
     description += `合計: ${tally.totalCount}人\n\n`;
-    description += `最終更新: ${formattedDate}`;
+    
+    // コメント一覧を追加
+    description += '【コメント】\n';
+    try {
+      const responses = getResponses(eventId);
+      const comments = responses.filter(r => r.comment && r.comment.trim());
+      
+      if (comments.length === 0) {
+        description += '（コメントなし）\n';
+      } else {
+        // メンバー情報を取得（キャッシュ用）
+        const members = getMembers();
+        const memberMap = new Map<string, Member>();
+        members.forEach(m => {
+          memberMap.set(m.userKey, m);
+        });
+        
+        comments.forEach(response => {
+          // メンバー情報を取得
+          let displayName = '不明';
+          const member = memberMap.get(response.userKey);
+          
+          if (member) {
+            displayName = member.displayName || (member.part + member.name);
+          } else if (response.userKey && response.userKey.startsWith('anon-')) {
+            // 匿名ユーザーの場合、userKeyから名前を推測
+            const userName = response.userKey.replace('anon-', '');
+            displayName = userName;
+          }
+          
+          // ステータスと名前、コメントを表示
+          const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';
+          description += `${statusLabel} ${displayName}: ${response.comment}\n`;
+        });
+      }
+    } catch (error) {
+      Logger.log(`⚠️ コメント取得エラー（処理は続行）: ${(error as Error).message}`);
+      description += '（コメント取得エラー）\n';
+    }
+    
+    description += `\n最終更新: ${formattedDate}`;
     
     return description;
   } catch (error) {

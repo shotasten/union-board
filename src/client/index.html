@@ -2601,7 +2601,7 @@
       legendHeader.style.minWidth = '90px';
       legendHeader.style.width = '90px';
       legendHeader.style.maxWidth = '90px';
-      legendHeader.style.borderRight = '2px solid #ddd'; // メンバー列との区切りを明確に
+      legendHeader.style.borderRight = '1px solid #DDDDDD'; // メンバー列との区切り（イベント列と同じ太さ）
       legendHeader.innerHTML = '<div style="display: flex; gap: 8px; justify-content: center;"><span>○</span><span>△</span><span>×</span></div>';
       headerRow1.appendChild(legendHeader);
 
@@ -2655,9 +2655,9 @@
         partHeader.style.padding = '4px 6px';
         partHeader.style.lineHeight = '1.2';
         partHeader.style.backgroundColor = '#f0f0f0';
-        // 最初のパートヘッダーの左側に罫線を追加（○△×列との区切り）
+        // 最初のパートヘッダーの左側に罫線を追加（○△×列との区切り、イベント列と同じ太さ）
         if (partIndex === 0) {
-          partHeader.style.borderLeft = '2px solid #ddd';
+          partHeader.style.borderLeft = '1px solid #DDDDDD';
         }
         headerRow1.appendChild(partHeader);
       });
@@ -2678,9 +2678,9 @@
         // 幅はCSSで制御（PC: 100px, モバイル: 70px）
         // z-indexを明示的に設定して、イベント列より低くする
         nameHeader.style.zIndex = '9';
-        // 最初のメンバー列の左側に罫線を追加（○△×列との区切り）
+        // 最初のメンバー列の左側に罫線を追加（○△×列との区切り、イベント列と同じ太さ）
         if (index === 0) {
-          nameHeader.style.borderLeft = '2px solid #ddd';
+          nameHeader.style.borderLeft = '1px solid #DDDDDD';
         }
         
         // 名前をリンクスタイルで表示
@@ -2880,8 +2880,8 @@
           legendCell.style.borderTop = '1px solid #e0e0e0';
           legendCell.style.borderBottom = '1px solid #e0e0e0';
           legendCell.style.borderLeft = index === 0 ? '1px solid #e0e0e0' : 'none';
-          // 最後のセルの右側に太い罫線を設定（メンバー列との区切り）
-          legendCell.style.borderRight = index === 2 ? '2px solid #ddd' : '1px solid #e0e0e0';
+          // 最後のセルの右側に罫線を設定（メンバー列との区切り、イベント列と同じ太さ）
+          legendCell.style.borderRight = index === 2 ? '1px solid #DDDDDD' : '1px solid #e0e0e0';
           
           const count = statusCounts[status];
           if (count > 0) {
@@ -2927,10 +2927,10 @@
           statusCell.style.cursor = 'default';
           statusCell.style.verticalAlign = 'middle';
           
-          // 最初のメンバー列の左側に罫線を追加（○△×列との区切り）
+          // 最初のメンバー列の左側に罫線を追加（○△×列との区切り、イベント列と同じ太さ）
           // 選択されたメンバーの場合はハイライト用の罫線が優先される
           if (memberIndex === 0 && selectedMember !== displayName) {
-            statusCell.style.borderLeft = '2px solid #ddd';
+            statusCell.style.borderLeft = '1px solid #DDDDDD';
           }
           
           // 選択されたメンバーの列をハイライト

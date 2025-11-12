@@ -215,41 +215,6 @@
       margin-bottom: 20px;
     }
 
-    /* 表示切り替えボタン */
-    .view-toggle {
-      display: flex;
-      gap: 0;
-      justify-content: flex-end;
-      margin-bottom: 30px;
-      background: #f5f5f5;
-      border-radius: 8px;
-      padding: 4px;
-      width: fit-content;
-      margin-left: auto;
-    }
-
-    .view-btn {
-      padding: 8px 20px;
-      border: none;
-      background: transparent;
-      color: #666;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.9rem;
-      transition: all 0.2s;
-      font-weight: 500;
-    }
-
-    .view-btn:hover {
-      background: rgba(0, 121, 107, 0.1);
-      color: #00796B;
-    }
-
-    .view-btn.active {
-      background: #00796B;
-      color: white;
-    }
-
     /* 表形式UI */
     .attendance-grid-wrapper {
       position: relative;
@@ -516,48 +481,6 @@
     .grid-controls {
       position: relative;
       margin-bottom: 30px;
-    }
-
-    /* イベント一覧（カード形式） */
-    .events-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 20px;
-      margin-top: 20px;
-    }
-
-    .event-card {
-      background: #f8f9fa;
-      border-radius: 8px;
-      padding: 25px;
-      border: 1px solid #e0e0e0;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .event-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-    }
-
-    .event-card h3 {
-      color: #00796B;
-      margin-bottom: 10px;
-      font-size: 1.3rem;
-    }
-
-    .event-meta {
-      color: #666;
-      font-size: 0.9rem;
-      margin-bottom: 15px;
-    }
-
-    .event-meta .date {
-      font-weight: bold;
-      color: #333;
-    }
-
-    .event-meta .location {
-      margin-top: 5px;
     }
 
     /* 出欠フォーム */
@@ -1305,32 +1228,6 @@
         padding: 15px;
       }
 
-      .view-toggle {
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .view-btn {
-        width: 100%;
-        text-align: center;
-      }
-
-      .events-grid {
-        grid-template-columns: 1fr;
-        gap: 15px;
-      }
-
-      .event-card {
-        padding: 15px;
-      }
-
-      .event-card h3 {
-        font-size: 1.1rem;
-      }
-
-      .event-meta {
-        font-size: 0.85rem;
-      }
 
       .response-buttons {
         flex-direction: column;
@@ -1519,17 +1416,10 @@
           <!-- 表示期間と凡例 -->
           <div style="margin-bottom: 30px; display: flex; flex-direction: column; gap: 12px;">
             <!-- 表示期間表示（管理者のみ編集可能） -->
-            <div id="display-period-info" style="padding: 12px 16px; background: #f5f5f5; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between;">
-              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                <span style="font-weight: 500; color: #333;">表示期間:</span>
-                <span id="display-period-text" style="color: #666;">全期間</span>
-                <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" style="display: none; padding: 6px 12px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">期間を設定</button>
-              </div>
-              <!-- 表示切り替えボタン -->
-              <div class="view-toggle" style="display: flex; gap: 4px;">
-                <button class="view-btn active" onclick="switchView('grid')" id="grid-view-btn">📋 表形式</button>
-                <button class="view-btn" onclick="switchView('card')" id="card-view-btn">📄 カード形式</button>
-              </div>
+            <div id="display-period-info" style="padding: 12px 16px; background: #f5f5f5; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <span style="font-weight: 500; color: #333;">表示期間:</span>
+              <span id="display-period-text" style="color: #666;">全期間</span>
+              <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" style="display: none; padding: 6px 12px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">期間を設定</button>
             </div>
             <!-- 凡例 -->
             <div id="attendance-legend" style="padding: 8px 12px; background: #f8f9fa; border-radius: 6px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; font-size: 0.9rem;">
@@ -1556,30 +1446,6 @@
             <div id="attendance-grid" class="attendance-grid-container">
               <!-- 表形式のグリッドがここに動的に生成されます -->
             </div>
-          </div>
-        </div>
-        
-        <!-- カード形式表示（既存） -->
-        <div id="card-view" style="display: none;">
-          <!-- 表示期間表示（カード形式でも表示） -->
-          <div style="margin-bottom: 20px;">
-            <div id="display-period-info-card" style="padding: 12px 16px; background: #f5f5f5; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between;">
-              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                <span style="font-weight: 500; color: #333;">表示期間:</span>
-                <span id="display-period-text-card" style="color: #666;">全期間</span>
-                <button id="display-period-edit-btn-card" onclick="openDisplayPeriodModal()" style="display: none; padding: 6px 12px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">期間を設定</button>
-              </div>
-              <!-- 表示切り替えボタン -->
-              <div class="view-toggle" style="display: flex; gap: 4px;">
-                <button class="view-btn" onclick="switchView('grid')" id="grid-view-btn-card">📋 表形式</button>
-                <button class="view-btn active" onclick="switchView('card')" id="card-view-btn-card">📄 カード形式</button>
-              </div>
-            </div>
-          </div>
-          <div id="events-grid" class="events-grid"></div>
-          <div id="empty-state" class="empty-state" style="display: none;">
-            <h3>イベントがありません</h3>
-            <p>今後のイベントが登録されると、ここに表示されます。</p>
           </div>
         </div>
       </div>
@@ -2026,7 +1892,6 @@
       const syncAllBtn = document.getElementById('sync-all-btn');
       const createEventBtn = document.getElementById('create-event-btn');
       const displayPeriodEditBtn = document.getElementById('display-period-edit-btn');
-      const displayPeriodEditBtnCard = document.getElementById('display-period-edit-btn-card');
       
       const headerActionGroup = document.querySelector('.header-action-group');
       
@@ -2036,14 +1901,12 @@
         if (headerActionGroup) headerActionGroup.style.display = 'flex';
         if (createEventBtn) createEventBtn.style.display = 'inline-block';
         if (displayPeriodEditBtn) displayPeriodEditBtn.style.display = 'inline-block';
-        if (displayPeriodEditBtnCard) displayPeriodEditBtnCard.style.display = 'inline-block';
       } else {
         // 一般ユーザーの場合：ログインボタンを表示、ログアウトボタンと管理ボタンを非表示
         if (adminLoginBtn) adminLoginBtn.style.display = 'inline-block';
         if (headerActionGroup) headerActionGroup.style.display = 'none';
         if (createEventBtn) createEventBtn.style.display = 'none';
         if (displayPeriodEditBtn) displayPeriodEditBtn.style.display = 'none';
-        if (displayPeriodEditBtnCard) displayPeriodEditBtnCard.style.display = 'none';
       }
 
       // イベントカードの管理ボタン（既に描画されている場合）
@@ -2173,14 +2036,13 @@
      */
     function updateDisplayPeriodInfo(config) {
       const periodText = document.getElementById('display-period-text');
-      const periodTextCard = document.getElementById('display-period-text-card');
+      if (!periodText) return;
       
       const startDate = config.DISPLAY_START_DATE || '';
       const endDate = config.DISPLAY_END_DATE || '';
 
-      let periodValue = '';
       if (!startDate && !endDate) {
-        periodValue = '全期間';
+        periodText.textContent = '全期間';
       } else {
         let startStr = '制限なし';
         let endStr = '制限なし';
@@ -2195,15 +2057,7 @@
           endStr = `${end.getFullYear()}年${end.getMonth() + 1}月${end.getDate()}日`;
         }
         
-        periodValue = `${startStr} ～ ${endStr}`;
-      }
-      
-      // 表形式とカード形式の両方を更新
-      if (periodText) {
-        periodText.textContent = periodValue;
-      }
-      if (periodTextCard) {
-        periodTextCard.textContent = periodValue;
+        periodText.textContent = `${startStr} ～ ${endStr}`;
       }
     }
 
@@ -2412,77 +2266,18 @@
      */
 
     // グローバル変数: 表形式UI用
-    let currentView = 'grid'; // 'grid' または 'card'
     let gridData = {}; // {eventId: {memberName: status}}
     let memberList = []; // メンバー情報のリスト [{part: string, name: string, displayName: string, userKey: string}]
     let selectedMember = null; // 選択されたメンバーの表示名
 
     /**
-     * 表示形式を切り替え
-     */
-    function switchView(view) {
-      currentView = view;
-      const gridView = document.getElementById('grid-view');
-      const cardView = document.getElementById('card-view');
-      const gridBtn = document.getElementById('grid-view-btn');
-      const cardBtn = document.getElementById('card-view-btn');
-      const gridBtnCard = document.getElementById('grid-view-btn-card');
-      const cardBtnCard = document.getElementById('card-view-btn-card');
-
-      if (view === 'grid') {
-        gridView.style.display = 'block';
-        cardView.style.display = 'none';
-        if (gridBtn) gridBtn.classList.add('active');
-        if (cardBtn) cardBtn.classList.remove('active');
-        if (gridBtnCard) gridBtnCard.classList.add('active');
-        if (cardBtnCard) cardBtnCard.classList.remove('active');
-        renderGrid();
-      } else {
-        gridView.style.display = 'none';
-        cardView.style.display = 'block';
-        if (cardBtn) cardBtn.classList.add('active');
-        if (gridBtn) gridBtn.classList.remove('active');
-        if (cardBtnCard) cardBtnCard.classList.add('active');
-        if (gridBtnCard) gridBtnCard.classList.remove('active');
-        renderCardView();
-      }
-    }
-
-    /**
-     * カード形式を描画
-     */
-    function renderCardView() {
-      const grid = document.getElementById('events-grid');
-      const emptyState = document.getElementById('empty-state');
-
-      grid.innerHTML = '';
-
-      if (currentEvents.length === 0) {
-        emptyState.style.display = 'block';
-        grid.style.display = 'none';
-      } else {
-        emptyState.style.display = 'none';
-        grid.style.display = 'grid';
-
-        currentEvents.forEach(event => {
-          const card = createEventCard(event);
-          grid.appendChild(card);
-        });
-      }
-    }
-
-    /**
-     * イベント一覧を描画（表示形式に応じて）
+     * イベント一覧を描画（表形式のみ）
      */
     function renderEvents() {
       const container = document.getElementById('events-container');
       container.style.display = 'block';
 
-      if (currentView === 'grid') {
-        renderGrid();
-      } else {
-        renderCardView();
-      }
+      renderGrid();
       
       // 管理者UIの表示/非表示を更新
       updateAdminUI();
@@ -4731,154 +4526,6 @@
       renderGrid();
     }
 
-    /**
-     * イベントカードを作成
-     */
-    function createEventCard(event) {
-      const card = document.createElement('div');
-      card.className = 'event-card';
-      card.id = `event-${event.id}`;
-
-      const startDate = new Date(event.start);
-      const endDate = new Date(event.end);
-
-      card.innerHTML = `
-        <h3>${escapeHtml(event.title)}</h3>
-        <div class="event-meta">
-          <div class="date">📅 ${formatDateTime(startDate)} ～ ${formatDateTime(endDate)}</div>
-          ${event.location ? `<div class="location">📍${escapeHtml(event.location)}</div>` : ''}
-        </div>
-        ${event.description ? `<p>${escapeHtml(cleanDescription(event.description))}</p>` : ''}
-        <div class="admin-actions" style="display: none;">
-          <button class="admin-btn sync" onclick="syncEvent('${event.id}')" id="sync-btn-${event.id}" style="display: none;">
-            <span class="sync-icon">🔄</span> 同期
-          </button>
-          <button class="admin-btn edit" onclick="openEditEventModal('${event.id}')" style="display: none;">編集</button>
-          <button class="admin-btn delete" onclick="openDeleteConfirm('${event.id}', '${escapeHtml(event.title)}')" style="display: none;">削除</button>
-        </div>
-        ${event.lastSynced ? `<div class="sync-status">最終同期: ${formatDateTime(new Date(event.lastSynced))}</div>` : ''}
-        <div class="tally" id="tally-${event.id}">
-          <h4>集計</h4>
-          <div class="tally-stats">
-            <div class="tally-stat attend">
-              <div class="label">出席</div>
-              <div class="value" id="tally-attend-${event.id}">-</div>
-            </div>
-            <div class="tally-stat maybe">
-              <div class="label">遅刻/早退</div>
-              <div class="value" id="tally-maybe-${event.id}">-</div>
-            </div>
-            <div class="tally-stat absent">
-              <div class="label">欠席</div>
-              <div class="value" id="tally-absent-${event.id}">-</div>
-            </div>
-            <div class="tally-stat">
-              <div class="label">合計</div>
-              <div class="value" id="tally-total-${event.id}">-</div>
-            </div>
-          </div>
-        </div>
-      `;
-
-      // カードをクリック可能にして、詳細モーダルを表示
-      card.style.cursor = 'pointer';
-      card.onclick = (e) => {
-        // 管理者ボタンがクリックされた場合はモーダルを表示しない
-        if (e.target.closest('.admin-actions')) {
-          return;
-        }
-        showEventDetailModal(event.id);
-      };
-
-      // イベント詳細と集計を読み込む
-      loadEventDetails(event.id);
-
-      return card;
-    }
-
-    /**
-     * 出欠ステータスを選択
-     */
-    function selectResponse(eventId, status) {
-      const card = document.getElementById(`event-${eventId}`);
-      const buttons = card.querySelectorAll('.response-btn');
-      
-      buttons.forEach(btn => {
-        btn.classList.remove('active');
-        if (btn.textContent.includes(status)) {
-          btn.classList.add('active');
-        }
-      });
-
-      // 選択したステータスをdata属性に保存
-      card.dataset.selectedStatus = status;
-    }
-
-    /**
-     * 出欠回答を送信
-     */
-    function submitResponse(eventId) {
-      const card = document.getElementById(`event-${eventId}`);
-      const selectedStatus = card.dataset.selectedStatus;
-      const comment = document.getElementById(`comment-${eventId}`).value.trim();
-
-      if (!selectedStatus) {
-        showToast('出欠ステータスを選択してください', 'error');
-        return;
-      }
-
-      const submitBtn = card.querySelector('.submit-btn');
-      submitBtn.disabled = true;
-      submitBtn.textContent = '送信中...';
-
-      google.script.run
-        .withSuccessHandler((result) => {
-          submitBtn.disabled = false;
-          submitBtn.textContent = '出欠を登録';
-          
-          if (result.success) {
-            showToast('出欠を登録しました', 'success');
-            // 集計を更新
-            loadEventDetails(eventId);
-          } else {
-            showToast(result.error || '登録に失敗しました', 'error');
-          }
-        })
-        .withFailureHandler((error) => {
-          submitBtn.disabled = false;
-          submitBtn.textContent = '出欠を登録';
-          showToast(error.message || 'エラーが発生しました', 'error');
-        })
-        // カード形式のイベント一覧では、メンバー選択機能がないため、この関数は使用しない
-        // 代わりに、表形式でメンバー名をクリックしてモーダルから出欠を登録する
-        showToast('表形式でメンバー名をクリックして出欠を登録してください', 'info');
-    }
-
-    /**
-     * イベント詳細と集計を読み込む
-     */
-    function loadEventDetails(eventId) {
-      google.script.run
-        .withSuccessHandler((data) => {
-          if (data.success && data.tally) {
-            updateTally(eventId, data.tally);
-          }
-        })
-        .withFailureHandler((error) => {
-          console.error('Failed to load event details:', error);
-        })
-        .getEventWithResponses(eventId);
-    }
-
-    /**
-     * 集計を更新
-     */
-    function updateTally(eventId, tally) {
-      document.getElementById(`tally-attend-${eventId}`).textContent = tally.attendCount || 0;
-      document.getElementById(`tally-maybe-${eventId}`).textContent = tally.maybeCount || 0;
-      document.getElementById(`tally-absent-${eventId}`).textContent = tally.absentCount || 0;
-      document.getElementById(`tally-total-${eventId}`).textContent = tally.totalCount || 0;
-    }
 
     /**
      * 日時をフォーマット

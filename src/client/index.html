@@ -152,7 +152,7 @@
       border-color: #00695C;
     }
 
-    /* セカンダリーボタン（表示期間設定、メンバー登録、イベント登録） */
+    /* セカンダリーボタン（表示期間設定など補助的な機能） */
     .secondary-btn {
       background: transparent;
       color: #00796B;
@@ -1246,6 +1246,12 @@
         align-items: stretch;
       }
 
+      .right-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
       main {
         padding: 15px;
       }
@@ -1383,6 +1389,12 @@
         align-items: stretch;
       }
 
+      .right-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
       main {
         padding: 10px;
       }
@@ -1448,15 +1460,18 @@
         <!-- 表形式表示 -->
         <div id="grid-view" style="display: block;">
           <!-- メインコンテンツ上部のボタンエリア -->
-          <div class="main-actions-bar" style="display: flex; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
-            <!-- 左寄せエリア（すべてのボタンを横並び） -->
+          <div class="main-actions-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+            <!-- 左寄せエリア（最重要アクション） -->
             <div class="left-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <!-- 表示期間設定ボタン（管理者のみ） -->
+              <!-- メンバー登録ボタン（すべてのユーザー、プライマリーボタン） -->
+              <button class="member-register-btn primary-btn" onclick="showMemberRegisterModal()">メンバー登録</button>
+            </div>
+            <!-- 右寄せエリア（補助アクション） -->
+            <div class="right-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+              <!-- 表示期間設定ボタン（管理者のみ、セカンダリーボタン） -->
               <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" class="secondary-btn" style="display: none;">表示期間を設定</button>
-              <!-- メンバー登録ボタン（すべてのユーザー） -->
-              <button class="member-register-btn secondary-btn" onclick="showMemberRegisterModal()">メンバー登録</button>
-              <!-- イベント登録ボタン（管理者のみ） -->
-              <button class="admin-feature secondary-btn create-event-btn" onclick="openCreateEventModal()" id="create-event-btn" style="display: none;">イベント登録</button>
+              <!-- イベント登録ボタン（管理者のみ、プライマリーボタン） -->
+              <button class="admin-feature primary-btn create-event-btn" onclick="openCreateEventModal()" id="create-event-btn" style="display: none;">イベント登録</button>
             </div>
           </div>
           <!-- 凡例 -->

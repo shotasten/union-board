@@ -190,6 +190,94 @@ function parseMemberNameFromString(displayName: string): { part: string; name: s
 }
 
 /**
+ * 出欠サマリーを含む説明文を生成（キャッシュデータ使用版）
+ * パフォーマンス最適化のため、データベースアクセスを最小限に抑える
+ * @param eventId イベントID
+ * @param userDescription ユーザーが入力した説明（オプション）
+ * @param eventResponses キャッシュされた出欠データ
+ * @param memberMap キャッシュされたメンバーデータマップ
+ * @returns 説明文
+ */
+function buildDescriptionWithMemberMap(
+  eventId: string,
+  userDescription: string | undefined,
+  eventResponses: Response[],
+  memberMap: Map<string, any>
+): string {
+  try {
+    // 出欠を集計（キャッシュデータから）
+    let attendCount = 0;
+    let maybeCount = 0;
+    let absentCount = 0;
+    
+    eventResponses.forEach(response => {
+      if (response.status === '○') attendCount++;
+      else if (response.status === '△') maybeCount++;
+      else if (response.status === '×') absentCount++;
+    });
+    
+    const totalCount = attendCount + maybeCount + absentCount;
+    
+    const now = new Date();
+    const formattedDate = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm');
+    
+    let description = '';
+    
+    // ユーザーが入力した説明があれば先頭に追加
+    if (userDescription && userDescription.trim()) {
+      description += userDescription.trim() + '\n\n';
+    }
+    
+    // 出欠サマリーを追加
+    description += '【出欠状況】\n';
+    description += `○ 参加: ${attendCount}人\n`;
+    description += `△ 未定: ${maybeCount}人\n`;
+    description += `× 欠席: ${absentCount}人\n`;
+    description += `合計: ${totalCount}人\n\n`;
+    
+    // コメント一覧を追加
+    description += '【コメント】\n';
+    const comments = eventResponses.filter(r => r.comment && r.comment.trim());
+    
+    if (comments.length === 0) {
+      description += '（コメントなし）\n';
+    } else {
+      comments.forEach(response => {
+        // メンバー情報を取得（キャッシュから）
+        let displayName = '不明';
+        let part = '';
+        const member = memberMap.get(response.userKey);
+        
+        if (member) {
+          part = member.part || '';
+          displayName = member.displayName || (member.part + member.name);
+        } else if (response.userKey && response.userKey.startsWith('anon-')) {
+          // 匿名ユーザーの場合、userKeyから名前を推測
+          const userName = response.userKey.replace('anon-', '');
+          // 名前からパートを推測（例: "Fl山田太郎" → part: "Fl", name: "山田太郎"）
+          const parsed = parseMemberNameFromString(userName);
+          part = parsed.part || '';
+          displayName = parsed.name || userName;
+        }
+        
+        // ステータス、パート、名前、コメントを表示
+        const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';
+        const partLabel = part ? `[${part}] ` : '';
+        description += `${statusLabel} ${partLabel}${displayName}: ${response.comment}\n`;
+      });
+    }
+    
+    description += `\n最終更新: ${formattedDate}`;
+    
+    return description;
+  } catch (error) {
+    Logger.log(`❌ エラー: 説明文生成失敗 (buildDescriptionWithMemberMap) - ${(error as Error).message}`);
+    Logger.log(`❌ スタックトレース: ${(error as Error).stack}`);
+    return '';
+  }
+}
+
+/**
  * 出欠サマリーを含む説明文を生成
  * @param eventId イベントID
  * @param userDescription ユーザーが入力した説明（オプション）
@@ -1539,10 +1627,107 @@ function syncAll(limitToDisplayPeriod: boolean = false): { success: number, fail
     const events = getEvents('all');
     Logger.log(`📋 説明欄同期対象イベント数: ${events.length}件`);
     
-    events.forEach(event => {
+    // 🚀 パフォーマンス最適化: 全データを一括取得
+    Logger.log('📊 全データ一括取得開始...');
+    const startTime = new Date().getTime();
+    
+    let allResponses: Response[] = [];
+    let allMembers: any[] = [];
+    let calendar: GoogleAppsScript.Calendar.Calendar | null = null;
+    let calendarId = '';
+    
+    try {
+      allResponses = getAllResponses();
+      Logger.log(`📊 出欠データ取得完了: ${allResponses.length}件`);
+    } catch (error) {
+      Logger.log(`❌ 出欠データ取得失敗: ${(error as Error).message}`);
+      throw error;
+    }
+    
+    try {
+      allMembers = getMembers();
+      Logger.log(`📊 メンバーデータ取得完了: ${allMembers.length}人`);
+    } catch (error) {
+      Logger.log(`❌ メンバーデータ取得失敗: ${(error as Error).message}`);
+      throw error;
+    }
+    
+    try {
+      calendarId = getOrCreateCalendar();
+      calendar = CalendarApp.getCalendarById(calendarId);
+      Logger.log(`📊 カレンダー取得完了: ${calendarId}`);
+    } catch (error) {
+      Logger.log(`❌ カレンダー取得失敗: ${(error as Error).message}`);
+      throw error;
+    }
+    
+    const dataLoadTime = new Date().getTime() - startTime;
+    Logger.log(`📊 全データ取得完了: ${dataLoadTime}ms`);
+    
+    if (!calendar) {
+      Logger.log(`❌ エラー: カレンダーが見つかりません`);
+      return {
+        success: pullResult.success,
+        failed: pullResult.failed + events.filter(e => e.calendarEventId).length,
+        errors: [...pullResult.errors, 'カレンダーが見つかりません']
+      };
+    }
+    
+    // 出欠データをイベントIDごとにマッピング（高速検索用）
+    Logger.log('📊 出欠データのインデックス作成...');
+    const responsesMap = new Map<string, Response[]>();
+    allResponses.forEach(response => {
+      if (!responsesMap.has(response.eventId)) {
+        responsesMap.set(response.eventId, []);
+      }
+      responsesMap.get(response.eventId)!.push(response);
+    });
+    Logger.log(`📊 インデックス作成完了: ${responsesMap.size}イベント分`);
+    
+    // メンバーデータのマッピング（高速検索用）
+    const memberMap = new Map<string, any>();
+    allMembers.forEach(member => {
+      memberMap.set(member.userKey, member);
+    });
+    
+    // 各イベントを処理
+    Logger.log('📊 各イベントの説明欄同期開始...');
+    events.forEach((event, index) => {
       if (event.calendarEventId) {
         try {
-          syncCalendarDescriptionForEvent(event.id);
+          Logger.log(`[${index + 1}/${events.length}] 処理中: ${event.id}`);
+          
+          // カレンダーイベントを取得
+          const calendarEvent = calendar.getEventById(event.calendarEventId);
+          if (!calendarEvent) {
+            Logger.log(`⚠️ カレンダーイベントが見つかりません: ${event.calendarEventId}`);
+            descriptionSyncFailed++;
+            return;
+          }
+          
+          // 該当イベントの出欠データを取得（キャッシュから）
+          const eventResponses = responsesMap.get(event.id) || [];
+          
+          // 説明文を生成（キャッシュデータを使用）
+          const description = buildDescriptionWithMemberMap(
+            event.id,
+            event.description,
+            eventResponses,
+            memberMap
+          );
+          
+          // notesHashを計算
+          const notesHash = computeHash(description);
+          
+          // 説明文が変更されている場合のみ更新
+          if (event.notesHash !== notesHash) {
+            calendarEvent.setDescription(description);
+            updateEventCalendarInfo(event.id, event.calendarEventId, notesHash);
+            Logger.log(`✅ 説明欄更新: ${event.id}`);
+          } else {
+            Logger.log(`⏭️ スキップ（変更なし）: ${event.id}`);
+          }
+          
           descriptionSyncSuccess++;
         } catch (error) {
           Logger.log(`⚠️ 説明欄同期失敗: ${event.id} - ${(error as Error).message}`);
@@ -1553,9 +1738,11 @@ function syncAll(limitToDisplayPeriod: boolean = false): { success: number, fail
       }
     });
     
-    Logger.log(`📋 説明欄同期完了: 成功 ${descriptionSyncSuccess}件, 失敗 ${descriptionSyncFailed}件`);
+    const totalTime = new Date().getTime() - startTime;
+    Logger.log(`📋 説明欄同期完了: 成功 ${descriptionSyncSuccess}件, 失敗 ${descriptionSyncFailed}件 (処理時間: ${totalTime}ms)`);
   } catch (error) {
     Logger.log(`❌ エラー: 説明欄同期処理失敗 - ${(error as Error).message}`);
+    Logger.log(`❌ スタックトレース: ${(error as Error).stack}`);
   }
   
   // 合計を返す

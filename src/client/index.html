@@ -366,7 +366,7 @@
       width: 100%;
       border-collapse: collapse;
       min-width: 800px;
-      table-layout: auto;
+      table-layout: fixed;
     }
 
     @media (max-width: 768px) {
@@ -374,7 +374,7 @@
         min-width: 600px;
       }
 
-      /* 名前列の最小幅を確保（スマホ表示で誰のデータか判別できるように） */
+      /* 名前列の最小幅を確保 */
       .member-name-col {
         min-width: 80px !important;
       }
@@ -389,20 +389,11 @@
         -webkit-line-clamp: unset;
       }
 
-      /* 出欠状況セルの固定幅（モバイルでも維持） */
+      /* 出欠状況セルの固定幅 */
       .attendance-grid .status-cell {
-        min-width: 50px;
-        width: 50px;
-        max-width: 50px;
-      }
-
-      /* 名前列以外の列の固定幅（モバイルでも維持） */
-      /* パートヘッダー（colSpanあり）と凡例ヘッダーは除外 */
-      .attendance-grid th:not(.member-name-col):not([colspan]),
-      .attendance-grid td:not(.member-name-col):not(:first-child) {
-        width: 50px;
-        min-width: 50px;
-        max-width: 50px;
+        min-width: 40px;
+        width: 40px;
+        max-width: 40px;
       }
     }
 
@@ -411,7 +402,7 @@
         min-width: 500px;
       }
 
-      /* 名前列の最小幅を確保（スマホ表示で誰のデータか判別できるように） */
+      /* 名前列の最小幅を確保 */
       .member-name-col {
         min-width: 80px !important;
       }
@@ -426,20 +417,11 @@
         -webkit-line-clamp: unset;
       }
 
-      /* 出欠状況セルの固定幅（モバイルでも維持） */
+      /* 出欠状況セルの固定幅 */
       .attendance-grid .status-cell {
-        min-width: 50px;
-        width: 50px;
-        max-width: 50px;
-      }
-
-      /* 名前列以外の列の固定幅（モバイルでも維持） */
-      /* パートヘッダー（colSpanあり）と凡例ヘッダーは除外 */
-      .attendance-grid th:not(.member-name-col):not([colspan]),
-      .attendance-grid td:not(.member-name-col):not(:first-child) {
-        width: 50px;
-        min-width: 50px;
-        max-width: 50px;
+        min-width: 40px;
+        width: 40px;
+        max-width: 40px;
       }
     }
 
@@ -453,33 +435,24 @@
       vertical-align: middle;
     }
 
-    /* 名前列の最小幅確保（PC表示では幅制限なし、モバイルでは最小幅80px） */
+    /* 名前列の最小幅確保 */
     .member-name-col {
+      min-width: 80px !important;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    /* 名前列以外の列に小さな固定幅を設定（名前列にスペースを譲る） */
-    /* パートヘッダー（colSpanあり）と凡例ヘッダーは除外 */
-    .attendance-grid th:not(.member-name-col):not([colspan]),
-    .attendance-grid td:not(.member-name-col):not(:first-child) {
-      width: 50px;
-      min-width: 50px;
-      max-width: 50px;
-    }
-
     /* 出欠状況セルの固定幅（名前列の領域を確保） */
     .attendance-grid .status-cell {
-      width: 50px;
-      min-width: 50px;
-      max-width: 50px;
+      min-width: 40px;
+      width: 40px;
+      max-width: 40px;
     }
 
     /* 日付/イベント名セルの最小幅 */
     .attendance-grid td:first-child {
       min-width: 180px;
-      width: auto;
     }
 
     .attendance-grid tbody tr:nth-child(even) {
@@ -2615,8 +2588,9 @@
         nameHeader.className = 'member-name-col';
         nameHeader.style.padding = '6px 8px';
         nameHeader.style.lineHeight = '1.3';
-        // PC表示では幅制限を削除してフルネームを表示可能に
-        // モバイルビューではmin-width: 80pxが適用される
+        nameHeader.style.maxWidth = '150px';
+        nameHeader.style.minWidth = '120px';
+        nameHeader.style.width = '150px';
         // z-indexを明示的に設定して、イベント列より低くする
         nameHeader.style.zIndex = '9';
         

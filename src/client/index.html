@@ -1510,12 +1510,6 @@
       <div id="error" class="error" style="display: none;"></div>
 
       <div id="events-container" style="display: none;">
-        <!-- 表示切り替えボタン -->
-        <div class="view-toggle">
-          <button class="view-btn active" onclick="switchView('grid')" id="grid-view-btn">📋 表形式</button>
-          <button class="view-btn" onclick="switchView('card')" id="card-view-btn">📄 カード形式</button>
-        </div>
-        
         <!-- 表形式表示 -->
         <div id="grid-view" style="display: block;">
           <div class="grid-controls" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
@@ -1525,10 +1519,17 @@
           <!-- 表示期間と凡例 -->
           <div style="margin-bottom: 30px; display: flex; flex-direction: column; gap: 12px;">
             <!-- 表示期間表示（管理者のみ編集可能） -->
-            <div id="display-period-info" style="padding: 12px 16px; background: #f5f5f5; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-              <span style="font-weight: 500; color: #333;">表示期間:</span>
-              <span id="display-period-text" style="color: #666;">全期間</span>
-              <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" style="display: none; padding: 6px 12px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">期間を設定</button>
+            <div id="display-period-info" style="padding: 12px 16px; background: #f5f5f5; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <span style="font-weight: 500; color: #333;">表示期間:</span>
+                <span id="display-period-text" style="color: #666;">全期間</span>
+                <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" style="display: none; padding: 6px 12px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">期間を設定</button>
+              </div>
+              <!-- 表示切り替えボタン -->
+              <div class="view-toggle" style="display: flex; gap: 4px;">
+                <button class="view-btn active" onclick="switchView('grid')" id="grid-view-btn">📋 表形式</button>
+                <button class="view-btn" onclick="switchView('card')" id="card-view-btn">📄 カード形式</button>
+              </div>
             </div>
             <!-- 凡例 -->
             <div id="attendance-legend" style="padding: 8px 12px; background: #f8f9fa; border-radius: 6px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; font-size: 0.9rem;">
@@ -1560,6 +1561,21 @@
         
         <!-- カード形式表示（既存） -->
         <div id="card-view" style="display: none;">
+          <!-- 表示期間表示（カード形式でも表示） -->
+          <div style="margin-bottom: 20px;">
+            <div id="display-period-info-card" style="padding: 12px 16px; background: #f5f5f5; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: space-between;">
+              <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <span style="font-weight: 500; color: #333;">表示期間:</span>
+                <span id="display-period-text-card" style="color: #666;">全期間</span>
+                <button id="display-period-edit-btn-card" onclick="openDisplayPeriodModal()" style="display: none; padding: 6px 12px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">期間を設定</button>
+              </div>
+              <!-- 表示切り替えボタン -->
+              <div class="view-toggle" style="display: flex; gap: 4px;">
+                <button class="view-btn" onclick="switchView('grid')" id="grid-view-btn-card">📋 表形式</button>
+                <button class="view-btn active" onclick="switchView('card')" id="card-view-btn-card">📄 カード形式</button>
+              </div>
+            </div>
+          </div>
           <div id="events-grid" class="events-grid"></div>
           <div id="empty-state" class="empty-state" style="display: none;">
             <h3>イベントがありません</h3>
@@ -2010,6 +2026,7 @@
       const syncAllBtn = document.getElementById('sync-all-btn');
       const createEventBtn = document.getElementById('create-event-btn');
       const displayPeriodEditBtn = document.getElementById('display-period-edit-btn');
+      const displayPeriodEditBtnCard = document.getElementById('display-period-edit-btn-card');
       
       const headerActionGroup = document.querySelector('.header-action-group');
       
@@ -2019,12 +2036,14 @@
         if (headerActionGroup) headerActionGroup.style.display = 'flex';
         if (createEventBtn) createEventBtn.style.display = 'inline-block';
         if (displayPeriodEditBtn) displayPeriodEditBtn.style.display = 'inline-block';
+        if (displayPeriodEditBtnCard) displayPeriodEditBtnCard.style.display = 'inline-block';
       } else {
         // 一般ユーザーの場合：ログインボタンを表示、ログアウトボタンと管理ボタンを非表示
         if (adminLoginBtn) adminLoginBtn.style.display = 'inline-block';
         if (headerActionGroup) headerActionGroup.style.display = 'none';
         if (createEventBtn) createEventBtn.style.display = 'none';
         if (displayPeriodEditBtn) displayPeriodEditBtn.style.display = 'none';
+        if (displayPeriodEditBtnCard) displayPeriodEditBtnCard.style.display = 'none';
       }
 
       // イベントカードの管理ボタン（既に描画されている場合）
@@ -2154,13 +2173,14 @@
      */
     function updateDisplayPeriodInfo(config) {
       const periodText = document.getElementById('display-period-text');
-      if (!periodText) return;
-
+      const periodTextCard = document.getElementById('display-period-text-card');
+      
       const startDate = config.DISPLAY_START_DATE || '';
       const endDate = config.DISPLAY_END_DATE || '';
 
+      let periodValue = '';
       if (!startDate && !endDate) {
-        periodText.textContent = '全期間';
+        periodValue = '全期間';
       } else {
         let startStr = '制限なし';
         let endStr = '制限なし';
@@ -2175,7 +2195,15 @@
           endStr = `${end.getFullYear()}年${end.getMonth() + 1}月${end.getDate()}日`;
         }
         
-        periodText.textContent = `${startStr} ～ ${endStr}`;
+        periodValue = `${startStr} ～ ${endStr}`;
+      }
+      
+      // 表形式とカード形式の両方を更新
+      if (periodText) {
+        periodText.textContent = periodValue;
+      }
+      if (periodTextCard) {
+        periodTextCard.textContent = periodValue;
       }
     }
 
@@ -2398,18 +2426,24 @@
       const cardView = document.getElementById('card-view');
       const gridBtn = document.getElementById('grid-view-btn');
       const cardBtn = document.getElementById('card-view-btn');
+      const gridBtnCard = document.getElementById('grid-view-btn-card');
+      const cardBtnCard = document.getElementById('card-view-btn-card');
 
       if (view === 'grid') {
         gridView.style.display = 'block';
         cardView.style.display = 'none';
-        gridBtn.classList.add('active');
-        cardBtn.classList.remove('active');
+        if (gridBtn) gridBtn.classList.add('active');
+        if (cardBtn) cardBtn.classList.remove('active');
+        if (gridBtnCard) gridBtnCard.classList.add('active');
+        if (cardBtnCard) cardBtnCard.classList.remove('active');
         renderGrid();
       } else {
         gridView.style.display = 'none';
         cardView.style.display = 'block';
-        cardBtn.classList.add('active');
-        gridBtn.classList.remove('active');
+        if (cardBtn) cardBtn.classList.add('active');
+        if (gridBtn) gridBtn.classList.remove('active');
+        if (cardBtnCard) cardBtnCard.classList.add('active');
+        if (gridBtnCard) gridBtnCard.classList.remove('active');
         renderCardView();
       }
     }

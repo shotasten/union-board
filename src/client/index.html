@@ -1493,8 +1493,8 @@
                 <span id="display-period-text" style="color: #666;">全期間</span>
                 <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" class="secondary-btn" style="display: none;">期間を設定</button>
               </div>
-              <!-- メンバー登録ボタン（管理者のみ） -->
-              <button class="member-register-btn secondary-btn" onclick="showMemberRegisterModal()" style="display: none;">+ メンバー登録</button>
+              <!-- メンバー登録ボタン（すべてのユーザー） -->
+              <button class="member-register-btn secondary-btn" onclick="showMemberRegisterModal()">+ メンバー登録</button>
             </div>
             <!-- 右寄せエリア（主要アクション） -->
             <div class="right-actions" style="display: flex; align-items: center; gap: 12px;">
@@ -1985,6 +1985,7 @@
         if (headerActionGroup) headerActionGroup.style.display = 'flex';
         if (createEventBtn) createEventBtn.style.display = 'inline-block';
         if (displayPeriodEditBtn) displayPeriodEditBtn.style.display = 'inline-block';
+        // メンバー登録ボタンはすべてのユーザーに表示
         if (memberRegisterBtn) memberRegisterBtn.style.display = 'inline-block';
       } else {
         // 一般ユーザーの場合：ログインボタンを表示、ログアウトボタンと管理ボタンを非表示
@@ -1992,7 +1993,8 @@
         if (headerActionGroup) headerActionGroup.style.display = 'none';
         if (createEventBtn) createEventBtn.style.display = 'none';
         if (displayPeriodEditBtn) displayPeriodEditBtn.style.display = 'none';
-        if (memberRegisterBtn) memberRegisterBtn.style.display = 'none';
+        // メンバー登録ボタンはすべてのユーザーに表示
+        if (memberRegisterBtn) memberRegisterBtn.style.display = 'inline-block';
       }
 
       // イベントカードの管理ボタン（既に描画されている場合）

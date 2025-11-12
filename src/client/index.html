@@ -3665,7 +3665,7 @@
               <div><strong>日付:</strong> ${dateStr}</div>
               <div><strong>時刻:</strong> ${timeDisplay}</div>
               ${event.location ? `<div><strong>場所:</strong> ${event.location}</div>` : ''}
-              ${event.description ? `<div style="margin-top: 10px;"><strong>説明:</strong><br>${event.description.replace(/\n/g, '<br>')}</div>` : ''}
+              ${event.description ? `<div style="margin-top: 10px;"><strong>説明:</strong><br>${cleanDescription(event.description).replace(/\n/g, '<br>')}</div>` : ''}
             </div>
           </div>
         `;
@@ -4714,7 +4714,7 @@
           <div class="date">📅 ${formatDateTime(startDate)} ～ ${formatDateTime(endDate)}</div>
           ${event.location ? `<div class="location">📍${escapeHtml(event.location)}</div>` : ''}
         </div>
-        ${event.description ? `<p>${escapeHtml(event.description)}</p>` : ''}
+        ${event.description ? `<p>${escapeHtml(cleanDescription(event.description))}</p>` : ''}
         <div class="admin-actions" style="display: none;">
           <button class="admin-btn sync" onclick="syncEvent('${event.id}')" id="sync-btn-${event.id}" style="display: none;">
             <span class="sync-icon">🔄</span> 同期
@@ -4868,6 +4868,26 @@
     }
 
     /**
+     * 説明欄からカレンダーイベントIDを除去
+     * @param description 説明欄のテキスト
+     * @returns カレンダーイベントIDを除去した説明欄
+     */
+    function cleanDescription(description) {
+      if (!description) {
+        return '';
+      }
+      
+      // カレンダーイベントID (@google.com で終わる文字列) を除去
+      let cleaned = description.replace(/[a-z0-9]+@google\.com/gi, '').trim();
+      
+      // 連続する改行や空白を整理
+      cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+      cleaned = cleaned.replace(/[ \t]+/g, ' ');
+      
+      return cleaned.trim();
+    }
+
+    /**
      * トースト通知を表示
      */
     function showToast(message, type = 'success') {
@@ -4994,7 +5014,7 @@
       }
       
       document.getElementById('event-location').value = event.location || '';
-      document.getElementById('event-description').value = event.description || '';
+      document.getElementById('event-description').value = cleanDescription(event.description || '');
       
       // 終日切り替えを実行して表示を更新（値は既に設定済み）
       toggleAllDay();

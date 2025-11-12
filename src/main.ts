@@ -5,6 +5,11 @@
 /// <reference path="server/members.ts" /> // メンバー管理関数を参照するため追加
 /// <reference path="server/responses.ts" /> // getAllResponses を参照するため追加
 
+// calendar.tsからエクスポートされた関数の型宣言
+declare function upsertCalendarEvent(event: AttendanceEvent, forceCreate?: boolean): string | null;
+declare function syncCalendarDescriptionForEvent(eventId: string): void;
+declare function syncAll(limitToDisplayPeriod?: boolean): { success: number, failed: number, errors: string[] };
+
 /**
  * メインエントリーポイント
  * Phase 1.5: サーバーサイドAPI実装
@@ -449,6 +454,28 @@ function userSubmitResponsesBatch(
     }
     
     Logger.log(`✅ バッチ保存完了: 成功 ${successCount}件, 失敗 ${failedCount}件`);
+    
+    // 出欠データ保存後、関連イベントのカレンダー説明欄を同期
+    if (successCount > 0) {
+      Logger.log('📅 カレンダー同期を開始...');
+      const syncedEventIds = new Set<string>();
+      
+      responses.forEach(response => {
+        // 各イベントについて1回だけ同期（重複を避ける）
+        if (!syncedEventIds.has(response.eventId)) {
+          try {
+            syncCalendarDescriptionForEvent(response.eventId);
+            syncedEventIds.add(response.eventId);
+            Logger.log(`✅ カレンダー同期成功: ${response.eventId}`);
+          } catch (error) {
+            Logger.log(`⚠️ カレンダー同期失敗: ${response.eventId} - ${(error as Error).message}`);
+            // カレンダー同期失敗してもエラーカウントには含めない（出欠データは保存済み）
+          }
+        }
+      });
+      
+      Logger.log(`📅 カレンダー同期完了: ${syncedEventIds.size}件のイベント`);
+    }
     
   } catch (error) {
     Logger.log(`❌ バッチ保存エラー: ${(error as Error).message}`);

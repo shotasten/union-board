@@ -5567,7 +5567,7 @@
       if (icon) {
         icon.classList.add('spinning');
       }
-      showFullscreenLoader('全イベントを同期中...');
+      showFullscreenLoader('表示期間内のイベントを同期中...');
 
       google.script.run
         .withSuccessHandler((result) => {
@@ -5597,7 +5597,7 @@
           hideFullscreenLoader();
           showToast(error.message || 'エラーが発生しました', 'error');
         })
-        .syncAllEvents(currentUserKey, localStorage.getItem('adminToken'));
+        .syncAllEvents(currentUserKey, localStorage.getItem('adminToken'), true);
     }
 
     // モーダル外をクリックで閉じる

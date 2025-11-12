@@ -938,9 +938,10 @@ function syncEvent(eventId: string, userKey?: string, adminToken?: string): { su
  * 全イベント一括同期API（カレンダー → アプリ）
  * @param userKey ユーザー識別子（オプション、管理者判定用）
  * @param adminToken 管理者トークン（オプション、匿名モード時）
+ * @param limitToDisplayPeriod 表示期間のみに制限するか（デフォルト: true）
  * @returns 同期結果
  */
-function syncAllEvents(userKey?: string, adminToken?: string): { success: number; failed: number; errors: string[] } {
+function syncAllEvents(userKey?: string, adminToken?: string, limitToDisplayPeriod: boolean = true): { success: number; failed: number; errors: string[] } {
   try {
     // 管理者権限チェック
     if (userKey && !isAdmin(userKey, adminToken)) {
@@ -951,7 +952,8 @@ function syncAllEvents(userKey?: string, adminToken?: string): { success: number
       };
     }
     
-    return syncAll();
+    Logger.log(`📅 全イベント同期: 表示期間制限=${limitToDisplayPeriod}`);
+    return syncAll(limitToDisplayPeriod);
   } catch (error) {
     Logger.log(`❌ エラー: 全イベント同期API失敗 - ${(error as Error).message}`);
     return {
@@ -959,6 +961,26 @@ function syncAllEvents(userKey?: string, adminToken?: string): { success: number
       failed: 1,
       errors: [(error as Error).message]
     };
+  }
+}
+
+/**
+ * 定期的にカレンダーから表示期間のイベントを同期（cron用）
+ * Google Apps Script のトリガーで実行することを想定
+ * 表示期間（DISPLAY_START_DATE ～ DISPLAY_END_DATE）のイベントのみを同期
+ */
+function scheduledSync(): void {
+  try {
+    Logger.log('=== 定期同期開始（表示期間のみ） ===');
+    const result = syncAll(true); // 表示期間のみに制限
+    Logger.log(`✅ 定期同期完了: 成功 ${result.success}件, 失敗 ${result.failed}件`);
+    
+    if (result.errors.length > 0) {
+      Logger.log(`⚠️ エラー詳細: ${result.errors.join(', ')}`);
+    }
+  } catch (error) {
+    Logger.log(`❌ 定期同期エラー: ${(error as Error).message}`);
+    Logger.log((error as Error).stack);
   }
 }
 

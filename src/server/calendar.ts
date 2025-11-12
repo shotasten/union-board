@@ -812,9 +812,11 @@ function testAppToCalendarSync(): void {
 /**
  * カレンダーからイベントを取得してSpreadsheetと同期
  * @param calendarId カレンダーID（省略時はConfigから取得）
+ * @param startDate 取得開始日時（省略時はデフォルト：30日前）
+ * @param endDate 取得終了日時（省略時はデフォルト：1年後）
  * @returns 同期結果
  */
-function pullFromCalendar(calendarId?: string): { success: number, failed: number, errors: string[] } {
+function pullFromCalendar(calendarId?: string, startDate?: Date, endDate?: Date): { success: number, failed: number, errors: string[] } {
   const result = {
     success: 0,
     failed: 0,
@@ -836,13 +838,14 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
       return result;
     }
     
-    // カレンダーから全イベントを取得（過去30日から未来1年まで）
+    // カレンダーから全イベントを取得
+    // パラメータが指定されていない場合はデフォルト期間（過去30日から未来1年まで）
     const now = new Date();
-    const startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30日前
-    const endDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1年後
+    const syncStartDate = startDate || new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30日前
+    const syncEndDate = endDate || new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1年後
     
-    Logger.log(`カレンダーイベント取得範囲: ${startDate.toISOString()} ～ ${endDate.toISOString()}`);
-    const calendarEvents = calendar.getEvents(startDate, endDate);
+    Logger.log(`カレンダーイベント取得範囲: ${syncStartDate.toISOString()} ～ ${syncEndDate.toISOString()}`);
+    const calendarEvents = calendar.getEvents(syncStartDate, syncEndDate);
     Logger.log(`✅ カレンダーイベント取得: ${calendarEvents.length}件`);
     
     // Spreadsheetの全イベントを取得
@@ -1482,13 +1485,48 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
 
 /**
  * 全イベントの同期処理（カレンダー → アプリ、アプリ → カレンダー説明欄）
+ * @param limitToDisplayPeriod 表示期間のみに制限するか（デフォルト: false）
  * @returns 同期結果
  */
-function syncAll(): { success: number, failed: number, errors: string[] } {
+function syncAll(limitToDisplayPeriod: boolean = false): { success: number, failed: number, errors: string[] } {
   Logger.log('=== 全イベント同期開始 ===');
   
+  // 表示期間の設定を取得（limitToDisplayPeriod=trueの場合のみ）
+  let syncStartDate: Date | undefined = undefined;
+  let syncEndDate: Date | undefined = undefined;
+  
+  if (limitToDisplayPeriod) {
+    const displayStartDateStr = getConfig('DISPLAY_START_DATE', '');
+    const displayEndDateStr = getConfig('DISPLAY_END_DATE', '');
+    
+    if (displayStartDateStr) {
+      syncStartDate = new Date(displayStartDateStr);
+      if (isNaN(syncStartDate.getTime())) {
+        Logger.log(`⚠️ 警告: DISPLAY_START_DATEが不正な値です: ${displayStartDateStr}`);
+        syncStartDate = undefined;
+      }
+    }
+    
+    if (displayEndDateStr) {
+      syncEndDate = new Date(displayEndDateStr);
+      if (isNaN(syncEndDate.getTime())) {
+        Logger.log(`⚠️ 警告: DISPLAY_END_DATEが不正な値です: ${displayEndDateStr}`);
+        syncEndDate = undefined;
+      } else {
+        // 終了日の23:59:59まで含める
+        syncEndDate.setHours(23, 59, 59, 999);
+      }
+    }
+    
+    if (syncStartDate || syncEndDate) {
+      Logger.log(`📅 表示期間に制限: ${syncStartDate ? syncStartDate.toISOString() : 'なし'} ～ ${syncEndDate ? syncEndDate.toISOString() : 'なし'}`);
+    } else {
+      Logger.log(`⚠️ 表示期間の設定が見つかりません。全期間を同期します。`);
+    }
+  }
+  
   // カレンダー → アプリ同期
-  const pullResult = pullFromCalendar();
+  const pullResult = pullFromCalendar(undefined, syncStartDate, syncEndDate);
   Logger.log(`📋 カレンダー → アプリ同期完了: 成功 ${pullResult.success}件, 失敗 ${pullResult.failed}件`);
   
   // アプリ → カレンダー説明欄同期
@@ -1497,7 +1535,7 @@ function syncAll(): { success: number, failed: number, errors: string[] } {
   let descriptionSyncFailed = 0;
   
   try {
-    // 全イベントを取得
+    // イベントを取得（表示期間に制限する場合は自動的にフィルタリングされる）
     const events = getEvents('all');
     Logger.log(`📋 説明欄同期対象イベント数: ${events.length}件`);
     

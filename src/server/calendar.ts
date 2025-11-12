@@ -957,13 +957,24 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
             // カレンダーの方が新しい場合、Spreadsheetを更新
             Logger.log(`🔄 イベント更新: ${existingEvent.id} - ${calendarEventTitle}`);
             
-            // 説明欄から出欠サマリーを抽出（更新しない）
-            // タイトル、日時、場所のみ更新
+            // 説明欄から出欠サマリーを除去してdescriptionとして保存
+            // （説明欄は「【出欠状況】」以降を除去）
+            let userDescription = calendarEventDescription;
+            const attendanceIndex = userDescription.indexOf('【出欠状況】');
+            if (attendanceIndex >= 0) {
+              userDescription = userDescription.substring(0, attendanceIndex).trim();
+            }
+            
+            // カレンダーイベントIDが含まれている場合は除去（@google.com で終わる文字列）
+            userDescription = userDescription.replace(/[a-z0-9]+@google\.com/gi, '').trim();
+            
+            // タイトル、日時、場所、説明欄を更新
             const updateResult = updateEvent(existingEvent.id, {
               title: calendarEventTitle,
               start: calendarEventStart.toISOString(),
               end: calendarEventEnd.toISOString(),
               location: calendarEventLocation,
+              description: userDescription,
               lastSynced: calendarEventUpdated.toISOString()
             }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
             

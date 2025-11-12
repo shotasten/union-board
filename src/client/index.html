@@ -75,22 +75,26 @@
       align-items: center;
     }
 
+    /* ログインボタン（アウトラインスタイル、アイコン+テキスト） */
     .admin-login-btn {
       background: transparent;
-      color: #666;
-      border: 1px solid #ddd;
+      color: #00796B;
+      border: 1px solid #00796B;
       padding: 8px 16px;
       font-size: 0.9rem;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s;
-      font-weight: normal;
+      font-weight: 500;
       white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
 
     .admin-login-btn:hover {
-      background: #f5f5f5;
-      border-color: #bbb;
+      background: #E0F2F1;
+      border-color: #00796B;
     }
 
     /* アイコンアクションボタン（ログアウト、同期、削除） */
@@ -129,13 +133,13 @@
       background: #ffebee;
     }
 
-    /* プライマリーボタン（新規作成）はそのまま維持 */
+    /* プライマリーボタン（新規作成のみ） */
     .primary-btn {
       background: #00796B;
       color: white;
       border: 1px solid #00796B;
-      padding: 8px 16px;
-      font-size: 0.9rem;
+      padding: 10px 20px;
+      font-size: 0.95rem;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s;
@@ -152,8 +156,8 @@
       background: #00796B;
       color: white;
       border: 1px solid #00796B;
-      padding: 8px 16px;
-      font-size: 0.9rem;
+      padding: 10px 20px;
+      font-size: 0.95rem;
       border-radius: 6px;
       cursor: pointer;
       transition: all 0.2s;
@@ -164,6 +168,25 @@
     .create-event-btn:hover {
       background: #00695C;
       border-color: #00695C;
+    }
+
+    /* セカンダリーボタン（表示期間設定、メンバー登録） */
+    .secondary-btn {
+      background: transparent;
+      color: #00796B;
+      border: 1px solid #00796B;
+      padding: 10px 20px;
+      font-size: 0.95rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .secondary-btn:hover {
+      background: #E0F2F1;
+      border-color: #00796B;
     }
 
     /* 管理者専用機能のスタイル */
@@ -1224,6 +1247,32 @@
         padding: 12px 16px;
       }
 
+      .secondary-btn {
+        width: 100%;
+        font-size: 0.9rem;
+        padding: 12px 16px;
+      }
+
+      .main-actions-bar {
+        flex-direction: column;
+        align-items: stretch !important;
+      }
+
+      .left-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .right-actions {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .right-actions .create-event-btn {
+        width: 100%;
+      }
+
       main {
         padding: 15px;
       }
@@ -1345,6 +1394,31 @@
         padding: 6px 12px;
       }
 
+      .secondary-btn {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+      }
+
+      .main-actions-bar {
+        flex-direction: column;
+        align-items: stretch !important;
+      }
+
+      .left-actions {
+        width: 100%;
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .right-actions {
+        width: 100%;
+        justify-content: stretch;
+      }
+
+      .right-actions .create-event-btn {
+        width: 100%;
+      }
+
       main {
         padding: 10px;
       }
@@ -1409,18 +1483,27 @@
       <div id="events-container" style="display: none;">
         <!-- 表形式表示 -->
         <div id="grid-view" style="display: block;">
-          <div class="grid-controls" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-            <button class="member-register-btn" onclick="showMemberRegisterModal()" style="padding: 10px 20px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">+ メンバー登録</button>
-            <button class="admin-feature primary-btn create-event-btn" onclick="openCreateEventModal()" id="create-event-btn" style="display: none; padding: 10px 20px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500;">新規作成</button>
-          </div>
-          <!-- 表示期間と凡例 -->
-          <div style="margin-bottom: 30px; display: flex; flex-direction: column; gap: 12px;">
-            <!-- 表示期間表示（管理者のみ編集可能） -->
-            <div id="display-period-info" style="padding: 12px 16px; background: #f5f5f5; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-              <span style="font-weight: 500; color: #333;">表示期間:</span>
-              <span id="display-period-text" style="color: #666;">全期間</span>
-              <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" style="display: none; padding: 6px 12px; background: #00796B; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem; font-weight: 500;">期間を設定</button>
+          <!-- メインコンテンツ上部のボタンエリア -->
+          <div class="main-actions-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+            <!-- 左寄せエリア（フィルタ/設定） -->
+            <div class="left-actions" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+              <!-- 表示期間表示 -->
+              <div id="display-period-info" style="padding: 12px 16px; background: #f5f5f5; border-radius: 8px; font-size: 0.9rem; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+                <span style="font-weight: 500; color: #333;">表示期間:</span>
+                <span id="display-period-text" style="color: #666;">全期間</span>
+                <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" class="secondary-btn" style="display: none;">期間を設定</button>
+              </div>
+              <!-- メンバー登録ボタン（管理者のみ） -->
+              <button class="member-register-btn secondary-btn" onclick="showMemberRegisterModal()" style="display: none;">+ メンバー登録</button>
             </div>
+            <!-- 右寄せエリア（主要アクション） -->
+            <div class="right-actions" style="display: flex; align-items: center; gap: 12px;">
+              <!-- 新規作成ボタン（管理者のみ、唯一のプライマリーボタン） -->
+              <button class="admin-feature primary-btn create-event-btn" onclick="openCreateEventModal()" id="create-event-btn" style="display: none;">新規作成</button>
+            </div>
+          </div>
+          <!-- 凡例 -->
+          <div style="margin-bottom: 30px; display: flex; flex-direction: column; gap: 12px;">
             <!-- 凡例 -->
             <div id="attendance-legend" style="padding: 8px 12px; background: #f8f9fa; border-radius: 6px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; font-size: 0.9rem;">
               <div style="display: flex; align-items: center; gap: 6px;">
@@ -1892,6 +1975,7 @@
       const syncAllBtn = document.getElementById('sync-all-btn');
       const createEventBtn = document.getElementById('create-event-btn');
       const displayPeriodEditBtn = document.getElementById('display-period-edit-btn');
+      const memberRegisterBtn = document.querySelector('.member-register-btn');
       
       const headerActionGroup = document.querySelector('.header-action-group');
       
@@ -1901,12 +1985,14 @@
         if (headerActionGroup) headerActionGroup.style.display = 'flex';
         if (createEventBtn) createEventBtn.style.display = 'inline-block';
         if (displayPeriodEditBtn) displayPeriodEditBtn.style.display = 'inline-block';
+        if (memberRegisterBtn) memberRegisterBtn.style.display = 'inline-block';
       } else {
         // 一般ユーザーの場合：ログインボタンを表示、ログアウトボタンと管理ボタンを非表示
-        if (adminLoginBtn) adminLoginBtn.style.display = 'inline-block';
+        if (adminLoginBtn) adminLoginBtn.style.display = 'inline-flex';
         if (headerActionGroup) headerActionGroup.style.display = 'none';
         if (createEventBtn) createEventBtn.style.display = 'none';
         if (displayPeriodEditBtn) displayPeriodEditBtn.style.display = 'none';
+        if (memberRegisterBtn) memberRegisterBtn.style.display = 'none';
       }
 
       // イベントカードの管理ボタン（既に描画されている場合）

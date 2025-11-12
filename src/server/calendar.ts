@@ -144,15 +144,24 @@ function computeHash(text: string): string {
 /**
  * 出欠サマリーを含む説明文を生成
  * @param eventId イベントID
+ * @param userDescription ユーザーが入力した説明（オプション）
  * @returns 説明文
  */
-function buildDescription(eventId: string): string {
+function buildDescription(eventId: string, userDescription?: string): string {
   try {
     const tally = tallyResponses(eventId);
     const now = new Date();
     const formattedDate = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm');
     
-    let description = '【出欠状況】\n';
+    let description = '';
+    
+    // ユーザーが入力した説明があれば先頭に追加
+    if (userDescription && userDescription.trim()) {
+      description += userDescription.trim() + '\n\n';
+    }
+    
+    // 出欠サマリーを追加
+    description += '【出欠状況】\n';
     description += `○ 参加: ${tally.attendCount}人\n`;
     description += `△ 未定: ${tally.maybeCount}人\n`;
     description += `× 欠席: ${tally.absentCount}人\n`;
@@ -235,8 +244,8 @@ function upsertCalendarEvent(event: AttendanceEvent, forceCreate: boolean = fals
       }
     }
     
-    // 説明文を生成（出欠サマリーを含む）
-    const description = buildDescription(event.id);
+    // 説明文を生成（ユーザーが入力した説明 + 出欠サマリーを含む）
+    const description = buildDescription(event.id, event.description);
     Logger.log(`📝 説明文生成完了: ${description.length}文字`);
     
     // 説明文のハッシュを計算
@@ -479,7 +488,7 @@ function syncCalendarDescriptionForEvent(eventId: string): void {
     
     try {
       const calendarEvent = calendar.getEventById(event.calendarEventId);
-      const description = buildDescription(eventId);
+      const description = buildDescription(eventId, event.description);
       const notesHash = computeHash(description);
       
       // 説明文のハッシュが同じ場合は更新をスキップ（無限ループ防止）
@@ -891,7 +900,15 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
             Logger.log(`➕ カレンダーイベントを新規イベントとして追加: ${calendarEventTitle}`);
             
             // 説明欄から出欠サマリーを除去してdescriptionとして保存
+            // （説明欄は「【出欠状況】」以降を除去）
             let description = calendarEventDescription;
+            const attendanceIndex = description.indexOf('【出欠状況】');
+            if (attendanceIndex >= 0) {
+              description = description.substring(0, attendanceIndex).trim();
+            }
+            
+            // カレンダーイベントIDが含まれている場合は除去（@google.com で終わる文字列）
+            description = description.replace(/[a-z0-9]+@google\.com/gi, '').trim();
             
             const newEventId = createEvent(
               calendarEventTitle,
@@ -1156,6 +1173,9 @@ function pullFromCalendar(calendarId?: string): { success: number, failed: numbe
               if (attendanceIndex >= 0) {
                 description = description.substring(0, attendanceIndex).trim();
               }
+              
+              // カレンダーイベントIDが含まれている場合は除去（@google.com で終わる文字列）
+              description = description.replace(/[a-z0-9]+@google\.com/gi, '').trim();
               
               Logger.log(`➕ [createEvent呼び出し前] これからcreateEvent()を呼び出します（skipCalendarSync=true）`);
               const newEventId = createEvent(

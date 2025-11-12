@@ -2108,7 +2108,9 @@
             closeAdminLoginModal();
             showToast('管理者ログインに成功しました', 'success');
             // イベント一覧を再読み込みして管理ボタンを表示
-            loadEvents();
+            loadInitData().then(() => {
+              renderEvents();
+            });
           } else {
             showToast('管理者トークンが正しくありません', 'error');
             tokenInput.value = '';
@@ -2142,7 +2144,9 @@
       updateAdminUI();
       showToast('管理者ログアウトしました', 'success');
       // イベント一覧を再読み込みして管理ボタンを非表示
-      loadEvents();
+      loadInitData().then(() => {
+        renderEvents();
+      });
     }
 
     /**
@@ -2369,39 +2373,15 @@
 
     /**
      * イベント一覧を読み込む
+     * @deprecated loadInitData() を使用してください
+     * 
+     * この関数は廃止されました。
+     * 理由: サーバーから取得した出欠データとメンバー情報を破棄していたため、
+     * キャッシュが更新されず、予定詳細モーダルで古いデータが表示される問題がありました。
+     * 
+     * 代わりに loadInitData() を使用してください。
+     * loadInitData() は全データ（イベント + 出欠 + メンバー）を正しく更新します。
      */
-    function loadEvents() {
-      showLoading();
-      hideError();
-
-      google.script.run
-        .withSuccessHandler(onEventsLoaded)
-        .withFailureHandler(onError)
-        .getInitData();
-    }
-
-    /**
-     * イベントデータ取得成功時の処理
-     */
-    function onEventsLoaded(data) {
-      hideLoading();
-      
-      if (data && data.events) {
-        currentEvents = data.events;
-        renderEvents();
-      } else {
-        showError('データの取得に失敗しました');
-      }
-    }
-
-    /**
-     * エラー発生時の処理
-     */
-    function onError(error) {
-      hideLoading();
-      showError(error.message || 'エラーが発生しました');
-      console.error('Error:', error);
-    }
 
     // グローバル変数: 表形式UI用
     let currentView = 'grid'; // 'grid' または 'card'
@@ -5483,7 +5463,9 @@
           if (result.success) {
             showToast('イベントを同期しました', 'success');
             // イベント一覧を再読み込み
-            loadEvents();
+            loadInitData().then(() => {
+              renderEvents();
+            });
           } else {
             showToast(result.error || '同期に失敗しました', 'error');
           }
@@ -5531,8 +5513,10 @@
             );
             
             // イベント一覧を再読み込み
-            loadEvents();
-            renderGrid();
+            loadInitData().then(() => {
+              renderEvents();
+              renderGrid();
+            });
           } else {
             let errorMsg = '削除に失敗しました';
             if (result.errors && result.errors.length > 0) {
@@ -5577,7 +5561,9 @@
           if (result.success > 0 || result.failed === 0) {
             showToast(`同期完了: 成功 ${result.success}件${result.failed > 0 ? `, 失敗 ${result.failed}件` : ''}`, 'success');
             // イベント一覧を再読み込み
-            loadEvents();
+            loadInitData().then(() => {
+              renderEvents();
+            });
           } else {
             showToast(`同期失敗: ${result.errors.join(', ')}`, 'error');
           }

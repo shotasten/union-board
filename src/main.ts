@@ -73,7 +73,7 @@ function getInitData(): { events: AttendanceEvent[]; config: Config; members: Ar
   try {
     Logger.log('=== getInitData 開始 ===');
     
-    const events = getEvents('upcoming');
+    const events = getEvents('all');
     Logger.log(`✅ イベント取得: ${events.length}件`);
     
     const config: Config = {
@@ -660,7 +660,7 @@ function getAllEventsWithResponses(): {
     Logger.log('=== getAllEventsWithResponses 開始 ===');
     
     // イベント一覧を取得（既存関数を使用）
-    const events = getEvents('upcoming');
+    const events = getEvents('all');
     Logger.log(`✅ イベント取得: ${events.length}件`);
     
     // 全出欠データを1回で取得

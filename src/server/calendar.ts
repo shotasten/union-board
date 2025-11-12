@@ -443,11 +443,11 @@ function updateEventCalendarInfo(eventId: string, calendarEventId: string, notes
     // ヘッダー行をスキップしてIDで検索
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] === eventId) {
-        // calendarEventId (列7) と notesHash (列8) を更新（バッチ更新: パフォーマンス最適化）
+        // calendarEventId (列8) と notesHash (列9) を更新（バッチ更新: パフォーマンス最適化）
         const rowIndex = i + 1;
-        sheet.getRange(rowIndex, 7, 1, 2).setValues([[calendarEventId, notesHash]]);
-        // lastSynced (列12) も更新
-        sheet.getRange(rowIndex, 12).setValue(new Date().toISOString());
+        sheet.getRange(rowIndex, 8, 1, 2).setValues([[calendarEventId, notesHash]]);
+        // lastSynced (列13) も更新
+        sheet.getRange(rowIndex, 13).setValue(new Date().toISOString());
         Logger.log(`✅ イベントカレンダー情報更新: ${eventId}`);
         return;
       }

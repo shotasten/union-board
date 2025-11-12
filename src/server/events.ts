@@ -1,4 +1,9 @@
 /// <reference path="../types/models.ts" />
+/// <reference path="./calendar.ts" />
+
+// calendar.tsからエクスポートされた関数の型宣言
+declare function getOrCreateCalendar(): string;
+declare function upsertCalendarEvent(event: AttendanceEvent, forceCreate?: boolean): string | null;
 
 /**
  * イベント管理モジュール

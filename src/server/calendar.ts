@@ -11,7 +11,7 @@
  * - 作成したカレンダーIDをConfigシートに保存
  * @returns カレンダーID
  */
-function setupBandCalendar(): string {
+export function setupBandCalendar(): string {
   try {
     Logger.log('=== 楽団専用カレンダー作成開始 ===');
     
@@ -43,7 +43,7 @@ function setupBandCalendar(): string {
  * - 保存されていない場合は新規作成
  * @returns カレンダーID
  */
-function getOrCreateCalendar(): string {
+export function getOrCreateCalendar(): string {
   try {
     // ConfigシートからカレンダーIDを取得
     let calendarId = getConfig('CALENDAR_ID', '');
@@ -369,7 +369,7 @@ function buildDescription(eventId: string, userDescription?: string): string {
  * @param forceCreate 強制的に新規作成する（既存イベント検索をスキップ）
  * @returns カレンダーイベントID（成功時）、null（失敗時）
  */
-function upsertCalendarEvent(event: AttendanceEvent, forceCreate: boolean = false): string | null {
+export function upsertCalendarEvent(event: AttendanceEvent, forceCreate: boolean = false): string | null {
   try {
     Logger.log(`🔄 upsertCalendarEvent開始: ${event.id} - ${event.title} (calendarEventId: ${event.calendarEventId || '未設定'})`);
     
@@ -651,7 +651,7 @@ function updateEventCalendarInfo(eventId: string, calendarEventId: string, notes
  * 特定イベントの説明欄を同期
  * @param eventId イベントID
  */
-function syncCalendarDescriptionForEvent(eventId: string): void {
+export function syncCalendarDescriptionForEvent(eventId: string): void {
   try {
     const event = getEventById(eventId);
     if (!event) {
@@ -1576,7 +1576,7 @@ function pullFromCalendar(calendarId?: string, startDate?: Date, endDate?: Date)
  * @param limitToDisplayPeriod 表示期間のみに制限するか（デフォルト: false）
  * @returns 同期結果
  */
-function syncAll(limitToDisplayPeriod: boolean = false): { success: number, failed: number, errors: string[] } {
+export function syncAll(limitToDisplayPeriod: boolean = false): { success: number, failed: number, errors: string[] } {
   Logger.log('=== 全イベント同期開始 ===');
   
   // 表示期間の設定を取得（limitToDisplayPeriod=trueの場合のみ）

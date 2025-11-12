@@ -1,3 +1,9 @@
+/// <reference path="./calendar.ts" />
+
+// calendar.tsからエクスポートされた関数の型宣言
+declare function setupBandCalendar(): string;
+declare function getOrCreateCalendar(): string;
+
 /**
  * ユーティリティ関数
  * Spreadsheet管理、設定管理など

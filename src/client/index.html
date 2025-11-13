@@ -2050,6 +2050,7 @@
     let currentUserKey = ''; // 管理者判定用（スプレッドシートで管理するため、ローカルストレージには保存しない）
     let currentAuthMode = 'anonymous';
     let isAdminUser = false; // 管理者かどうか
+    let currentConfig = null; // 設定情報のキャッシュ（性能改善：期間設定モーダル用）
 
     /**
      * 全出欠データのキャッシュ
@@ -2108,6 +2109,9 @@
             } else {
               window.allResponsesCache = {};
             }
+            
+            // 設定をキャッシュに保存（性能改善：期間設定モーダル用）
+            currentConfig = data.config;
             
             // 表示期間を更新
             updateDisplayPeriodInfo(data.config);
@@ -2355,37 +2359,34 @@
 
     /**
      * 表示期間設定モーダルを開く
+     * 性能改善：キャッシュから設定値を取得（API呼び出しなし）
      */
     function openDisplayPeriodModal() {
       const modal = document.getElementById('display-period-modal');
       if (!modal) return;
 
-      // 現在の設定を取得
-      google.script.run
-        .withSuccessHandler((data) => {
-          const startInput = document.getElementById('display-period-start');
-          const endInput = document.getElementById('display-period-end');
-          
-          if (startInput && data.config.DISPLAY_START_DATE) {
-            const startDate = new Date(data.config.DISPLAY_START_DATE);
-            startInput.value = formatDateForInput(startDate);
-          } else if (startInput) {
-            startInput.value = '';
-          }
-          
-          if (endInput && data.config.DISPLAY_END_DATE) {
-            const endDate = new Date(data.config.DISPLAY_END_DATE);
-            endInput.value = formatDateForInput(endDate);
-          } else if (endInput) {
-            endInput.value = '';
-          }
-          
-          modal.style.display = 'block';
-        })
-        .withFailureHandler((error) => {
-          showToast('表示期間設定の取得に失敗しました', 'error');
-        })
-        .getInitData();
+      // キャッシュから設定値を取得（API呼び出しなし）
+      const config = currentConfig || {};
+      
+      const startInput = document.getElementById('display-period-start');
+      const endInput = document.getElementById('display-period-end');
+      
+      if (startInput && config.DISPLAY_START_DATE) {
+        const startDate = new Date(config.DISPLAY_START_DATE);
+        startInput.value = formatDateForInput(startDate);
+      } else if (startInput) {
+        startInput.value = '';
+      }
+      
+      if (endInput && config.DISPLAY_END_DATE) {
+        const endDate = new Date(config.DISPLAY_END_DATE);
+        endInput.value = formatDateForInput(endDate);
+      } else if (endInput) {
+        endInput.value = '';
+      }
+      
+      // 即座にモーダルを表示
+      modal.style.display = 'block';
     }
 
     /**
@@ -2480,6 +2481,12 @@
           }
           
           if (result.success) {
+            // キャッシュを更新（性能改善）
+            if (currentConfig) {
+              currentConfig.DISPLAY_START_DATE = startDateISO;
+              currentConfig.DISPLAY_END_DATE = endDateISO;
+            }
+            
             closeDisplayPeriodModal();
             showToast('表示期間を設定しました', 'success');
             // データを再読み込み
@@ -2522,6 +2529,12 @@
           }
           
           if (result.success) {
+            // キャッシュを更新（性能改善）
+            if (currentConfig) {
+              currentConfig.DISPLAY_START_DATE = '';
+              currentConfig.DISPLAY_END_DATE = '';
+            }
+            
             closeDisplayPeriodModal();
             showToast('表示期間の制限を解除しました', 'success');
             // データを再読み込み

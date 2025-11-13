@@ -5392,6 +5392,7 @@
 
     /**
      * イベントを削除
+     * 性能改善：ローカルキャッシュから削除して再描画（loadInitData不要）
      */
     function confirmDelete() {
       if (!deletingEventId) {
@@ -5408,12 +5409,22 @@
           deleteBtn.textContent = '削除';
           
           if (result.success) {
+            // 削除されたイベントをcurrentEventsから除外（性能改善）
+            const index = currentEvents.findIndex(e => e.id === deletingEventId);
+            if (index !== -1) {
+              currentEvents.splice(index, 1);
+            }
+            
+            // 出欠データキャッシュからも削除（性能改善）
+            if (window.allResponsesCache && window.allResponsesCache[deletingEventId]) {
+              delete window.allResponsesCache[deletingEventId];
+            }
+            
+            // 再描画（API呼び出しなし）
+            renderEvents();
+            
             showToast('イベントを削除しました', 'success');
             closeDeleteConfirm();
-            // 全データを再読み込み（出欠データも含む）
-            loadInitData().then(() => {
-              renderEvents();
-            });
           } else {
             showToast(result.error || '削除に失敗しました', 'error');
           }

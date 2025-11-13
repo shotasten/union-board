@@ -315,6 +315,7 @@ function tallyResponses(eventId: string): EventTally {
 
 /**
  * 特定ユーザーの全てのレスポンスを削除
+ * 性能改善：バッチ削除（シートをクリアして一括書き込み）
  * @param userKey ユーザーキー
  * @returns 削除されたレスポンス数
  */
@@ -327,37 +328,58 @@ function deleteResponsesByUserKey(userKey: string): number {
     
     const sheet = getResponsesSheet();
     const data = sheet.getDataRange().getValues();
-    const rowsToDelete: number[] = [];
     
-    // ヘッダー行をスキップして検索（下から上に削除するため、逆順で収集）
-    for (let i = data.length - 1; i >= 1; i--) {
-      const row = data[i];
-      
-      // 該当するuserKeyのレスポンスを削除対象に追加
-      if (row[1] === userKey) {
-        rowsToDelete.push(i + 1); // Sheetの行番号（1始まり）
-      }
+    if (data.length <= 1) {
+      Logger.log(`⚠️ 削除対象のレスポンスが見つかりません: ${userKey}`);
+      return 0;
     }
     
-    // 行を削除（上から削除すると行番号がずれるため、下から削除）
+    // ヘッダー行を保持
+    const header = data[0];
+    
+    // 削除対象以外のデータを収集
+    const remainingData: any[][] = [header];
     let deletedCount = 0;
-    for (const rowIndex of rowsToDelete) {
-      try {
-        sheet.deleteRow(rowIndex);
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      if (row[1] === userKey) {
+        // 削除対象（カウントのみ）
         deletedCount++;
-      } catch (error) {
-        Logger.log(`⚠️ 行削除エラー: ${rowIndex} - ${(error as Error).message}`);
+      } else {
+        // 残すデータ
+        remainingData.push(row);
       }
     }
     
-    if (deletedCount > 0) {
-      Logger.log(`✅ レスポンス削除成功: ${userKey} (${deletedCount}件)`);
+    if (deletedCount === 0) {
+      Logger.log(`⚠️ 削除対象のレスポンスが見つかりません: ${userKey}`);
+      return 0;
     }
     
+    Logger.log(`🔄 バッチ削除開始: ${deletedCount}件を削除, ${remainingData.length - 1}件を保持`);
+    
+    // シート全体をクリア
+    sheet.clear();
+    
+    // 新しいデータを書き込み（1回のバッチ操作）
+    if (remainingData.length > 0) {
+      sheet.getRange(1, 1, remainingData.length, remainingData[0].length)
+        .setValues(remainingData);
+      
+      // ヘッダー行のスタイルを復元
+      sheet.getRange(1, 1, 1, remainingData[0].length)
+        .setFontWeight('bold')
+        .setBackground('#667eea')
+        .setFontColor('#ffffff');
+      sheet.setFrozenRows(1);
+    }
+    
+    Logger.log(`✅ レスポンス削除成功: ${userKey} (${deletedCount}件)`);
     return deletedCount;
   } catch (error) {
     Logger.log(`❌ エラー: レスポンス削除失敗 - ${(error as Error).message}`);
-    Logger.log((error as Error).stack);
+    Logger.log(`❌ スタックトレース: ${(error as Error).stack}`);
     return 0;
   }
 }

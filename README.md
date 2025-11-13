@@ -124,6 +124,33 @@ npm run push
 
 **詳細な手順**: [セットアップ手順（完全版）](docs/セットアップ手順.md) を参照してください。
 
+## 🧪 テスト
+
+### ユニットテストの実行
+
+```bash
+# 全テストを実行
+npm test
+
+# ウォッチモードで実行（ファイル変更時に自動実行）
+npm run test:watch
+
+# カバレッジレポートを生成
+npm run test:coverage
+```
+
+### テスト構成
+
+- **テストフレームワーク**: Jest
+- **テスト形式**: AAA形式（Arrange, Act, Assert）
+- **モック**: Google Apps Script API（SpreadsheetApp, CalendarApp等）をモック化
+- **テスト対象**: `src/server/__tests__/` 配下のテストファイル
+
+### テストファイル
+
+- `utils.test.ts`: ユーティリティ関数（getConfig, setConfig等）のテスト
+- `responses.test.ts`: 出欠管理関数（submitResponse等）のテスト
+
 ## 🚢 デプロイ手順
 
 ```bash
@@ -151,6 +178,9 @@ npm run push
 
 # ビルド + プッシュ + デプロイ
 npm run deploy
+
+# テスト実行
+npm test
 ```
 
 **注意**: `npm run push` は `--force` フラグを使用して強制プッシュします。これにより、clasp の変更検出の問題を回避し、確実にコードが更新されます。

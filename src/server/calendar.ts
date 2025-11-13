@@ -2,7 +2,6 @@
 
 /**
  * カレンダー連携モジュール
- * Phase 2: カレンダー連携実装
  */
 
 /**
@@ -13,7 +12,6 @@
  */
 function setupBandCalendar(): string {
   try {
-    Logger.log('=== 楽団専用カレンダー作成開始 ===');
     
     // カレンダーを作成
     const calendar = CalendarApp.createCalendar('Tokyo Music Union イベントカレンダー');
@@ -27,7 +25,6 @@ function setupBandCalendar(): string {
     setConfig('CALENDAR_ID', calendarId);
     Logger.log(`✅ CALENDAR_IDをConfigシートに保存: ${calendarId}`);
     
-    Logger.log('=== 楽団専用カレンダー作成完了 ===');
     return calendarId;
     
   } catch (error) {
@@ -77,37 +74,26 @@ function getOrCreateCalendar(): string {
  * テスト関数: カレンダー作成・取得テスト
  */
 function testCalendarSetup(): void {
-  Logger.log('=== testCalendarSetup 開始 ===');
   
   try {
     // テスト1: カレンダー作成
-    Logger.log(' --- テスト1: カレンダー作成 ---');
     const calendarId = setupBandCalendar();
-    Logger.log(`✅ テスト1: 成功 - カレンダーID: ${calendarId}`);
     
     // テスト2: Configシートから取得
-    Logger.log(' --- テスト2: Configシートから取得 ---');
     const savedCalendarId = getConfig('CALENDAR_ID', '');
     if (savedCalendarId === calendarId) {
-      Logger.log(`✅ テスト2: 成功 - Configシートに正しく保存されています`);
     } else {
-      Logger.log(`❌ テスト2: 失敗 - 保存されたIDが一致しません`);
     }
     
     // テスト3: getOrCreateCalendarで取得
-    Logger.log(' --- テスト3: getOrCreateCalendarで取得 ---');
     const retrievedCalendarId = getOrCreateCalendar();
     if (retrievedCalendarId === calendarId) {
-      Logger.log(`✅ テスト3: 成功 - 既存カレンダーを正しく取得しました`);
     } else {
-      Logger.log(`❌ テスト3: 失敗 - 取得したIDが一致しません`);
     }
     
-    Logger.log('=== testCalendarSetup 終了 ===');
     Logger.log('✅ すべてのテストが完了しました');
     
   } catch (error) {
-    Logger.log(`❌ エラー: テスト実行中にエラーが発生しました - ${(error as Error).message}`);
     Logger.log((error as Error).stack);
   }
 }
@@ -723,7 +709,6 @@ function testAppToCalendarSync(): void {
     Logger.log(`✅ カレンダーID: ${calendarId}`);
     
     // テスト1: イベント作成時のカレンダー同期
-    Logger.log(' --- テスト1: イベント作成時のカレンダー同期 ---');
     const testEventId = createEvent(
       'カレンダー同期テストイベント',
       new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7日後
@@ -733,36 +718,28 @@ function testAppToCalendarSync(): void {
     );
     
     if (!testEventId) {
-      Logger.log('❌ テスト1: 失敗 - イベント作成に失敗しました');
       return;
     }
     
-    Logger.log(`✅ テスト1: イベント作成成功 - ${testEventId}`);
     
     // カレンダーイベントが作成されたか確認
     const event = getEventById(testEventId);
     if (!event) {
-      Logger.log('❌ テスト1: 失敗 - イベント取得に失敗しました');
       return;
     }
     
     if (event.calendarEventId) {
-      Logger.log(`✅ テスト1: 成功 - カレンダーイベントID: ${event.calendarEventId}`);
       
       // カレンダーから実際のイベントを取得して確認
       try {
         const calendar = CalendarApp.getCalendarById(calendarId);
         const calendarEvent = calendar.getEventById(event.calendarEventId);
-        Logger.log(`✅ テスト1: 成功 - カレンダーイベント確認: ${calendarEvent.getTitle()}`);
       } catch (error) {
-        Logger.log(`⚠️ テスト1: 警告 - カレンダーイベント取得失敗: ${(error as Error).message}`);
       }
     } else {
-      Logger.log('❌ テスト1: 失敗 - カレンダーイベントIDが設定されていません');
     }
     
     // テスト2: buildDescription()のテスト
-    Logger.log(' --- テスト2: buildDescription()のテスト ---');
     
     // テスト用に出欠回答を登録
     submitResponse(testEventId, 'test-user-1', '○', '参加します');
@@ -776,13 +753,10 @@ function testAppToCalendarSync(): void {
         description.includes('△ 未定: 1人') && 
         description.includes('× 欠席: 1人') &&
         description.includes('合計: 3人')) {
-      Logger.log('✅ テスト2: 成功 - 説明文が正しく生成されました');
     } else {
-      Logger.log('❌ テスト2: 失敗 - 説明文の内容が正しくありません');
     }
     
     // テスト3: 出欠登録時の説明欄同期
-    Logger.log(' --- テスト3: 出欠登録時の説明欄同期 ---');
     
     // 追加の出欠回答を登録
     submitResponse(testEventId, 'test-user-4', '○', '参加します');
@@ -796,18 +770,14 @@ function testAppToCalendarSync(): void {
         
         if (calendarDescription.includes('○ 参加: 2人') && 
             calendarDescription.includes('合計: 4人')) {
-          Logger.log('✅ テスト3: 成功 - カレンダーの説明欄が更新されました');
         } else {
-          Logger.log('❌ テスト3: 失敗 - カレンダーの説明欄が正しく更新されていません');
           Logger.log(`実際の説明欄:\n${calendarDescription}`);
         }
       }
     } catch (error) {
-      Logger.log(`❌ テスト3: 失敗 - カレンダーイベント取得失敗: ${(error as Error).message}`);
     }
     
     // テスト4: イベント更新時のカレンダー同期
-    Logger.log(' --- テスト4: イベント更新時のカレンダー同期 ---');
     
     const updateResult = updateEvent(testEventId, {
       title: 'カレンダー同期テストイベント（更新済み）',
@@ -815,7 +785,6 @@ function testAppToCalendarSync(): void {
     });
     
     if (updateResult) {
-      Logger.log('✅ テスト4: 成功 - イベント更新成功');
       
       // カレンダーイベントが更新されたか確認
       const updatedEvent = getEventById(testEventId);
@@ -826,24 +795,18 @@ function testAppToCalendarSync(): void {
           
           if (calendarEvent.getTitle() === 'カレンダー同期テストイベント（更新済み）' &&
               calendarEvent.getLocation() === '更新された会場') {
-            Logger.log('✅ テスト4: 成功 - カレンダーイベントが正しく更新されました');
           } else {
-            Logger.log('❌ テスト4: 失敗 - カレンダーイベントの更新内容が正しくありません');
           }
         } catch (error) {
-          Logger.log(`❌ テスト4: 失敗 - カレンダーイベント取得失敗: ${(error as Error).message}`);
         }
       }
     } else {
-      Logger.log('❌ テスト4: 失敗 - イベント更新に失敗しました');
     }
     
     // テスト5: notesHashによる無限ループ防止
-    Logger.log(' --- テスト5: notesHashによる無限ループ防止 ---');
     
     const eventBeforeSync = getEventById(testEventId);
     if (!eventBeforeSync) {
-      Logger.log('❌ テスト5: 失敗 - イベント取得に失敗しました');
       return;
     }
     
@@ -855,7 +818,6 @@ function testAppToCalendarSync(): void {
     
     const eventAfterSync = getEventById(testEventId);
     if (!eventAfterSync) {
-      Logger.log('❌ テスト5: 失敗 - イベント取得に失敗しました');
       return;
     }
     
@@ -863,9 +825,7 @@ function testAppToCalendarSync(): void {
     Logger.log(`同期後のnotesHash: ${hashAfter}`);
     
     if (hashBefore === hashAfter) {
-      Logger.log('✅ テスト5: 成功 - notesHashが同じため、無限ループが防止されました');
     } else {
-      Logger.log('⚠️ テスト5: 警告 - notesHashが変更されました（出欠状況が変更された可能性があります）');
     }
     
     // クリーンアップ: テストイベントを削除（論理削除 + カレンダーイベント削除）
@@ -892,7 +852,6 @@ function testAppToCalendarSync(): void {
     Logger.log('✅ すべてのテストが完了しました');
     
   } catch (error) {
-    Logger.log(`❌ エラー: テスト実行中にエラーが発生しました - ${(error as Error).message}`);
     Logger.log((error as Error).stack);
   }
 }
@@ -1767,7 +1726,6 @@ function testCalendarToAppSync(): void {
     Logger.log(`✅ カレンダーID: ${calendarId}`);
     
     // テスト1: カレンダーに直接イベントを作成して同期
-    Logger.log(' --- テスト1: カレンダーに新規イベント作成 → 同期 ---');
     
     const testStartDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7日後
     const testEndDate = new Date(testStartDate.getTime() + 4 * 60 * 60 * 1000); // +4時間
@@ -1793,30 +1751,23 @@ function testCalendarToAppSync(): void {
     Logger.log(`同期結果: 成功 ${syncResult.success}件, 失敗 ${syncResult.failed}件`);
     
     if (syncResult.success > 0) {
-      Logger.log('✅ テスト1: 成功 - カレンダーイベントがSpreadsheetに同期されました');
       
       // Spreadsheetでイベントを確認
       const events = getEvents('all');
       const syncedEvent = events.find(e => e.calendarEventId === calendarEventId);
       
       if (syncedEvent) {
-        Logger.log(`✅ テスト1: 成功 - Spreadsheetでイベント確認: ${syncedEvent.id} - ${syncedEvent.title}`);
         
         if (syncedEvent.title === 'カレンダー同期テストイベント（カレンダー作成）' &&
             syncedEvent.location === 'テスト会場（カレンダー）') {
-          Logger.log('✅ テスト1: 成功 - イベント情報が正しく同期されました');
         } else {
-          Logger.log('❌ テスト1: 失敗 - イベント情報が正しく同期されていません');
         }
       } else {
-        Logger.log('❌ テスト1: 失敗 - Spreadsheetでイベントが見つかりません');
       }
     } else {
-      Logger.log('❌ テスト1: 失敗 - 同期が実行されませんでした');
     }
     
     // テスト2: カレンダーイベントを更新して同期
-    Logger.log(' --- テスト2: カレンダーイベント更新 → 同期 ---');
     
     if (syncResult.success > 0) {
       const allEventsForTest2 = getEvents('all');
@@ -1841,23 +1792,17 @@ function testCalendarToAppSync(): void {
         if (updatedEvent) {
           if (updatedEvent.title === 'カレンダー同期テストイベント（更新済み）' &&
               updatedEvent.location === '更新された会場（カレンダー）') {
-            Logger.log('✅ テスト2: 成功 - カレンダーの更新がSpreadsheetに反映されました');
           } else {
-            Logger.log('❌ テスト2: 失敗 - カレンダーの更新がSpreadsheetに反映されていません');
             Logger.log(`実際のタイトル: ${updatedEvent.title}, 場所: ${updatedEvent.location}`);
           }
         } else {
-          Logger.log('❌ テスト2: 失敗 - Spreadsheetでイベントが見つかりません');
         }
       } else {
-        Logger.log('⚠️ テスト2: スキップ - テスト1でイベントが同期されていません');
       }
     } else {
-      Logger.log('⚠️ テスト2: スキップ - テスト1が失敗しました');
     }
     
     // テスト3: 複数イベントの同期
-    Logger.log(' --- テスト3: 複数イベントの同期 ---');
     
     // 追加のカレンダーイベントを作成
     const testStartDate2 = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000); // 14日後
@@ -1881,9 +1826,7 @@ function testCalendarToAppSync(): void {
     Logger.log(`同期結果: 成功 ${multiSyncResult.success}件, 失敗 ${multiSyncResult.failed}件`);
     
     if (multiSyncResult.success >= 1) {
-      Logger.log('✅ テスト3: 成功 - 複数イベントの同期が実行されました');
     } else {
-      Logger.log('❌ テスト3: 失敗 - 複数イベントの同期が実行されませんでした');
     }
     
     // クリーンアップ: テスト用カレンダーイベントを削除
@@ -1916,7 +1859,6 @@ function testCalendarToAppSync(): void {
     Logger.log('✅ すべてのテストが完了しました');
     
   } catch (error) {
-    Logger.log(`❌ エラー: テスト実行中にエラーが発生しました - ${(error as Error).message}`);
     Logger.log((error as Error).stack);
   }
 }

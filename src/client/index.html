@@ -1976,32 +1976,15 @@
     function loadInitData() {
       return new Promise((resolve, reject) => {
         // URLパラメータから管理者トークンを取得（?admin=TOKEN 形式）
-        console.log('🔍 URL確認:', {
-          href: window.location.href,
-          search: window.location.search,
-          pathname: window.location.pathname,
-          hash: window.location.hash
-        });
-        
         const urlParams = new URLSearchParams(window.location.search);
         const adminTokenFromUrl = urlParams.get('admin');
         
-        console.log('🔍 URLパラメータ解析:', {
-          searchString: window.location.search,
-          adminParam: adminTokenFromUrl,
-          allParams: Object.fromEntries(urlParams.entries())
-        });
-        
         if (adminTokenFromUrl) {
           // URLパラメータでトークンが指定されている場合、自動的に設定
-          console.log('🔐 URLパラメータから管理者トークンを検出:', adminTokenFromUrl.substring(0, 10) + '...');
           localStorage.setItem('adminToken', adminTokenFromUrl);
-          console.log('💾 localStorageに保存:', localStorage.getItem('adminToken') ? '成功' : '失敗');
           // URLからパラメータを削除（履歴に残さないため）
           const newUrl = window.location.pathname + window.location.hash;
           window.history.replaceState({}, document.title, newUrl);
-        } else {
-          console.log('⚠️ URLパラメータにadminが含まれていません');
         }
         
         google.script.run
@@ -2030,10 +2013,6 @@
             // 出欠データをグローバルキャッシュに保存
             if (data.responsesMap) {
               window.allResponsesCache = data.responsesMap;
-              console.log('✅ 出欠データキャッシュ保存:', {
-                イベント数: Object.keys(data.responsesMap).length,
-                合計出欠数: Object.values(data.responsesMap).reduce((sum, responses) => sum + responses.length, 0)
-              });
             } else {
               window.allResponsesCache = {};
             }
@@ -2056,12 +2035,6 @@
             resolve(data);
           })
           .withFailureHandler((error) => {
-            console.error('❌ 初期データ取得失敗:', error);
-            console.error('❌ エラー詳細:', {
-              message: error.message || error,
-              stack: error.stack,
-              toString: error.toString()
-            });
             initializeUser();
             // ローディングを非表示
             hideLoading();
@@ -2090,7 +2063,6 @@
     function checkAdminStatus() {
       return new Promise((resolve) => {
         const adminToken = localStorage.getItem('adminToken');
-        console.log('🔍 管理者ステータス確認:', {
           hasToken: !!adminToken,
           tokenPreview: adminToken ? adminToken.substring(0, 10) + '...' : 'なし',
           currentUserKey: currentUserKey || '未設定'
@@ -2100,20 +2072,17 @@
           // 管理者トークンが設定されている場合、サーバー側で検証
           google.script.run
             .withSuccessHandler((result) => {
-              console.log('✅ 管理者ステータス確認結果:', result);
               isAdminUser = result === true;
               updateAdminUI();
               resolve();
             })
             .withFailureHandler((error) => {
-              console.error('❌ 管理者ステータス確認エラー:', error);
               isAdminUser = false;
               updateAdminUI();
               resolve();
             })
             .checkAdminStatus(currentUserKey || '', adminToken);
         } else {
-          console.log('ℹ️ 管理者トークンが設定されていません');
           isAdminUser = false;
           updateAdminUI();
           resolve();
@@ -2326,7 +2295,6 @@
           modal.style.display = 'block';
         })
         .withFailureHandler((error) => {
-          console.error('表示期間設定取得エラー:', error);
           showToast('表示期間設定の取得に失敗しました', 'error');
         })
         .getInitData();
@@ -2439,7 +2407,6 @@
             saveBtn.disabled = false;
             saveBtn.textContent = '保存';
           }
-          console.error('表示期間設定エラー:', error);
           showToast('表示期間の設定に失敗しました', 'error');
         })
         .adminSetDisplayPeriod(startDateISO, endDateISO, currentUserKey, localStorage.getItem('adminToken'));
@@ -2482,7 +2449,6 @@
             saveBtn.disabled = false;
             saveBtn.textContent = '保存';
           }
-          console.error('表示期間解除エラー:', error);
           showToast('表示期間の解除に失敗しました', 'error');
         })
         .adminSetDisplayPeriod('', '', currentUserKey, localStorage.getItem('adminToken'));
@@ -2536,11 +2502,6 @@
 
       // キャッシュからデータを取得（API呼び出しなし！）
       const responsesMap = window.allResponsesCache || {};
-      
-      console.log('✅ キャッシュからデータを描画:', {
-        イベント数: currentEvents.length,
-        キャッシュあるイベント数: Object.keys(responsesMap).length
-      });
       
       // allResponses形式に変換
       const allResponses = {}; // {eventId: {displayName: status}}
@@ -3120,7 +3081,6 @@
           }
         })
         .withFailureHandler((error) => {
-          console.error('メンバー一覧取得エラー:', error);
           memberList = [];
         })
         .getMembersList();
@@ -3214,7 +3174,6 @@
       const modal = document.getElementById('member-edit-modal');
       
       if (!modal) {
-        console.error('メンバー編集モーダルが見つかりません');
         return;
       }
       
@@ -3341,7 +3300,6 @@
             }
           })
           .withFailureHandler((error) => {
-            console.error('❌ データ取得エラー:', error);
             container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">データの取得に失敗しました</div>';
           })
           .getAllEventsWithResponses();
@@ -3353,8 +3311,6 @@
         container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; background-color: #f8f9fa; border-radius: 6px; font-weight: 500;">イベントがありません</div>';
         return;
       }
-
-      console.log('✅ キャッシュからデータを取得:', memberName);
 
       // キャッシュされた出欠データを使用（API呼び出しなし！）
       const responsesMap = window.allResponsesCache;
@@ -3550,14 +3506,6 @@
             } else {
               gridData[targetEventId][memberName] = status.value;
             }
-            
-            // デバッグ用ログ（本番環境では削除可能）
-            console.log('ステータス更新:', {
-              eventId: targetEventId,
-              memberName: memberName,
-              status: status.value,
-              gridData: gridData[targetEventId]
-            });
           };
           
           statusGroup.appendChild(btn);
@@ -3613,7 +3561,6 @@
     function showEventDetailModal(eventId) {
       const modal = document.getElementById('event-detail-modal');
       if (!modal) {
-        console.error('イベント詳細モーダルが見つかりません');
         return;
       }
 
@@ -3678,12 +3625,6 @@
       // キャッシュからデータを取得（API呼び出しなし！）
       const event = currentEvents.find(e => e.id === eventId);
       const responses = (window.allResponsesCache && window.allResponsesCache[eventId]) || [];
-      
-      console.log('✅ キャッシュからイベント詳細を表示:', {
-        eventId: eventId,
-        eventTitle: event?.title,
-        出欠数: responses.length
-      });
       
       if (!event) {
         if (infoDiv) infoDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">イベント情報の取得に失敗しました</div>';
@@ -3984,7 +3925,6 @@
           // 既存のuserKeyを保持（メンバー名が変更されてもuserKeyは変わらない）
           const existingUserKey = memberList[index].userKey;
           if (!existingUserKey) {
-            console.error(`userKeyが見つかりません: ${oldDisplayName}`);
             showToast('エラー: userKeyが見つかりません', 'error');
             return;
           }
@@ -4000,12 +3940,10 @@
           // サーバーにも更新
           google.script.run
             .withSuccessHandler((result) => {
-              if (!result.success) {
-                console.error('メンバー更新エラー:', result.error);
-              }
+              // 更新完了
             })
             .withFailureHandler((error) => {
-              console.error('メンバー更新エラー:', error);
+              // エラー処理は不要（グリッドは再描画される）
             })
             .updateMember(existingUserKey, newPart, newName, newDisplayName);
           
@@ -4084,7 +4022,6 @@
             }
           })
           .withFailureHandler((error) => {
-            console.error('メンバー削除エラー:', error);
             showToast('メンバー削除に失敗しました', 'error');
             // エラー時はローカルに戻す
             memberList.push(member);
@@ -4104,7 +4041,6 @@
 
       const modal = document.getElementById('member-info-edit-modal');
       if (!modal) {
-        console.error('メンバー情報編集モーダルが見つかりません');
         return;
       }
 
@@ -4184,12 +4120,6 @@
       }
       
       if (!oldMember || !oldMember.userKey) {
-        console.error('メンバー情報が見つかりません:', {
-          oldDisplayName: oldDisplayName,
-          memberList: memberList,
-          foundMember: oldMember,
-          selectedMember: selectedMember
-        });
         showToast('メンバー情報が見つかりません。ページを再読み込みしてください。', 'error');
         return;
       }
@@ -4304,7 +4234,6 @@
           }
         })
         .withFailureHandler((error) => {
-          console.error('メンバー更新エラー:', error);
           showToast('メンバー更新に失敗しました', 'error');
           // エラー時はローカルに戻す（oldMemberIndexを使用）
           if (oldMemberIndex !== -1) {
@@ -4351,7 +4280,6 @@
       }
       
       // memberListにない、またはuserKeyがない場合はエラー（登録されていないメンバー）
-      console.error(`メンバーが見つかりません、またはuserKeyが設定されていません: ${memberName}`);
       // フォールバック: UUIDを生成（ただし、これは本来発生すべきではない）
       return generateUUID();
     }
@@ -4402,13 +4330,6 @@
         const statusChanged = currentStatus !== originalStatus;
         const commentChanged = comment !== originalComment;
         
-        // デバッグ用ログ（本番環境では削除可能）
-        console.log('更新チェック:', {
-          eventId: eventId,
-          memberName: memberName,
-          currentStatus: currentStatus,
-          originalStatus: originalStatus,
-          statusChanged: statusChanged,
           currentComment: comment,
           originalComment: originalComment,
           commentChanged: commentChanged
@@ -4527,9 +4448,6 @@
             closeMemberEditModal();
           } else {
             showToast(`${result.success}件成功、${result.failed}件失敗しました`, 'warning');
-            if (result.errors && result.errors.length > 0) {
-              console.error('保存エラー詳細:', result.errors);
-            }
             renderGrid(); // エラーがあっても再描画
           }
         })
@@ -4540,7 +4458,6 @@
             saveBtn.textContent = originalText;
           }
           showToast('保存に失敗しました', 'error');
-          console.error('バッチ保存エラー:', error);
         })
         .userSubmitResponsesBatch(updates.map(u => ({
           eventId: u.eventId,
@@ -4643,7 +4560,6 @@
             }
           })
           .withFailureHandler((error) => {
-            console.error('メンバー削除エラー:', error);
             showToast('メンバー削除に失敗しました', 'error');
             // エラー時はローカルに戻す
             memberList.push(member);
@@ -4732,7 +4648,6 @@
           }
         })
         .withFailureHandler((error) => {
-          console.error('メンバー登録エラー:', error);
           showToast('メンバー登録に失敗しました', 'error');
           // エラー時はローカルからも削除
           const index = memberList.findIndex(m => m.userKey === userKey);
@@ -4789,7 +4704,6 @@
           })
           .withFailureHandler((error) => {
             failed++;
-            console.error('更新エラー:', error);
             if (completed + failed === updates.length) {
               showToast(`${completed}件成功、${failed}件失敗しました`, 'error');
             }
@@ -5246,7 +5160,6 @@
         })
         .withFailureHandler((error) => {
           historyList.innerHTML = '<div style="padding: 15px; text-align: center; color: #f44336;">読み込みに失敗しました</div>';
-          console.error('場所履歴取得エラー:', error);
         })
         .getAllEventsForLocationHistory();
     }

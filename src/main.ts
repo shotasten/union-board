@@ -12,7 +12,6 @@ declare function syncAll(limitToDisplayPeriod?: boolean): { success: number, fai
 
 /**
  * メインエントリーポイント
- * Phase 1.5: サーバーサイドAPI実装
  */
 
 /**
@@ -38,9 +37,8 @@ function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutp
         (function() {
           try {
             localStorage.setItem('adminToken', '${adminToken}');
-            console.log('🔐 サーバー側から管理者トークンを設定:', '${adminToken.substring(0, 10)}...');
           } catch (e) {
-            console.error('❌ localStorageへの保存に失敗:', e);
+            // localStorageへの保存に失敗（エラーは無視）
           }
         })();
       </script>
@@ -76,10 +74,8 @@ function getAllEventsForLocationHistory(): AttendanceEvent[] {
  */
 function getInitData(): { events: AttendanceEvent[]; config: Config; members: Array<{userKey: string, part: string, name: string, displayName: string}>; responsesMap: { [eventId: string]: Response[] } } {
   try {
-    Logger.log('=== getInitData 開始 ===');
     
     const events = getEvents('all');
-    Logger.log(`✅ イベント取得: ${events.length}件`);
     
     const config: Config = {
       AUTH_MODE: 'anonymous' as 'google' | 'anonymous',
@@ -98,11 +94,9 @@ function getInitData(): { events: AttendanceEvent[]; config: Config; members: Ar
       name: m.name,
       displayName: m.displayName
     }));
-    Logger.log(`✅ メンバー取得: ${members.length}人`);
     
     // 全出欠データを取得してイベントIDごとにグループ化
     const allResponses = getAllResponses();
-    Logger.log(`✅ 全出欠データ取得: ${allResponses.length}件`);
     
     const responsesMap: { [eventId: string]: Response[] } = {};
     allResponses.forEach(response => {
@@ -111,9 +105,7 @@ function getInitData(): { events: AttendanceEvent[]; config: Config; members: Ar
       }
       responsesMap[response.eventId].push(response);
     });
-    Logger.log(`✅ グループ化完了: ${Object.keys(responsesMap).length}イベント分`);
     
-    Logger.log('=== getInitData 終了 ===');
     
     return {
       events: events,
@@ -367,7 +359,6 @@ function userSubmitResponsesBatch(
   let failedCount = 0;
   const errors: string[] = [];
   
-  Logger.log(`=== userSubmitResponsesBatch 開始: ${responses.length}件 ===`);
   
   try {
     // シートを1回だけ取得
@@ -457,7 +448,6 @@ function userSubmitResponsesBatch(
     
     // 出欠データ保存後、関連イベントのカレンダー説明欄を同期
     if (successCount > 0) {
-      Logger.log('📅 カレンダー同期を開始...');
       const syncedEventIds = new Set<string>();
       
       responses.forEach(response => {
@@ -684,15 +674,12 @@ function getAllEventsWithResponses(): {
   error?: string;
 } {
   try {
-    Logger.log('=== getAllEventsWithResponses 開始 ===');
     
     // イベント一覧を取得（既存関数を使用）
     const events = getEvents('all');
-    Logger.log(`✅ イベント取得: ${events.length}件`);
     
     // 全出欠データを1回で取得
     const allResponses = getAllResponses();
-    Logger.log(`✅ 全出欠データ取得: ${allResponses.length}件`);
     
     // イベントIDごとにグループ化
     const responsesMap: { [eventId: string]: Response[] } = {};
@@ -703,8 +690,6 @@ function getAllEventsWithResponses(): {
       responsesMap[response.eventId].push(response);
     });
     
-    Logger.log(`✅ グループ化完了: ${Object.keys(responsesMap).length}イベント分`);
-    Logger.log('=== getAllEventsWithResponses 終了 ===');
     
     return {
       success: true,
@@ -726,24 +711,19 @@ function getAllEventsWithResponses(): {
  * テスト関数: サーバーサイドAPI
  */
 function testApiFunctions() {
-  Logger.log('=== testApiFunctions 開始 ===');
   
   try {
     // 1. getInitData() テスト
-    Logger.log('\n--- テスト1: getInitData() ---');
     const initData = getInitData();
     
     if (initData.events && Array.isArray(initData.events) && initData.config) {
       Logger.log(`取得したイベント数: ${initData.events.length}件`);
       Logger.log(`認証モード: ${initData.config.AUTH_MODE}`);
-      Logger.log('✅ テスト1: 成功');
     } else {
-      Logger.log('❌ テスト1: 失敗 - 初期データの形式が不正です');
       return;
     }
     
     // 2. adminCreateEvent() テスト（正常系）
-    Logger.log('\n--- テスト2: adminCreateEvent()（正常系） ---');
     const createResult = adminCreateEvent({
       title: 'APIテストイベント',
       start: '2025-12-20T14:00:00+09:00',
@@ -754,12 +734,10 @@ function testApiFunctions() {
     
     if (createResult.success && createResult.eventId) {
       Logger.log(`作成されたイベントID: ${createResult.eventId}`);
-      Logger.log('✅ テスト2: 成功');
       
       const testEventId = createResult.eventId;
       
       // 3. adminCreateEvent() テスト（異常系: 必須パラメータ不足）
-      Logger.log('\n--- テスト3: adminCreateEvent()（異常系: 必須パラメータ不足） ---');
       const createResult2 = adminCreateEvent({
         title: '',
         start: '2025-12-21T14:00:00+09:00',
@@ -768,26 +746,20 @@ function testApiFunctions() {
       
       if (!createResult2.success && createResult2.error) {
         Logger.log(`エラーメッセージ: ${createResult2.error}`);
-        Logger.log('✅ テスト3: 成功 - 必須パラメータ不足は正しく拒否されました');
       } else {
-        Logger.log('❌ テスト3: 失敗 - 必須パラメータ不足が受理されました');
       }
       
       // 4. adminUpdateEvent() テスト
-      Logger.log('\n--- テスト4: adminUpdateEvent() ---');
       const updateResult = adminUpdateEvent(testEventId, {
         title: 'APIテストイベント（更新済み）',
         location: '更新された会場'
       });
       
       if (updateResult.success) {
-        Logger.log('✅ テスト4: 成功 - イベント更新に成功しました');
       } else {
-        Logger.log(`❌ テスト4: 失敗 - ${updateResult.error}`);
       }
       
       // 5. userSubmitResponse() テスト
-      Logger.log('\n--- テスト5: userSubmitResponse() ---');
       const submitResult = userSubmitResponse(
         testEventId,
         'anon-APIテストユーザー',
@@ -796,13 +768,10 @@ function testApiFunctions() {
       );
       
       if (submitResult.success) {
-        Logger.log('✅ テスト5: 成功 - 出欠回答登録に成功しました');
       } else {
-        Logger.log(`❌ テスト5: 失敗 - ${submitResult.error}`);
       }
       
       // 6. userSubmitResponse() テスト（異常系: 不正なステータス）
-      Logger.log('\n--- テスト6: userSubmitResponse()（異常系: 不正なステータス） ---');
       const submitResult2 = userSubmitResponse(
         testEventId,
         'anon-テストユーザー2',
@@ -812,65 +781,47 @@ function testApiFunctions() {
       
       if (!submitResult2.success && submitResult2.error) {
         Logger.log(`エラーメッセージ: ${submitResult2.error}`);
-        Logger.log('✅ テスト6: 成功 - 不正なステータスは正しく拒否されました');
       } else {
-        Logger.log('❌ テスト6: 失敗 - 不正なステータスが受理されました');
       }
       
       // 7. getEventWithResponses() テスト
-      Logger.log('\n--- テスト7: getEventWithResponses() ---');
       const eventWithResponses = getEventWithResponses(testEventId);
       
       if (eventWithResponses.success && eventWithResponses.event && eventWithResponses.responses && eventWithResponses.tally) {
         Logger.log(`イベントタイトル: ${eventWithResponses.event.title}`);
         Logger.log(`出欠回答数: ${eventWithResponses.responses.length}件`);
         Logger.log(`集計結果 - 出席:${eventWithResponses.tally.attendCount} 未定:${eventWithResponses.tally.maybeCount} 欠席:${eventWithResponses.tally.absentCount}`);
-        Logger.log('✅ テスト7: 成功');
       } else {
-        Logger.log(`❌ テスト7: 失敗 - ${eventWithResponses.error || 'データ取得に失敗しました'}`);
       }
       
       // 8. getEventWithResponses() テスト（異常系: 存在しないイベントID）
-      Logger.log('\n--- テスト8: getEventWithResponses()（異常系: 存在しないイベントID） ---');
       const eventWithResponses2 = getEventWithResponses('存在しないイベントID');
       
       if (!eventWithResponses2.success && eventWithResponses2.error) {
         Logger.log(`エラーメッセージ: ${eventWithResponses2.error}`);
-        Logger.log('✅ テスト8: 成功 - 存在しないイベントIDは正しく拒否されました');
       } else {
-        Logger.log('❌ テスト8: 失敗 - 存在しないイベントIDが受理されました');
       }
       
       // 9. adminDeleteEvent() テスト
-      Logger.log('\n--- テスト9: adminDeleteEvent() ---');
       const deleteResult = adminDeleteEvent(testEventId);
       
       if (deleteResult.success) {
-        Logger.log('✅ テスト9: 成功 - イベント削除に成功しました');
       } else {
-        Logger.log(`❌ テスト9: 失敗 - ${deleteResult.error}`);
       }
       
       // 10. adminDeleteEvent() テスト（異常系: 存在しないイベントID）
-      Logger.log('\n--- テスト10: adminDeleteEvent()（異常系: 存在しないイベントID） ---');
       const deleteResult2 = adminDeleteEvent('存在しないイベントID');
       
       if (!deleteResult2.success && deleteResult2.error) {
         Logger.log(`エラーメッセージ: ${deleteResult2.error}`);
-        Logger.log('✅ テスト10: 成功 - 存在しないイベントIDは正しく拒否されました');
       } else {
-        Logger.log('❌ テスト10: 失敗 - 存在しないイベントIDが受理されました');
       }
       
     } else {
-      Logger.log(`❌ テスト2: 失敗 - ${createResult.error || 'イベント作成に失敗しました'}`);
     }
     
-    Logger.log('\n=== testApiFunctions 終了 ===');
-    Logger.log('✅ すべてのテストが完了しました');
     
   } catch (error) {
-    Logger.log(`❌ エラー: テスト実行中にエラーが発生しました - ${(error as Error).message}`);
     Logger.log((error as Error).stack);
   }
 }
@@ -998,7 +949,6 @@ function syncAllEvents(userKey?: string, adminToken?: string, limitToDisplayPeri
  */
 function scheduledSync(): void {
   try {
-    Logger.log('=== 定期同期開始（表示期間のみ） ===');
     const result = syncAll(true); // 表示期間のみに制限
     Logger.log(`✅ 定期同期完了: 成功 ${result.success}件, 失敗 ${result.failed}件`);
     
@@ -1129,37 +1079,27 @@ function adminCleanupAllData(
 
 /**
  * 統合テスト関数
- * Phase 4.1: 全機能の動作確認（匿名モードのみ）
  */
 function testIntegration(): void {
-  Logger.log('=== testIntegration 開始 ===');
-  Logger.log('注意: 匿名モードのみのテストです（Google認証機能は削除済み）');
 
   try {
     // テスト1: 認証基盤（匿名モード）
-    Logger.log(' --- テスト1: 認証基盤（匿名モード） ---');
     const testUserKey = authenticate({ userName: '統合テストユーザー' });
     if (testUserKey && testUserKey.startsWith('anon-')) {
       Logger.log(`✅ 匿名認証成功: ${testUserKey}`);
-      Logger.log('✅ テスト1: 成功');
     } else {
-      Logger.log('❌ テスト1: 失敗 - userKeyが正しく生成されませんでした');
       return;
     }
 
     // テスト2: 管理者判定（匿名モード）
-    Logger.log(' --- テスト2: 管理者判定（匿名モード） ---');
     const adminToken = getConfig('ADMIN_TOKEN', '');
     if (adminToken) {
       const isAdminResult = isAdmin(testUserKey, adminToken);
       Logger.log(`管理者判定結果: ${isAdminResult}`);
-      Logger.log('✅ テスト2: 成功');
     } else {
-      Logger.log('⚠️ テスト2: スキップ - ADMIN_TOKENが設定されていません');
     }
 
     // テスト3: イベント作成（管理者）
-    Logger.log(' --- テスト3: イベント作成（管理者） ---');
     const testEventInput: AttendanceEventInput = {
       title: '統合テストイベント',
       start: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7日後
@@ -1172,10 +1112,8 @@ function testIntegration(): void {
     if (createResult && createResult.success && createResult.eventId) {
       const eventId = createResult.eventId;
       Logger.log(`✅ イベント作成成功: ${eventId} - ${testEventInput.title}`);
-      Logger.log('✅ テスト3: 成功');
       
       // テスト4: 出欠登録
-      Logger.log(' --- テスト4: 出欠登録 ---');
       const submitResult = userSubmitResponse(
         eventId,
         testUserKey,
@@ -1184,25 +1122,19 @@ function testIntegration(): void {
       );
       if (submitResult && submitResult.success) {
         Logger.log('✅ 出欠登録成功');
-        Logger.log('✅ テスト4: 成功');
       } else {
-        Logger.log(`❌ テスト4: 失敗 - 出欠登録に失敗しました: ${submitResult?.error || '不明なエラー'}`);
       }
 
       // テスト5: イベント取得（出欠情報含む）
-      Logger.log(' --- テスト5: イベント取得（出欠情報含む） ---');
       const eventWithResponses = getEventWithResponses(eventId);
       if (eventWithResponses && eventWithResponses.success && eventWithResponses.event && eventWithResponses.responses && eventWithResponses.responses.length > 0 && eventWithResponses.tally) {
         Logger.log(`✅ イベント取得成功: ${eventWithResponses.event.title}`);
         Logger.log(`✅ 出欠回答数: ${eventWithResponses.responses.length}件`);
         Logger.log(`✅ 集計結果 - 出席:${eventWithResponses.tally.attendCount} 未定:${eventWithResponses.tally.maybeCount} 欠席:${eventWithResponses.tally.absentCount}`);
-        Logger.log('✅ テスト5: 成功');
       } else {
-        Logger.log(`❌ テスト5: 失敗 - イベントまたは出欠情報が取得できませんでした: ${eventWithResponses?.error || '不明なエラー'}`);
       }
 
       // テスト6: イベント更新（管理者）
-      Logger.log(' --- テスト6: イベント更新（管理者） ---');
       const updateInput: Partial<AttendanceEvent> = {
         title: '統合テストイベント（更新済み）',
         location: '更新されたテスト会場',
@@ -1212,36 +1144,26 @@ function testIntegration(): void {
       const updateResult = adminUpdateEvent(eventId, updateInput, testUserKey, adminToken);
       if (updateResult && updateResult.success) {
         Logger.log(`✅ イベント更新成功: ${eventId}`);
-        Logger.log('✅ テスト6: 成功');
       } else {
-        Logger.log(`❌ テスト6: 失敗 - イベント更新に失敗しました: ${updateResult?.error || '不明なエラー'}`);
       }
 
       // テスト7: カレンダー同期（アプリ → カレンダー）
-      Logger.log(' --- テスト7: カレンダー同期（アプリ → カレンダー） ---');
       const syncResult = syncEvent(eventId);
       if (syncResult && syncResult.success) {
         Logger.log(`✅ カレンダー同期成功: ${eventId}`);
-        Logger.log('✅ テスト7: 成功');
       } else {
-        Logger.log(`⚠️ テスト7: スキップ - カレンダー同期に失敗しました（カレンダーが設定されていない可能性があります）: ${syncResult?.error || '不明なエラー'}`);
       }
 
       // テスト8: イベント削除（管理者）
-      Logger.log(' --- テスト8: イベント削除（管理者） ---');
       const deleteResult = adminDeleteEvent(eventId, testUserKey, adminToken);
       if (deleteResult && deleteResult.success) {
         Logger.log(`✅ イベント削除成功: ${eventId}`);
-        Logger.log('✅ テスト8: 成功');
       } else {
-        Logger.log(`❌ テスト8: 失敗 - イベント削除に失敗しました: ${deleteResult?.error || '不明なエラー'}`);
       }
     } else {
-      Logger.log(`❌ テスト3: 失敗 - イベント作成に失敗しました: ${createResult?.error || '不明なエラー'}`);
     }
 
     // テスト9: セキュリティ対策（レート制限）
-    Logger.log(' --- テスト9: セキュリティ対策（レート制限） ---');
     const testSecurityUserKey = 'test-integration-rate-limit';
     const testAction = 'test_integration_action';
     
@@ -1252,11 +1174,9 @@ function testIntegration(): void {
     for (let i = 0; i < 6; i++) {
       const allowed = checkRateLimit(testSecurityUserKey, testAction);
       if (i < 5 && !allowed) {
-        Logger.log(`❌ テスト9: 失敗 - ${i + 1}回目で制限されました（5回まで許可されるべき）`);
         rateLimitPassed = false;
         break;
       } else if (i === 5 && allowed) {
-        Logger.log(`❌ テスト9: 失敗 - 6回目が許可されました（制限されるべき）`);
         rateLimitPassed = false;
         break;
       }
@@ -1264,14 +1184,10 @@ function testIntegration(): void {
     
     if (rateLimitPassed) {
       Logger.log('✅ レート制限が正しく動作しています');
-      Logger.log('✅ テスト9: 成功');
     }
 
-    Logger.log('=== testIntegration 終了 ===');
-    Logger.log('✅ すべての統合テストが完了しました');
 
   } catch (error) {
-    Logger.log(`❌ エラー: 統合テスト実行中にエラーが発生しました - ${(error as Error).message}`);
     Logger.log((error as Error).stack);
   }
 }

@@ -214,9 +214,11 @@ function buildDescriptionWithMemberMap(
         if (member) {
           part = member.part || '';
           if (member.displayName) {
-            // displayNameが既に設定されている場合は、パート情報が含まれている可能性が高い
+            // displayNameが既に設定されている場合、パート情報が含まれているかチェック
             displayName = member.displayName;
-            shouldAddPartLabel = false;
+            const parsed = parseMemberNameFromString(member.displayName);
+            // displayNameの先頭がパート名で始まっている場合は、パート情報が既に含まれている
+            shouldAddPartLabel = !parsed.part;
           } else {
             // displayNameが未設定の場合は、パートと名前を組み合わせる
             displayName = member.name || '不明';
@@ -304,9 +306,11 @@ function buildDescription(eventId: string, userDescription?: string): string {
           if (member) {
             part = member.part || '';
             if (member.displayName) {
-              // displayNameが既に設定されている場合は、パート情報が含まれている可能性が高い
+              // displayNameが既に設定されている場合、パート情報が含まれているかチェック
               displayName = member.displayName;
-              shouldAddPartLabel = false;
+              const parsed = parseMemberNameFromString(member.displayName);
+              // displayNameの先頭がパート名で始まっている場合は、パート情報が既に含まれている
+              shouldAddPartLabel = !parsed.part;
             } else {
               // displayNameが未設定の場合は、パートと名前を組み合わせる
               displayName = member.name || '不明';

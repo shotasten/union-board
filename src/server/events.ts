@@ -7,7 +7,6 @@ declare function upsertCalendarEvent(event: AttendanceEvent, forceCreate?: boole
 
 /**
  * イベント管理モジュール
- * Phase 1.3: イベントCRUD実装
  */
 
 /**

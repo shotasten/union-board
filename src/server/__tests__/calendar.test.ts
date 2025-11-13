@@ -57,12 +57,10 @@ function mockBuildDescriptionWithMemberMap(
   description += `× 欠席: ${absentCount}人\n`;
   description += `合計: ${totalCount}人\n\n`;
   
-  description += '【コメント】\n';
   const comments = eventResponses.filter(r => r.comment && r.comment.trim());
   
-  if (comments.length === 0) {
-    description += '（コメントなし）\n';
-  } else {
+  if (comments.length > 0) {
+    description += '【コメント】\n';
     comments.forEach(response => {
       const member = memberMap.get(response.userKey);
       const displayName = member?.displayName || member?.name || '不明';
@@ -93,14 +91,12 @@ function mockBuildDescription(eventId: string, userDescription?: string): string
   description += `× 欠席: ${tally.absentCount}人\n`;
   description += `合計: ${tally.totalCount}人\n\n`;
   
-  description += '【コメント】\n';
   try {
     const responses = mockGetResponsesForCalendar(eventId);
     const comments = responses.filter((r: any) => r.comment && r.comment.trim());
     
-    if (comments.length === 0) {
-      description += '（コメントなし）\n';
-    } else {
+    if (comments.length > 0) {
+      description += '【コメント】\n';
       const members = mockGetMembersForCalendar();
       const memberMap = new Map<string, any>();
       members.forEach((m: any) => {

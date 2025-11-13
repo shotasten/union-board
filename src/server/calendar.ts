@@ -150,12 +150,10 @@ function buildDescriptionWithMemberMap(
     description += `合計: ${totalCount}人\n\n`;
     
     // コメント一覧を追加
-    description += '【コメント】\n';
     const comments = eventResponses.filter(r => r.comment && r.comment.trim());
     
-    if (comments.length === 0) {
-      description += '（コメントなし）\n';
-    } else {
+    if (comments.length > 0) {
+      description += '【コメント】\n';
       comments.forEach(response => {
         // メンバー情報を取得（キャッシュから）
         const member = memberMap.get(response.userKey);
@@ -204,16 +202,14 @@ function buildDescription(eventId: string, userDescription?: string): string {
     description += `合計: ${tally.totalCount}人\n\n`;
     
     // コメント一覧を追加
-    description += '【コメント】\n';
     try {
       const responses = getResponses(eventId);
       Logger.log(`📝 コメント取得: ${responses.length}件の回答を取得`);
       const comments = responses.filter(r => r.comment && r.comment.trim());
       Logger.log(`📝 コメントあり: ${comments.length}件`);
       
-      if (comments.length === 0) {
-        description += '（コメントなし）\n';
-      } else {
+      if (comments.length > 0) {
+        description += '【コメント】\n';
         // メンバー情報を取得（キャッシュ用）
         const members = getMembers();
         Logger.log(`📝 メンバー情報取得: ${members.length}人`);

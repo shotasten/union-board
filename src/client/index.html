@@ -4958,19 +4958,16 @@
         
         const oldStartValue = this.getAttribute('data-old-value');
         const oldEndValue = endDateInput.value;
-        
-        if (!oldStartValue || !oldEndValue) {
-          // 初回設定時は差分を保存
-          this.setAttribute('data-old-value', this.value);
-          return;
-        }
-        
-        const oldStart = new Date(oldStartValue);
-        const oldEnd = new Date(oldEndValue);
         const newStart = new Date(this.value);
         
-        // 開始日と終了日の差分を計算（日数）
-        const diffDays = Math.round((oldEnd.getTime() - oldStart.getTime()) / (1000 * 60 * 60 * 24));
+        // 差分を計算
+        let diffDays = 0;
+        if (oldStartValue && oldEndValue) {
+          const oldStart = new Date(oldStartValue);
+          const oldEnd = new Date(oldEndValue);
+          diffDays = Math.round((oldEnd.getTime() - oldStart.getTime()) / (1000 * 60 * 60 * 24));
+        }
+        // 初回設定時（差分がない場合）は同じ日に設定
         
         // 新しい終了日 = 新しい開始日 + 差分日数
         const newEnd = new Date(newStart);

@@ -2119,10 +2119,14 @@
             // ローディングを非表示（初期データ取得完了）
             hideLoading();
             
-            // 管理者ステータスを確認してからUIを更新
+            // 性能改善：renderEventsを先に実行（管理者ステータス確認を待たない）
+            renderEvents(); // ← 即座に表示
+            
+            // 管理者ステータスを並行して確認（UIは後で更新）
             checkAdminStatus().then(() => {
-              // イベントを表示（既にデータは取得済み）
-              renderEvents();
+              // 管理者UIを更新
+              updateAdminUI();
+              
               // URLパラメータでログインした場合、成功メッセージを表示
               if (adminTokenFromUrl) {
                 showToast('管理者ログインに成功しました', 'success');

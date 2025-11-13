@@ -2063,10 +2063,6 @@
     function checkAdminStatus() {
       return new Promise((resolve) => {
         const adminToken = localStorage.getItem('adminToken');
-          hasToken: !!adminToken,
-          tokenPreview: adminToken ? adminToken.substring(0, 10) + '...' : 'なし',
-          currentUserKey: currentUserKey || '未設定'
-        });
         
         if (adminToken) {
           // 管理者トークンが設定されている場合、サーバー側で検証

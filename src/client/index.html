@@ -4326,11 +4326,6 @@
         const statusChanged = currentStatus !== originalStatus;
         const commentChanged = comment !== originalComment;
         
-          currentComment: comment,
-          originalComment: originalComment,
-          commentChanged: commentChanged
-        });
-        
         // ステータスまたはコメントに変更があった場合のみ更新対象に含める
         if (statusChanged || commentChanged) {
           updates.push({

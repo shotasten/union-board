@@ -7,7 +7,7 @@
  */
 
 // モック関数
-const mockGetEventById = jest.fn();
+const mockGetEventByIdForResponses = jest.fn();
 const mockSyncCalendarDescriptionForEvent = jest.fn();
 
 // テスト用のモック関数（実際の実装の動作を模倣）
@@ -27,7 +27,7 @@ function mockSubmitResponse(
   }
   
   // イベントの存在確認
-  const event = mockGetEventById(eventId);
+  const event = mockGetEventByIdForResponses(eventId);
   if (!event) {
     return false;
   }
@@ -89,7 +89,7 @@ describe('responses.ts', () => {
       getSheetByName: jest.fn(() => mockSheet),
     });
 
-    mockGetEventById.mockReturnValue({
+    mockGetEventByIdForResponses.mockReturnValue({
       id: 'event-1',
       title: 'テストイベント',
     });
@@ -153,7 +153,7 @@ describe('responses.ts', () => {
       const eventId = 'non-existent-event';
       const userKey = 'user-1';
       const status = '○' as const;
-      mockGetEventById.mockReturnValue(null);
+      mockGetEventByIdForResponses.mockReturnValue(null);
 
       // Act
       const result = mockSubmitResponse(eventId, userKey, status);

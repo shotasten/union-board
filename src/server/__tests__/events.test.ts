@@ -79,7 +79,7 @@ function mockGetEvents(): any[] {
   return events;
 }
 
-function mockGetEventById(eventId: string): any | null {
+function mockGetEventByIdForEvents(eventId: string): any | null {
   const events = mockGetEvents();
   return events.find(e => e.id === eventId) || null;
 }
@@ -244,7 +244,7 @@ describe('events.ts', () => {
       const eventId = 'event-1';
 
       // Act
-      const result = mockGetEventById(eventId);
+      const result = mockGetEventByIdForEvents(eventId);
 
       // Assert
       expect(result).not.toBeNull();
@@ -257,7 +257,7 @@ describe('events.ts', () => {
       const eventId = 'non-existent-event';
 
       // Act
-      const result = mockGetEventById(eventId);
+      const result = mockGetEventByIdForEvents(eventId);
 
       // Assert
       expect(result).toBeNull();

@@ -23,6 +23,9 @@ global.Utilities = {
   computeDigest: jest.fn(),
   computeHmacSha256Signature: jest.fn(),
   getUuid: jest.fn(() => 'mock-uuid-123'),
+  formatDate: jest.fn((date, timeZone, format) => {
+    return '2024-01-01 12:00';
+  }),
 };
 
 global.PropertiesService = {

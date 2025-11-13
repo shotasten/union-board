@@ -4868,7 +4868,12 @@
       if (isAllDay) {
         // 終日の場合：日付フィールドに値を設定、日時フィールドはクリア
         document.getElementById('event-start-date').value = formatDate(startDate);
-        document.getElementById('event-end-date').value = formatDate(endDate);
+        
+        // 終了日から1日引いて表示（Googleカレンダー仕様: 終了日は翌日00:00:00）
+        const displayEndDate = new Date(endDate);
+        displayEndDate.setDate(displayEndDate.getDate() - 1);
+        document.getElementById('event-end-date').value = formatDate(displayEndDate);
+        
         document.getElementById('event-start').value = '';
         document.getElementById('event-end').value = '';
       } else {
@@ -5153,7 +5158,8 @@
       let startISO, endISO;
 
       if (allDay) {
-        // 終日の場合：日付のみから日時を生成（開始は00:00、終了は23:59）
+        // 終日の場合：日付のみから日時を生成
+        // Googleカレンダー仕様: 開始は00:00、終了は翌日の00:00
         const startDate = document.getElementById('event-start-date').value;
         const endDate = document.getElementById('event-end-date').value;
         
@@ -5164,8 +5170,11 @@
 
         const start = new Date(startDate);
         start.setHours(0, 0, 0, 0);
+        
+        // 終了日は翌日の00:00:00に設定（Googleカレンダー仕様）
         const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
+        end.setDate(end.getDate() + 1); // 翌日
+        end.setHours(0, 0, 0, 0);
         
         startISO = start.toISOString();
         endISO = end.toISOString();

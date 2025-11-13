@@ -208,11 +208,20 @@ function buildDescriptionWithMemberMap(
         // メンバー情報を取得（キャッシュから）
         let displayName = '不明';
         let part = '';
+        let shouldAddPartLabel = false; // displayNameにパート情報が含まれているかどうか
         const member = memberMap.get(response.userKey);
         
         if (member) {
           part = member.part || '';
-          displayName = member.displayName || (member.part + member.name);
+          if (member.displayName) {
+            // displayNameが既に設定されている場合は、パート情報が含まれている可能性が高い
+            displayName = member.displayName;
+            shouldAddPartLabel = false;
+          } else {
+            // displayNameが未設定の場合は、パートと名前を組み合わせる
+            displayName = member.name || '不明';
+            shouldAddPartLabel = part ? true : false;
+          }
         } else if (response.userKey && response.userKey.startsWith('anon-')) {
           // 匿名ユーザーの場合、userKeyから名前を推測
           const userName = response.userKey.replace('anon-', '');
@@ -220,11 +229,12 @@ function buildDescriptionWithMemberMap(
           const parsed = parseMemberNameFromString(userName);
           part = parsed.part || '';
           displayName = parsed.name || userName;
+          shouldAddPartLabel = part ? true : false;
         }
         
         // ステータス、パート、名前、コメントを表示
         const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';
-        const partLabel = part ? `[${part}] ` : '';
+        const partLabel = (shouldAddPartLabel && part) ? `[${part}] ` : '';
         description += `${statusLabel} ${partLabel}${displayName}: ${response.comment}\n`;
       });
     }
@@ -288,12 +298,20 @@ function buildDescription(eventId: string, userDescription?: string): string {
           // メンバー情報を取得
           let displayName = '不明';
           let part = '';
+          let shouldAddPartLabel = false; // displayNameにパート情報が含まれているかどうか
           const member = memberMap.get(response.userKey);
           
           if (member) {
             part = member.part || '';
-            displayName = member.displayName || (member.part + member.name);
-            Logger.log(`📝 メンバー情報: ${response.userKey} → [${part}] ${displayName}`);
+            if (member.displayName) {
+              // displayNameが既に設定されている場合は、パート情報が含まれている可能性が高い
+              displayName = member.displayName;
+              shouldAddPartLabel = false;
+            } else {
+              // displayNameが未設定の場合は、パートと名前を組み合わせる
+              displayName = member.name || '不明';
+              shouldAddPartLabel = part ? true : false;
+            }
           } else if (response.userKey && response.userKey.startsWith('anon-')) {
             // 匿名ユーザーの場合、userKeyから名前を推測
             const userName = response.userKey.replace('anon-', '');
@@ -301,12 +319,12 @@ function buildDescription(eventId: string, userDescription?: string): string {
             const parsed = parseMemberNameFromString(userName);
             part = parsed.part || '';
             displayName = parsed.name || userName;
-            Logger.log(`📝 匿名ユーザー: ${response.userKey} → [${part}] ${displayName}`);
+            shouldAddPartLabel = part ? true : false;
           }
           
           // ステータス、パート、名前、コメントを表示
           const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';
-          const partLabel = part ? `[${part}] ` : '';
+          const partLabel = (shouldAddPartLabel && part) ? `[${part}] ` : '';
           description += `${statusLabel} ${partLabel}${displayName}: ${response.comment}\n`;
         });
       }

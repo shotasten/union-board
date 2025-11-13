@@ -4856,25 +4856,25 @@
       const startDate = new Date(event.start);
       const endDate = new Date(event.end);
       
-      // 終日かどうかを判定（開始が00:00、終了が23:59の場合）
-      const isAllDay = startDate.getHours() === 0 && 
-                       startDate.getMinutes() === 0 && 
-                       endDate.getHours() === 23 && 
-                       endDate.getMinutes() === 59;
+      // サーバーから取得したisAllDayフラグを使用（フラグがない場合は時刻で判定）
+      const isAllDay = event.isAllDay !== undefined 
+        ? event.isAllDay 
+        : (startDate.getHours() === 0 && startDate.getMinutes() === 0 && 
+           endDate.getHours() === 23 && endDate.getMinutes() === 59);
       
       document.getElementById('event-all-day').checked = isAllDay;
       
-      // 終日かどうかに関わらず、両方のフィールドに値を設定（toggleAllDayで上書きされないように）
-      document.getElementById('event-start').value = formatDateTimeLocal(startDate);
-      document.getElementById('event-end').value = formatDateTimeLocal(endDate);
-      
+      // 終日の場合と通常の場合で適切なフィールドに値を設定
       if (isAllDay) {
-        // 終日の場合：日付のみを設定
+        // 終日の場合：日付フィールドに値を設定、日時フィールドはクリア
         document.getElementById('event-start-date').value = formatDate(startDate);
         document.getElementById('event-end-date').value = formatDate(endDate);
+        document.getElementById('event-start').value = '';
+        document.getElementById('event-end').value = '';
       } else {
-        // 通常の場合：日時フィールドは既に設定済み
-        // 日付フィールドは空にしておく（必要に応じて）
+        // 通常の場合：日時フィールドに値を設定、日付フィールドはクリア
+        document.getElementById('event-start').value = formatDateTimeLocal(startDate);
+        document.getElementById('event-end').value = formatDateTimeLocal(endDate);
         document.getElementById('event-start-date').value = '';
         document.getElementById('event-end-date').value = '';
       }
@@ -4882,10 +4882,10 @@
       document.getElementById('event-location').value = event.location || '';
       document.getElementById('event-description').value = cleanDescription(event.description || '');
       
-      // 終日切り替えを実行して表示を更新（値は既に設定済み）
+      // 終日切り替えを実行して表示を更新（既に適切な値が設定済み）
       toggleAllDay();
       
-      // 開始日時の変更イベントリスナーを設定（値設定後に実行）
+      // 開始日時の変更イベントリスナーを設定
       setupStartDateChangeHandler();
       
       document.getElementById('event-modal').style.display = 'block';
@@ -5020,17 +5020,15 @@
         startDateTime.required = false;
         endDateTime.required = false;
         
-        // 既に日付が設定されている場合は上書きしない（編集時）
-        if (startDate.value && endDate.value) {
-          // 既存の値を使用（何もしない）
-          return;
+        // 日付フィールドに値がない場合のみ、日時フィールドから変換
+        if (!startDate.value && startDateTime.value) {
+          const currentStart = new Date(startDateTime.value);
+          startDate.value = formatDate(currentStart);
         }
-        
-        // 現在の日時から日付を取得して設定（新規作成時のみ）
-        const currentStart = startDateTime.value ? new Date(startDateTime.value) : new Date();
-        const currentEnd = endDateTime.value ? new Date(endDateTime.value) : new Date();
-        startDate.value = formatDate(currentStart);
-        endDate.value = formatDate(currentEnd);
+        if (!endDate.value && endDateTime.value) {
+          const currentEnd = new Date(endDateTime.value);
+          endDate.value = formatDate(currentEnd);
+        }
       } else {
         // 通常モード：日時表示
         startDateTime.style.display = 'block';
@@ -5042,34 +5040,20 @@
         startDate.required = false;
         endDate.required = false;
         
-        // 既に日時が設定されている場合は上書きしない（編集時）
-        if (startDateTime.value && endDateTime.value) {
-          // 既存の値を使用（何もしない）
-          return;
+        // 日時フィールドに値がない場合のみ、日付フィールドから変換
+        // タイムゾーンを考慮した変換（YYYY-MM-DD形式を手動でパース）
+        if (!startDateTime.value && startDate.value) {
+          const dateParts = startDate.value.split('-');
+          const start = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+          start.setHours(13, 0, 0, 0);
+          startDateTime.value = formatDateTimeLocal(start);
         }
-        
-        // 日付から日時に変換（デフォルトの練習時間：13:00-17:00）
-        let targetDate;
-        if (startDate.value) {
-          targetDate = new Date(startDate.value);
-        } else if (startDateTime.value) {
-          targetDate = new Date(startDateTime.value);
-        } else {
-          targetDate = new Date();
+        if (!endDateTime.value && endDate.value) {
+          const dateParts = endDate.value.split('-');
+          const end = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]));
+          end.setHours(17, 0, 0, 0);
+          endDateTime.value = formatDateTimeLocal(end);
         }
-        
-        // 日付部分のみを取得（時刻はリセット）
-        const dateOnly = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
-        
-        // 開始時刻を13:00に設定
-        const start = new Date(dateOnly);
-        start.setHours(13, 0, 0, 0);
-        startDateTime.value = formatDateTimeLocal(start);
-        
-        // 終了時刻を17:00に設定
-        const end = new Date(dateOnly);
-        end.setHours(17, 0, 0, 0);
-        endDateTime.value = formatDateTimeLocal(end);
       }
     }
 

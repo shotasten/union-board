@@ -2767,14 +2767,13 @@
         let endDateOnlyStr = getDateFromUTC(event.end);
         
         if (isAllDay) {
-          // 終日イベントの場合、endが翌日の00:00:00の場合は前日の日付として扱う
-          const endDate = new Date(event.end);
-          const endDateOnly = new Date(endDate.getUTCFullYear(), endDate.getUTCMonth(), endDate.getUTCDate());
-          const startDateOnly = new Date(new Date(event.start).getUTCFullYear(), new Date(event.start).getUTCMonth(), new Date(event.start).getUTCDate());
-          // endがstartの翌日で、時刻が00:00:00の場合は1日の終日として扱う
-          if (endDateOnly.getTime() - startDateOnly.getTime() === 24 * 60 * 60 * 1000 && 
-              endDate.getUTCHours() === 0 && endDate.getUTCMinutes() === 0 && endDate.getUTCSeconds() === 0) {
-            endDateOnlyStr = startDateOnlyStr; // 同じ日として扱う
+          // 終日イベントの場合、endが00:00:00であれば前日の日付として扱う（Googleカレンダー仕様）
+          const endDateUTC = new Date(event.end);
+          if (endDateUTC.getUTCHours() === 0 && endDateUTC.getUTCMinutes() === 0 && endDateUTC.getUTCSeconds() === 0) {
+            // 終了日から1日引いて表示
+            const adjustedEndDate = new Date(endDateUTC);
+            adjustedEndDate.setDate(adjustedEndDate.getDate() - 1);
+            endDateOnlyStr = getDateFromUTC(adjustedEndDate.toISOString());
           }
         }
         
@@ -2784,7 +2783,9 @@
         if (isMultiDay) {
           // 複数日の場合は開始日～終了日を表示
           const startDateDisplayStr = `${startDate.getMonth() + 1}/${startDate.getDate()}(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
-          const endDateDisplayStr = `${endDate.getMonth() + 1}/${endDate.getDate()}(${['日','月','火','水','木','金','土'][endDate.getDay()]})`;
+          // 終日イベントの場合は調整済みの終了日を使用
+          const displayEndDate = isAllDay ? new Date(endDateOnlyStr) : endDate;
+          const endDateDisplayStr = `${displayEndDate.getMonth() + 1}/${displayEndDate.getDate()}(${['日','月','火','水','木','金','土'][displayEndDate.getDay()]})`;
           dateStrShort = `${startDateDisplayStr}～${endDateDisplayStr}`;
         } else {
           // 単日の場合は開始日のみ
@@ -3657,14 +3658,13 @@
         let endDateOnlyStr = getDateFromUTC(event.end);
         
         if (isAllDay) {
-          // 終日イベントの場合、endが翌日の00:00:00の場合は前日の日付として扱う
+          // 終日イベントの場合、endが00:00:00であれば前日の日付として扱う（Googleカレンダー仕様）
           const endDateUTC = new Date(event.end);
-          const endDateOnly = new Date(endDateUTC.getUTCFullYear(), endDateUTC.getUTCMonth(), endDateUTC.getUTCDate());
-          const startDateOnly = new Date(new Date(event.start).getUTCFullYear(), new Date(event.start).getUTCMonth(), new Date(event.start).getUTCDate());
-          // endがstartの翌日で、時刻が00:00:00の場合は1日の終日として扱う
-          if (endDateOnly.getTime() - startDateOnly.getTime() === 24 * 60 * 60 * 1000 && 
-              endDateUTC.getUTCHours() === 0 && endDateUTC.getUTCMinutes() === 0 && endDateUTC.getUTCSeconds() === 0) {
-            endDateOnlyStr = startDateOnlyStr; // 同じ日として扱う
+          if (endDateUTC.getUTCHours() === 0 && endDateUTC.getUTCMinutes() === 0 && endDateUTC.getUTCSeconds() === 0) {
+            // 終了日から1日引いて表示
+            const adjustedEndDate = new Date(endDateUTC);
+            adjustedEndDate.setDate(adjustedEndDate.getDate() - 1);
+            endDateOnlyStr = getDateFromUTC(adjustedEndDate.toISOString());
           }
         }
         
@@ -3674,7 +3674,9 @@
         if (isMultiDay) {
           // 複数日の場合は開始日～終了日を表示
           const startDateDisplayStr = `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
-          const endDateDisplayStr = `${endDate.getFullYear()}年${endDate.getMonth() + 1}月${endDate.getDate()}日(${['日','月','火','水','木','金','土'][endDate.getDay()]})`;
+          // 終日イベントの場合は調整済みの終了日を使用
+          const displayEndDate = isAllDay ? new Date(endDateOnlyStr) : endDate;
+          const endDateDisplayStr = `${displayEndDate.getFullYear()}年${displayEndDate.getMonth() + 1}月${displayEndDate.getDate()}日(${['日','月','火','水','木','金','土'][displayEndDate.getDay()]})`;
           dateStr = `${startDateDisplayStr}～${endDateDisplayStr}`;
         } else {
           // 単日の場合は開始日のみ

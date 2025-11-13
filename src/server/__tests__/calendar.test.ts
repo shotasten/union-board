@@ -3,16 +3,10 @@
  * AAA形式（Arrange, Act, Assert）で記述
  */
 
-// モック関数
-const mockGetConfig = jest.fn();
-const mockSetConfig = jest.fn();
-const mockGetOrCreateCalendar = jest.fn();
-const mockGetEventById = jest.fn();
-const mockGetMembers = jest.fn();
-const mockGetResponses = jest.fn();
-const mockTallyResponses = jest.fn();
-const mockUpdateEventCalendarInfo = jest.fn();
-const mockGetEventsSheet = jest.fn();
+// モック関数（テスト内で使用）
+let mockGetMembersForCalendar: jest.Mock;
+let mockGetResponsesForCalendar: jest.Mock;
+let mockTallyResponsesForCalendar: jest.Mock;
 
 // テスト用のモック関数（実際の実装の動作を模倣）
 function mockComputeHash(text: string): string {
@@ -83,7 +77,7 @@ function mockBuildDescriptionWithMemberMap(
 }
 
 function mockBuildDescription(eventId: string, userDescription?: string): string {
-  const tally = mockTallyResponses(eventId);
+  const tally = mockTallyResponsesForCalendar(eventId);
   const now = new Date();
   const formattedDate = global.Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm');
   
@@ -101,13 +95,13 @@ function mockBuildDescription(eventId: string, userDescription?: string): string
   
   description += '【コメント】\n';
   try {
-    const responses = mockGetResponses(eventId);
+    const responses = mockGetResponsesForCalendar(eventId);
     const comments = responses.filter((r: any) => r.comment && r.comment.trim());
     
     if (comments.length === 0) {
       description += '（コメントなし）\n';
     } else {
-      const members = mockGetMembers();
+      const members = mockGetMembersForCalendar();
       const memberMap = new Map<string, any>();
       members.forEach((m: any) => {
         memberMap.set(m.userKey, m);
@@ -136,6 +130,11 @@ describe('calendar.ts', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // モック関数を初期化
+    mockGetMembersForCalendar = jest.fn();
+    mockGetResponsesForCalendar = jest.fn();
+    mockTallyResponsesForCalendar = jest.fn();
     
     mockCalendarEvent = {
       getId: jest.fn(() => 'mock-event-id'),
@@ -304,17 +303,17 @@ describe('calendar.ts', () => {
     it('出欠状況とコメントを含む説明文を生成できること', () => {
       // Arrange
       const eventId = 'event-1';
-      mockTallyResponses.mockReturnValue({
+      mockTallyResponsesForCalendar.mockReturnValue({
         attendCount: 2,
         maybeCount: 1,
         absentCount: 1,
         totalCount: 4,
       });
-      mockGetResponses.mockReturnValue([
+      mockGetResponsesForCalendar.mockReturnValue([
         { userKey: 'user-1', status: '○', comment: '参加します' },
         { userKey: 'user-2', status: '△', comment: '未定です' },
       ]);
-      mockGetMembers.mockReturnValue([
+      mockGetMembersForCalendar.mockReturnValue([
         { userKey: 'user-1', name: '太郎', displayName: 'Fl.太郎' },
         { userKey: 'user-2', name: '花子', displayName: 'Cl.花子' },
       ]);
@@ -335,13 +334,13 @@ describe('calendar.ts', () => {
       // Arrange
       const eventId = 'event-1';
       const userDescription = 'テストイベント';
-      mockTallyResponses.mockReturnValue({
+      mockTallyResponsesForCalendar.mockReturnValue({
         attendCount: 0,
         maybeCount: 0,
         absentCount: 0,
         totalCount: 0,
       });
-      mockGetResponses.mockReturnValue([]);
+      mockGetResponsesForCalendar.mockReturnValue([]);
 
       // Act
       const result = mockBuildDescription(eventId, userDescription);
@@ -354,13 +353,13 @@ describe('calendar.ts', () => {
     it('コメント取得エラーが発生した場合はエラーメッセージを表示すること', () => {
       // Arrange
       const eventId = 'event-1';
-      mockTallyResponses.mockReturnValue({
+      mockTallyResponsesForCalendar.mockReturnValue({
         attendCount: 0,
         maybeCount: 0,
         absentCount: 0,
         totalCount: 0,
       });
-      mockGetResponses.mockImplementation(() => {
+      mockGetResponsesForCalendar.mockImplementation(() => {
         throw new Error('エラー');
       });
 

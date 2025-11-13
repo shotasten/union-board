@@ -5340,19 +5340,26 @@
           })
           .adminUpdateEvent(editingEventId, updates, currentUserKey, localStorage.getItem('adminToken'));
       } else {
-        // 作成
+        // 作成（性能改善：レスポンスからイベントを取得してキャッシュに追加）
         google.script.run
           .withSuccessHandler((result) => {
             saveBtn.disabled = false;
             saveBtn.textContent = '保存';
             
-            if (result.success) {
+            if (result.success && result.event) {
+              // 作成されたイベントをcurrentEventsに追加（性能改善）
+              currentEvents.push(result.event);
+              
+              // 出欠データキャッシュに空の配列を追加（性能改善）
+              if (window.allResponsesCache) {
+                window.allResponsesCache[result.event.id] = [];
+              }
+              
+              // 再描画（API呼び出しなし）
+              renderEvents();
+              
               showToast('イベントを作成しました', 'success');
               closeEventModal();
-              // 全データを再読み込み（出欠データも含む）
-              loadInitData().then(() => {
-                renderEvents();
-              });
             } else {
               showToast(result.error || '作成に失敗しました', 'error');
             }

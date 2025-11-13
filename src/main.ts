@@ -147,7 +147,7 @@ function adminCreateEvent(
   },
   userKey?: string,
   adminToken?: string
-): { success: boolean; eventId?: string; error?: string } {
+): { success: boolean; eventId?: string; event?: AttendanceEvent; error?: string } {
   try {
     // 管理者権限チェック
     if (userKey && !isAdmin(userKey, adminToken)) {
@@ -173,9 +173,13 @@ function adminCreateEvent(
     );
     
     if (eventId) {
+      // 作成されたイベントを取得（性能改善：クライアント側でキャッシュに追加するため）
+      const event = getEventById(eventId);
+      
       return {
         success: true,
-        eventId: eventId
+        eventId: eventId,
+        event: event
       };
     } else {
       return {

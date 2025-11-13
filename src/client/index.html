@@ -22,6 +22,27 @@
       padding: 20px;
       -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
+      /* スクロールバーの色設定（ライトブルー） */
+      scrollbar-width: thin;
+      scrollbar-color: #5B9BD5 #f0f0f0;
+    }
+
+    /* Webkit系ブラウザ用のbodyスクロールバースタイル */
+    body::-webkit-scrollbar {
+      width: 12px;
+    }
+
+    body::-webkit-scrollbar-track {
+      background: #f0f0f0;
+    }
+
+    body::-webkit-scrollbar-thumb {
+      background: #5B9BD5;
+      border-radius: 6px;
+    }
+
+    body::-webkit-scrollbar-thumb:hover {
+      background: #4A8BC2;
     }
 
     .container {
@@ -246,9 +267,9 @@
       width: 100%;
       position: relative;
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      /* スクロールバーを目立たせる */
+      /* スクロールバーを目立たせる（ライトブルー） */
       scrollbar-width: thin;
-      scrollbar-color: #00796B #f0f0f0;
+      scrollbar-color: #5B9BD5 #f0f0f0;
     }
 
     /* 上部のスクロールバー */
@@ -261,9 +282,9 @@
       border: 1px solid #e0e0e0;
       border-radius: 8px 8px 0 0;
       background: #f0f0f0;
-      /* スクロールバーを目立たせる */
+      /* スクロールバーを目立たせる（ライトブルー） */
       scrollbar-width: thin;
-      scrollbar-color: #667eea #f0f0f0;
+      scrollbar-color: #5B9BD5 #f0f0f0;
       display: none; /* スクロール可能な場合のみ表示 */
     }
 
@@ -281,17 +302,18 @@
     }
 
     .attendance-grid-scrollbar-top::-webkit-scrollbar-thumb {
-      background: #00796B;
+      background: #5B9BD5;
       border-radius: 6px;
     }
 
     .attendance-grid-scrollbar-top::-webkit-scrollbar-thumb:hover {
-      background: #00695C;
+      background: #4A8BC2;
     }
 
-    /* Webkit系ブラウザ用のスクロールバースタイル */
+    /* Webkit系ブラウザ用のスクロールバースタイル（横スクロール） */
     .attendance-grid-container::-webkit-scrollbar {
       height: 12px;
+      width: 12px;
     }
 
     .attendance-grid-container::-webkit-scrollbar-track {
@@ -300,12 +322,12 @@
     }
 
     .attendance-grid-container::-webkit-scrollbar-thumb {
-      background: #00796B;
+      background: #5B9BD5;
       border-radius: 6px;
     }
 
     .attendance-grid-container::-webkit-scrollbar-thumb:hover {
-      background: #00695C;
+      background: #4A8BC2;
     }
 
     /* スクロール可能な場合の左右のフェードアウト効果 */
@@ -374,6 +396,17 @@
         min-width: 600px;
       }
 
+      /* モバイルでのイベント名スタイル調整 */
+      .event-name-clickable {
+        padding: 6px 24px 6px 6px;
+        margin: -6px;
+      }
+
+      .event-name-clickable::after {
+        font-size: 1.2rem;
+        right: 6px;
+      }
+
       /* 名前列の幅固定（モバイル表示: 日本語4文字程度、2行表示） */
       .member-name-col {
         min-width: 70px !important;
@@ -403,6 +436,17 @@
     @media (max-width: 480px) {
       .attendance-grid {
         min-width: 500px;
+      }
+
+      /* 小画面モバイルでのイベント名スタイル調整 */
+      .event-name-clickable {
+        padding: 5px 22px 5px 5px;
+        margin: -5px;
+      }
+
+      .event-name-clickable::after {
+        font-size: 1.1rem;
+        right: 5px;
       }
 
       /* 名前列の幅固定（小画面モバイル表示: 日本語4文字程度、2行表示） */
@@ -536,8 +580,56 @@
       word-wrap: break-word;
       overflow-wrap: break-word;
       border-right: 1px solid #DDDDDD;
-      vertical-align: middle;
-      background-color: #F5F5F5;
+    }
+
+    /* 案6: イベント名のクリック可能デザイン（青色+矢印+影） */
+    .event-name-clickable {
+      color: #1976d2;
+      padding: 8px 28px 8px 8px;
+      margin: -8px;
+      border-radius: 8px;
+      position: relative;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: block;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .event-name-clickable::after {
+      content: "›";
+      position: absolute;
+      right: 8px;
+      opacity: 0.7;
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #1976d2;
+      top: 50%;
+      transform: translateY(-50%);
+      transition: opacity 0.2s ease;
+      line-height: 1;
+    }
+
+    /* PCではホバー時のみ強調 */
+    @media (hover: hover) and (pointer: fine) {
+      .event-name-clickable:hover {
+        background: rgba(25, 118, 210, 0.08);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      }
+
+      .event-name-clickable:hover::after {
+        opacity: 1;
+      }
+    }
+
+    /* スマホ/タブレットではタップ時の反応 */
+    .event-name-clickable:active {
+      background: rgba(25, 118, 210, 0.1);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      transform: scale(0.98);
+    }
+
+    .event-name-clickable:active::after {
+      opacity: 1;
     }
 
     .status-cell {
@@ -2711,6 +2803,7 @@
         
         // イベント情報をHTMLで構築
         const eventInfo = document.createElement('div');
+        eventInfo.className = 'event-name-clickable';
         eventInfo.style.display = 'flex';
         eventInfo.style.flexDirection = 'column';
         eventInfo.style.gap = '2px';
@@ -2718,7 +2811,6 @@
         // 1行目：イベント名
         const titleRow = document.createElement('div');
         titleRow.style.fontSize = '0.85rem';
-        titleRow.style.color = '#333';
         titleRow.style.fontWeight = '500';
         titleRow.style.whiteSpace = 'nowrap';
         titleRow.style.overflow = 'hidden';
@@ -2729,7 +2821,6 @@
         titleRow.textContent = eventTitle;
         if (eventTitle.length > 25) {
           titleRow.title = eventTitle; // ツールチップで全文表示
-          titleRow.style.cursor = 'help';
         }
         eventInfo.appendChild(titleRow);
         
@@ -2737,7 +2828,7 @@
         if (event.location) {
           const locationRow = document.createElement('div');
           locationRow.style.fontSize = '0.85rem';
-          locationRow.style.color = '#666';
+          locationRow.style.color = '#1976d2';
           locationRow.style.lineHeight = '1.2';
           locationRow.style.whiteSpace = 'nowrap';
           locationRow.style.overflow = 'hidden';
@@ -2747,7 +2838,6 @@
           // ツールチップで全文表示
           if (locationText.length > 20) {
             locationRow.title = locationText;
-            locationRow.style.cursor = 'help';
           }
           eventInfo.appendChild(locationRow);
         }
@@ -2755,7 +2845,7 @@
         // 3行目：日付・時刻（11/15(土) 13:00～17:00 または 終日）
         const dateTimeDiv = document.createElement('div');
         dateTimeDiv.style.fontSize = '0.8rem';
-        dateTimeDiv.style.color = '#666';
+        dateTimeDiv.style.color = '#1976d2';
         dateTimeDiv.style.lineHeight = '1.2';
         
         // 終日かどうかを判定（event.isAllDayフラグを使用）
@@ -2804,10 +2894,13 @@
         dateTimeDiv.textContent = `${dateStrShort} ${timeDisplay}`;
         eventInfo.appendChild(dateTimeDiv);
         
+        // 予定をクリック可能にして、詳細モーダルを表示
+        eventInfo.onclick = (e) => {
+          e.stopPropagation();
+          showEventDetailModal(event.id);
+        };
+        
         dateCell.appendChild(eventInfo);
-        // 予定セルをクリック可能にして、詳細モーダルを表示
-        dateCell.style.cursor = 'pointer';
-        dateCell.onclick = () => showEventDetailModal(event.id);
         row.appendChild(dateCell);
 
         // ステータス凡例セル（3つのセル）- 各イベントの○/△/×の合計数を表示

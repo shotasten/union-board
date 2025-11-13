@@ -159,7 +159,15 @@ function buildDescriptionWithMemberMap(
       comments.forEach(response => {
         // メンバー情報を取得（キャッシュから）
         const member = memberMap.get(response.userKey);
-        const displayName = member?.displayName || member?.name || '不明';
+        let displayName = member?.displayName || member?.name || '不明';
+        
+        // パート表記重複を除去（例: "[Fl] Fl.フルートさん１" → "Fl.フルートさん１"）
+        // displayNameが既にパート情報を含んでいる場合、先頭の [パート] を除去
+        const partPrefixPattern = /^\[([^\]]+)\]\s*/;
+        const match = displayName.match(partPrefixPattern);
+        if (match) {
+          displayName = displayName.replace(partPrefixPattern, '');
+        }
         
         // ステータス、名前、コメントを表示
         const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';
@@ -225,7 +233,15 @@ function buildDescription(eventId: string, userDescription?: string): string {
         comments.forEach(response => {
           // メンバー情報を取得
           const member = memberMap.get(response.userKey);
-          const displayName = member?.displayName || member?.name || '不明';
+          let displayName = member?.displayName || member?.name || '不明';
+          
+          // パート表記重複を除去（例: "[Fl] Fl.フルートさん１" → "Fl.フルートさん１"）
+          // displayNameが既にパート情報を含んでいる場合、先頭の [パート] を除去
+          const partPrefixPattern = /^\[([^\]]+)\]\s*/;
+          const match = displayName.match(partPrefixPattern);
+          if (match) {
+            displayName = displayName.replace(partPrefixPattern, '');
+          }
           
           // ステータス、名前、コメントを表示
           const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';

@@ -1665,9 +1665,6 @@
           <button class="admin-login-btn" onclick="showAdminLoginModal()" id="admin-login-btn" style="display: inline-block;">
             🔐 管理者ログイン
           </button>
-          <button class="add-to-calendar-btn icon-action-btn" onclick="showAddToCalendarModal()" id="add-to-calendar-btn" title="カレンダーに追加" style="display: inline-flex;">
-            <i class="fas fa-calendar-plus"></i>
-          </button>
           <div class="header-action-group" style="display: none;">
             <button class="sync-all-btn icon-action-btn" onclick="syncAllEvents()" id="sync-all-btn" title="同期">
               <i class="fas fa-rotate"></i>
@@ -1698,6 +1695,11 @@
             <div class="left-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
               <!-- メンバー登録ボタン（すべてのユーザー、プライマリーボタン） -->
               <button class="member-register-btn primary-btn" onclick="showMemberRegisterModal()">メンバー登録</button>
+              <!-- カレンダーに追加ボタン（すべてのユーザー、セカンダリーボタン） -->
+              <button class="add-to-calendar-btn secondary-btn" onclick="showAddToCalendarModal()" id="add-to-calendar-btn" style="display: inline-flex; align-items: center; gap: 6px;">
+                <i class="fas fa-calendar-plus"></i>
+                <span>カレンダーに追加</span>
+              </button>
             </div>
             <!-- 右寄せエリア（主要アクション） -->
             <div class="right-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">

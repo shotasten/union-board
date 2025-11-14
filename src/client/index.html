@@ -3002,7 +3002,7 @@
           const endTimeStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
           timeDisplay = `${startTimeStr}～${endTimeStr}`;
         }
-        dateTimeDiv.textContent = `${dateStrShort} ${timeDisplay}`;
+        dateTimeDiv.textContent = dateStrShort + ' ' + timeDisplay;
         eventInfo.appendChild(dateTimeDiv);
         
         // 予定をクリック可能にして、詳細モーダルを表示
@@ -3627,7 +3627,7 @@
           secondLine.style.fontSize = '0.85rem';
           secondLine.style.color = '#666';
           secondLine.style.lineHeight = '1.2';
-          secondLine.textContent = `📍${event.location}`;
+          secondLine.textContent = '📍' + event.location;
           dateLabelContainer.appendChild(secondLine);
         }
         
@@ -3636,7 +3636,7 @@
         thirdLine.style.fontSize = '0.8rem';
         thirdLine.style.color = '#666';
         thirdLine.style.lineHeight = '1.2';
-        thirdLine.textContent = `${dateStr} ${timeDisplay}`;
+        thirdLine.textContent = dateStr + ' ' + timeDisplay;
         dateLabelContainer.appendChild(thirdLine);
         
         topRow.appendChild(dateLabelContainer);
@@ -4668,7 +4668,7 @@
           
           if (result.failed === 0) {
             // 更新成功
-            showToast(`${result.success}件の出欠を更新しました`, 'success');
+            showToast(result.success + '件の出欠を更新しました', 'success');
             
             // キャッシュを更新
             updates.forEach(update => {
@@ -4720,7 +4720,7 @@
             // メンバー編集モーダルを閉じる
             closeMemberEditModal();
           } else {
-            showToast(`${result.success}件成功、${result.failed}件失敗しました`, 'warning');
+            showToast(result.success + '件成功、' + result.failed + '件失敗しました', 'warning');
             renderGrid(); // エラーがあっても再描画
           }
         })

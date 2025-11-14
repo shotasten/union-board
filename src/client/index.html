@@ -5674,7 +5674,6 @@
      */
     function showAddToCalendarModal() {
       const modal = document.getElementById('add-to-calendar-modal');
-      const loadingDiv = document.getElementById('calendar-loading');
       const addLink = document.getElementById('calendar-add-link');
       
       if (!modal) {
@@ -5687,22 +5686,13 @@
       // キャッシュからカレンダーIDを取得（API呼び出し不要）
       const calendarId = currentConfig && currentConfig.CALENDAR_ID ? currentConfig.CALENDAR_ID : '';
       
-      if (calendarId) {
-        // ローディングを非表示、リンクを表示
-        if (loadingDiv) {
-          loadingDiv.style.display = 'none';
-        }
-        if (addLink) {
-          // URLエンコードしてカレンダーIDを安全に渡す
-          const encodedCalendarId = encodeURIComponent(calendarId);
-          addLink.href = 'https://calendar.google.com/calendar/render?cid=' + encodedCalendarId;
-          addLink.style.display = 'inline-block';
-        }
+      if (calendarId && addLink) {
+        // URLエンコードしてカレンダーIDを安全に渡す
+        const encodedCalendarId = encodeURIComponent(calendarId);
+        addLink.href = 'https://calendar.google.com/calendar/render?cid=' + encodedCalendarId;
+        addLink.style.display = 'inline-block';
       } else {
         // キャッシュにない場合はエラー表示
-        if (loadingDiv) {
-          loadingDiv.style.display = 'none';
-        }
         if (addLink) {
           addLink.style.display = 'none';
         }

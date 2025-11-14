@@ -3696,21 +3696,15 @@
         }
         if (deleteBtn) {
           // 削除ボタンのクリックイベントハンドラを設定
+          // 性能改善：キャッシュからイベント情報を取得（API呼び出しなし）
           deleteBtn.onclick = () => {
-            // イベント情報を取得してから削除確認を表示
-            google.script.run
-              .withSuccessHandler((result) => {
-                if (result.success && result.event) {
-                  closeEventDetailModal();
-                  openDeleteConfirm(eventId, result.event.title || 'イベント');
-                } else {
-                  showToast('イベント情報の取得に失敗しました', 'error');
-                }
-              })
-              .withFailureHandler((error) => {
-                showToast('エラーが発生しました', 'error');
-              })
-              .getEventWithResponses(eventId);
+            const event = currentEvents.find(e => e.id === eventId);
+            if (event) {
+              closeEventDetailModal();
+              openDeleteConfirm(eventId, event.title || 'イベント');
+            } else {
+              showToast('イベント情報が見つかりません', 'error');
+            }
           };
         }
       } else {

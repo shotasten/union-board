@@ -7,7 +7,7 @@
     "doc": "docs"
   },
   "scripts": {
-    "build": "tsc && cp src/client/index.html dist/index.html",
+    "build": "tsc && cp src/client/index.html dist/index.html && node scripts/embed-icons.js",
     "push": "npm run build && node node_modules/@google/clasp/build/src/index.js push --force",
     "deploy": "npm run build && node node_modules/@google/clasp/build/src/index.js push --force && node node_modules/@google/clasp/build/src/index.js deploy",
     "test": "jest",

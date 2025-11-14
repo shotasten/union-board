@@ -4584,12 +4584,15 @@
           }
           showToast('保存に失敗しました', 'error');
         })
-        .userSubmitResponsesBatch(updates.map(u => ({
-          eventId: u.eventId,
-          userKey: u.memberUserKey,
-          status: u.status,
-          comment: u.comment
-        })));
+        .userSubmitResponsesBatch(
+          updates.map(u => ({
+            eventId: u.eventId,
+            userKey: u.memberUserKey,
+            status: u.status,
+            comment: u.comment
+          })),
+          true  // skipCalendarSync: カレンダー同期は定期同期（cron）に任せる
+        );
     }
 
 

@@ -357,7 +357,8 @@ function userSubmitResponsesBatch(
     userKey: string;
     status: '○' | '△' | '×' | '-';
     comment?: string;
-  }>
+  }>,
+  skipCalendarSync: boolean = false
 ): { success: number; failed: number; errors: string[] } {
   const startTime = new Date().getTime();
   Logger.log(`🔍 === バッチ保存開始 (${responses.length}件) ===`);
@@ -477,7 +478,8 @@ function userSubmitResponsesBatch(
     Logger.log(`⏱️ データ保存合計: ${dataWriteTime}ms`);
     
     // 出欠データ保存後、関連イベントのカレンダー説明欄を同期
-    if (successCount > 0) {
+    // 性能改善：カレンダー同期をスキップして、定期同期（cron）に任せる
+    if (successCount > 0 && !skipCalendarSync) {
       const calendarSyncStartTime = new Date().getTime();
       Logger.log(`📅 カレンダー同期開始...`);
       
@@ -500,6 +502,9 @@ function userSubmitResponsesBatch(
       
       const calendarSyncTime = new Date().getTime() - calendarSyncStartTime;
       Logger.log(`📅 カレンダー同期完了: ${syncedEventIds.size}件のイベント (${calendarSyncTime}ms)`);
+      Logger.log(`⏱️ === バッチ保存全体: ${new Date().getTime() - startTime}ms ===`);
+    } else if (skipCalendarSync) {
+      Logger.log(`⏭️ カレンダー同期スキップ（定期同期に任せる）`);
       Logger.log(`⏱️ === バッチ保存全体: ${new Date().getTime() - startTime}ms ===`);
     }
     

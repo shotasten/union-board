@@ -847,35 +847,11 @@ function syncAllEvents(userKey?: string, adminToken?: string, limitToDisplayPeri
  * 定期的にカレンダーから表示期間のイベントを同期（cron用）
  * Google Apps Script のトリガーで実行することを想定
  * 表示期間（DISPLAY_START_DATE ～ DISPLAY_END_DATE）のイベントのみを同期
- * 
- * @param forceHighFrequency 強制的に高頻度同期を実行するか（デフォルト: false）
  */
-function scheduledSync(forceHighFrequency: boolean = false): void {
+function scheduledSync(): void {
   try {
     const now = new Date();
-    const dayOfWeek = now.getDay(); // 0=日曜, 6=土曜
-    const hour = now.getHours();
-    const minute = now.getMinutes();
-    
-    // 土日（0=日曜, 6=土曜）の13時前後20分間（12:40-13:20）かどうかを判定
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const isHighFrequencyTime = isWeekend && (
-      (hour === 12 && minute >= 40) || // 12:40-12:59
-      (hour === 13 && minute <= 20)    // 13:00-13:20
-    );
-    
-    // 高頻度同期の時間帯でない場合、通常の同期をスキップ（高頻度同期に任せる）
-    if (!forceHighFrequency && !isHighFrequencyTime) {
-      Logger.log(`⏭️ 通常同期スキップ（高頻度同期時間外）: ${now.toISOString()}`);
-      return;
-    }
-    
-    // 高頻度同期の時間帯の場合、または強制実行の場合
-    if (isHighFrequencyTime || forceHighFrequency) {
-      Logger.log(`🚀 高頻度同期実行: ${now.toISOString()}`);
-    } else {
-      Logger.log(`📅 通常同期実行: ${now.toISOString()}`);
-    }
+    Logger.log(`📅 定期同期実行: ${now.toISOString()}`);
     
     const result = syncAll(true); // 表示期間のみに制限
     Logger.log(`✅ 定期同期完了: 成功 ${result.success}件, 失敗 ${result.failed}件`);
@@ -894,7 +870,20 @@ function scheduledSync(forceHighFrequency: boolean = false): void {
  * 5分おきのトリガーで実行することを想定
  */
 function scheduledSyncHighFrequency(): void {
-  scheduledSync(true); // 強制的に高頻度同期を実行
+  try {
+    const now = new Date();
+    Logger.log(`🚀 高頻度同期実行: ${now.toISOString()}`);
+    
+    const result = syncAll(true); // 表示期間のみに制限
+    Logger.log(`✅ 高頻度同期完了: 成功 ${result.success}件, 失敗 ${result.failed}件`);
+    
+    if (result.errors.length > 0) {
+      Logger.log(`⚠️ エラー詳細: ${result.errors.join(', ')}`);
+    }
+  } catch (error) {
+    Logger.log(`❌ 高頻度同期エラー: ${(error as Error).message}`);
+    Logger.log((error as Error).stack);
+  }
 }
 
 /**

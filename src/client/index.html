@@ -5650,7 +5650,9 @@
         .withSuccessHandler((result) => {
           if (result.success && result.calendarId) {
             const addLink = document.getElementById('calendar-add-link');
-            addLink.href = `https://calendar.google.com/calendar/render?cid=${result.calendarId}`;
+            // URLエンコードしてカレンダーIDを安全に渡す
+            const encodedCalendarId = encodeURIComponent(result.calendarId);
+            addLink.href = `https://calendar.google.com/calendar/render?cid=${encodedCalendarId}`;
             document.getElementById('add-to-calendar-modal').style.display = 'block';
           } else {
             showToast(result.error || 'カレンダーIDの取得に失敗しました', 'error');

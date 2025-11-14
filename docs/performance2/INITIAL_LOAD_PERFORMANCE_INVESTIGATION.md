@@ -255,7 +255,7 @@ function renderGridTable(allResponses) {
 
 ## 改善案
 
-### 改善案1: Configシートの読み込みを1回に統合（推奨）
+### 改善案1: Configシートの読み込みを1回に統合（推奨）✅ 実装完了
 
 **現状:**
 - `getConfig()`が6回呼ばれ、毎回Configシート全体を読み込んでいる
@@ -264,12 +264,19 @@ function renderGridTable(allResponses) {
 - `getInitData()`内でConfigシートを1回だけ読み込み、すべての設定値を取得
 - `getEvents()`内の`getConfig()`呼び出しを削除し、`getInitData()`から渡された設定値を使用
 
+**実装内容:**
+- `getAllConfig()`関数を追加（Configシートを1回だけ読み込む）
+- `getInitData()`内で`getAllConfig()`を使用して、すべての設定値を一度に取得
+- `getEvents()`のシグネチャを変更して、表示期間の設定値を引数で受け取る（オプション）
+- `getInitData()`から`getEvents()`に設定値を渡す
+
 **効果:**
 - Configシートの読み込み回数: 6回 → 1回
 - 推定削減時間: 500-1,500ms
 
 **実装難易度:** 低
 **リスク:** 低
+**実装日:** 2025-01-XX
 
 ### 改善案2: DOM操作の最適化
 

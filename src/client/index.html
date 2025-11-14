@@ -2032,9 +2032,53 @@
         </div>
         <div class="form-actions" style="margin-top: 20px;">
           <button type="button" class="form-btn cancel" onclick="closeDisplayPeriodModal()">キャンセル</button>
-          <button type="button" class="form-btn danger" onclick="clearDisplayPeriod()" style="background: #f44336;">制限を解除</button>
+          <button type="button" class="form-btn danger" onclick="openClearDisplayPeriodConfirm()" style="background: #f44336;">制限を解除</button>
           <button type="button" class="form-btn primary" onclick="saveDisplayPeriod()">保存</button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 表示期間解除確認モーダル -->
+  <div id="clear-display-period-confirm" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>表示期間の制限解除</h2>
+        <button class="close-btn" onclick="closeClearDisplayPeriodConfirm()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 15px; line-height: 1.6;">
+          表示期間の制限を解除しますか？
+        </p>
+        <p style="margin: 0; font-size: 0.9rem; color: #666; line-height: 1.5;">
+          全期間のイベントが表示されるようになります。
+        </p>
+      </div>
+      <div class="form-actions" style="margin-top: 20px;">
+        <button type="button" class="form-btn cancel" onclick="closeClearDisplayPeriodConfirm()">キャンセル</button>
+        <button type="button" class="form-btn danger confirm-clear-period-btn" onclick="confirmClearDisplayPeriod()">解除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- メンバー削除確認モーダル -->
+  <div id="member-delete-confirm" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 500px;">
+      <div class="modal-header">
+        <h2>メンバー削除の確認</h2>
+        <button class="close-btn" onclick="closeMemberDeleteConfirm()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="margin-bottom: 15px; line-height: 1.6;">
+          <strong id="deleting-member-name"></strong> を削除しますか？
+        </p>
+        <p style="margin: 0; font-size: 0.9rem; color: #666; line-height: 1.5;">
+          このメンバーの全ての出欠データも削除されます。この操作は取り消せません。
+        </p>
+      </div>
+      <div class="form-actions" style="margin-top: 20px;">
+        <button type="button" class="form-btn cancel" onclick="closeMemberDeleteConfirm()">キャンセル</button>
+        <button type="button" class="form-btn danger confirm-delete-member-btn" onclick="confirmDeleteMember()">削除</button>
       </div>
     </div>
   </div>
@@ -2512,24 +2556,35 @@
     }
 
     /**
+     * 表示期間解除確認モーダルを開く
+     */
+    function openClearDisplayPeriodConfirm() {
+      closeDisplayPeriodModal();
+      document.getElementById('clear-display-period-confirm').style.display = 'block';
+    }
+
+    /**
+     * 表示期間解除確認モーダルを閉じる
+     */
+    function closeClearDisplayPeriodConfirm() {
+      document.getElementById('clear-display-period-confirm').style.display = 'none';
+    }
+
+    /**
      * 表示期間の制限を解除
      */
-    function clearDisplayPeriod() {
-      if (!confirm('表示期間の制限を解除しますか？')) {
-        return;
-      }
-
-      const saveBtn = document.querySelector('#display-period-modal .form-btn.primary');
-      if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.textContent = '保存中...';
+    function confirmClearDisplayPeriod() {
+      const clearBtn = document.querySelector('.confirm-clear-period-btn');
+      if (clearBtn) {
+        clearBtn.disabled = true;
+        clearBtn.textContent = '解除中...';
       }
 
       google.script.run
         .withSuccessHandler((result) => {
-          if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.textContent = '保存';
+          if (clearBtn) {
+            clearBtn.disabled = false;
+            clearBtn.textContent = '解除';
           }
           
           if (result.success) {
@@ -2539,7 +2594,7 @@
               currentConfig.DISPLAY_END_DATE = '';
             }
             
-            closeDisplayPeriodModal();
+            closeClearDisplayPeriodConfirm();
             showToast('表示期間の制限を解除しました', 'success');
             // データを再読み込み
             loadInitData().then(() => {
@@ -2550,9 +2605,9 @@
           }
         })
         .withFailureHandler((error) => {
-          if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.textContent = '保存';
+          if (clearBtn) {
+            clearBtn.disabled = false;
+            clearBtn.textContent = '解除';
           }
           showToast('表示期間の解除に失敗しました', 'error');
         })
@@ -4079,7 +4134,7 @@
     }
 
     /**
-     * モーダルからメンバーを削除
+     * モーダルからメンバー削除確認ダイアログを開く
      */
     function deleteMemberFromModal() {
       if (!selectedMember) {
@@ -4087,7 +4142,30 @@
         return;
       }
 
-      if (!confirm(`${selectedMember}を削除しますか？`)) {
+      // メンバー情報を取得
+      const member = memberList.find(m => getMemberDisplayName(m) === selectedMember);
+      if (!member || !member.userKey) {
+        showToast('メンバー情報が見つかりません', 'error');
+        return;
+      }
+
+      // 削除確認モーダルを開く
+      document.getElementById('deleting-member-name').textContent = selectedMember;
+      document.getElementById('member-delete-confirm').style.display = 'block';
+    }
+
+    /**
+     * メンバー削除確認モーダルを閉じる
+     */
+    function closeMemberDeleteConfirm() {
+      document.getElementById('member-delete-confirm').style.display = 'none';
+    }
+
+    /**
+     * メンバー削除を実行
+     */
+    function confirmDeleteMember() {
+      if (!selectedMember) {
         return;
       }
 
@@ -4100,6 +4178,13 @@
       
       const userKey = member.userKey;
       
+      // ボタンを無効化
+      const deleteBtn = document.querySelector('.confirm-delete-member-btn');
+      if (deleteBtn) {
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = '削除中...';
+      }
+      
       // メンバーリストから削除（スプレッドシートで管理するため、ローカルストレージには保存しない）
       const index = memberList.findIndex(m => getMemberDisplayName(m) === selectedMember);
       if (index !== -1) {
@@ -4108,13 +4193,25 @@
         // サーバーからも削除
         google.script.run
           .withSuccessHandler((result) => {
+            if (deleteBtn) {
+              deleteBtn.disabled = false;
+              deleteBtn.textContent = '削除';
+            }
+            
             if (result.success) {
               // gridDataからも削除
               Object.keys(gridData).forEach(eventId => {
                 delete gridData[eventId][selectedMember];
               });
               
+              closeMemberDeleteConfirm();
               closeMemberEditModal();
+              
+              // パネルも閉じる
+              selectedMember = null;
+              const editPanel = document.getElementById('member-edit-panel');
+              if (editPanel) editPanel.style.display = 'none';
+              
               renderGrid(); // グリッドを再描画
               showToast('メンバーを削除しました', 'success');
             } else {
@@ -4124,6 +4221,10 @@
             }
           })
           .withFailureHandler((error) => {
+            if (deleteBtn) {
+              deleteBtn.disabled = false;
+              deleteBtn.textContent = '削除';
+            }
             showToast('メンバー削除に失敗しました', 'error');
             // エラー時はローカルに戻す
             memberList.push(member);
@@ -4593,6 +4694,13 @@
         return;
       }
 
+      // 保存ボタンを無効化
+      const saveBtn = document.querySelector('#member-edit-panel button[onclick="updateMemberName()"]');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = '保存中...';
+      }
+
       // メンバーリストを更新（スプレッドシートで管理するため、ローカルストレージには保存しない）
       const index = memberList.indexOf(selectedMember);
       if (index !== -1) {
@@ -4608,20 +4716,29 @@
         
         selectedMember = newName;
         renderGrid();
+        
+        // 保存ボタンを元に戻す
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = '保存';
+        }
+        
         showToast('メンバー名を更新しました', 'success');
+      } else {
+        // 保存ボタンを元に戻す
+        if (saveBtn) {
+          saveBtn.disabled = false;
+          saveBtn.textContent = '保存';
+        }
       }
     }
 
     /**
-     * メンバーを削除
+     * メンバー削除確認ダイアログを開く（パネルから）
      */
     function deleteMember() {
       if (!selectedMember) {
         showToast('メンバーを選択してください', 'error');
-        return;
-      }
-
-      if (!confirm(`${selectedMember}を削除しますか？`)) {
         return;
       }
 
@@ -4631,41 +4748,10 @@
         showToast('メンバー情報が見つかりません', 'error');
         return;
       }
-      
-      const userKey = member.userKey;
-      
-      // メンバーリストから削除（スプレッドシートで管理するため、ローカルストレージには保存しない）
-      const index = memberList.findIndex(m => getMemberDisplayName(m) === selectedMember);
-      if (index !== -1) {
-        memberList.splice(index, 1);
-        
-        // サーバーからも削除
-        google.script.run
-          .withSuccessHandler((result) => {
-            if (result.success) {
-              // gridDataからも削除
-              Object.keys(gridData).forEach(eventId => {
-                delete gridData[eventId][selectedMember];
-              });
-              
-              selectedMember = null;
-              const editPanel = document.getElementById('member-edit-panel');
-              if (editPanel) editPanel.style.display = 'none';
-              renderGrid();
-              showToast('メンバーを削除しました', 'success');
-            } else {
-              showToast(result.error || 'メンバー削除に失敗しました', 'error');
-              // エラー時はローカルに戻す
-              memberList.push(member);
-            }
-          })
-          .withFailureHandler((error) => {
-            showToast('メンバー削除に失敗しました', 'error');
-            // エラー時はローカルに戻す
-            memberList.push(member);
-          })
-          .deleteMemberAPI(userKey);
-      }
+
+      // 削除確認モーダルを開く
+      document.getElementById('deleting-member-name').textContent = selectedMember;
+      document.getElementById('member-delete-confirm').style.display = 'block';
     }
 
 
@@ -4720,6 +4806,13 @@
         return;
       }
 
+      // 保存ボタンを無効化
+      const registerBtn = document.querySelector('#member-register-modal .form-btn.primary');
+      if (registerBtn) {
+        registerBtn.disabled = true;
+        registerBtn.textContent = '登録中...';
+      }
+
       // UUIDを生成してuserKeyとして使用
       const userKey = generateUUID();
       const newMember = {
@@ -4734,6 +4827,11 @@
       // サーバーにも保存
       google.script.run
         .withSuccessHandler((result) => {
+          if (registerBtn) {
+            registerBtn.disabled = false;
+            registerBtn.textContent = '登録';
+          }
+          
           if (result.success) {
             closeMemberRegisterModal();
             renderGrid();
@@ -4748,6 +4846,10 @@
           }
         })
         .withFailureHandler((error) => {
+          if (registerBtn) {
+            registerBtn.disabled = false;
+            registerBtn.textContent = '登録';
+          }
           showToast('メンバー登録に失敗しました', 'error');
           // エラー時はローカルからも削除
           const index = memberList.findIndex(m => m.userKey === userKey);

@@ -2303,10 +2303,10 @@
 
       // イベントカードの管理ボタン（既に描画されている場合）
       currentEvents.forEach(event => {
-        const syncBtn = document.getElementById(`sync-btn-${event.id}`);
-        const editBtn = document.querySelector(`#event-${event.id} .admin-btn.edit`);
-        const deleteBtn = document.querySelector(`#event-${event.id} .admin-btn.delete`);
-        const adminActions = document.querySelector(`#event-${event.id} .admin-actions`);
+        const syncBtn = document.getElementById('sync-btn-' + event.id);
+        const editBtn = document.querySelector('#event-' + event.id + ' .admin-btn.edit');
+        const deleteBtn = document.querySelector('#event-' + event.id + ' .admin-btn.delete');
+        const adminActions = document.querySelector('#event-' + event.id + ' .admin-actions');
         
         if (isAdminUser) {
           if (syncBtn) syncBtn.style.display = 'inline-block';
@@ -2493,7 +2493,7 @@
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
+      return year + '-' + month + '-' + day;
     }
 
     /**
@@ -2910,7 +2910,8 @@
         const endDate = utcToJST(event.end);
         
         // 日付フォーマット
-        const dateStr = `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
+        const dayNames = ['日','月','火','水','木','金','土'];
+        const dateStr = startDate.getFullYear() + '年' + (startDate.getMonth() + 1) + '月' + startDate.getDate() + '日(' + dayNames[startDate.getDay()] + ')';
         
         // イベント情報をHTMLで構築
         const eventInfo = document.createElement('div');
@@ -2944,7 +2945,7 @@
           locationRow.style.whiteSpace = 'nowrap';
           locationRow.style.overflow = 'hidden';
           locationRow.style.textOverflow = 'ellipsis';
-          const locationText = `📍${event.location}`;
+          const locationText = '📍' + event.location;
           locationRow.textContent = locationText;
           // ツールチップで全文表示
           if (locationText.length > 20) {
@@ -2981,16 +2982,17 @@
         const isMultiDay = startDateOnlyStr !== endDateOnlyStr;
         
         let dateStrShort;
+        const dayNames = ['日','月','火','水','木','金','土'];
         if (isMultiDay) {
           // 複数日の場合は開始日～終了日を表示
-          const startDateDisplayStr = `${startDate.getMonth() + 1}/${startDate.getDate()}(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
+          const startDateDisplayStr = (startDate.getMonth() + 1) + '/' + startDate.getDate() + '(' + dayNames[startDate.getDay()] + ')';
           // 終日イベントの場合は調整済みの終了日を使用
           const displayEndDate = isAllDay ? new Date(endDateOnlyStr) : endDate;
-          const endDateDisplayStr = `${displayEndDate.getMonth() + 1}/${displayEndDate.getDate()}(${['日','月','火','水','木','金','土'][displayEndDate.getDay()]})`;
-          dateStrShort = `${startDateDisplayStr}～${endDateDisplayStr}`;
+          const endDateDisplayStr = (displayEndDate.getMonth() + 1) + '/' + displayEndDate.getDate() + '(' + dayNames[displayEndDate.getDay()] + ')';
+          dateStrShort = startDateDisplayStr + '～' + endDateDisplayStr;
         } else {
           // 単日の場合は開始日のみ
-          dateStrShort = `${startDate.getMonth() + 1}/${startDate.getDate()}(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
+          dateStrShort = (startDate.getMonth() + 1) + '/' + startDate.getDate() + '(' + dayNames[startDate.getDay()] + ')';
         }
         
         let timeDisplay;
@@ -2998,9 +3000,9 @@
           timeDisplay = '終日';
         } else {
           // 時刻フォーマット（JSTで表示）
-          const startTimeStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
-          const endTimeStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-          timeDisplay = `${startTimeStr}～${endTimeStr}`;
+          const startTimeStr = String(startDate.getHours()).padStart(2, '0') + ':' + String(startDate.getMinutes()).padStart(2, '0');
+          const endTimeStr = String(endDate.getHours()).padStart(2, '0') + ':' + String(endDate.getMinutes()).padStart(2, '0');
+          timeDisplay = startTimeStr + '～' + endTimeStr;
         }
         dateTimeDiv.textContent = dateStrShort + ' ' + timeDisplay;
         eventInfo.appendChild(dateTimeDiv);
@@ -3313,7 +3315,7 @@
       }
       
       // UIを更新
-      const cell = document.querySelector(`td[data-event-id="${eventId}"][data-member-name="${memberName}"]`);
+      const cell = document.querySelector('td[data-event-id="' + eventId + '"][data-member-name="' + memberName + '"]');
       if (cell) {
         if (next) {
           cell.textContent = next;
@@ -3590,7 +3592,8 @@
         // UTCをJSTに変換
         const startDate = utcToJST(event.start);
         const endDate = utcToJST(event.end);
-        const dateStr = `${startDate.getMonth() + 1}/${startDate.getDate()}(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
+        const dayNames = ['日','月','火','水','木','金','土'];
+        const dateStr = (startDate.getMonth() + 1) + '/' + startDate.getDate() + '(' + dayNames[startDate.getDay()] + ')';
         const eventTitle = event.title || '（タイトルなし）';
         
         // 終日かどうかを判定（event.isAllDayフラグを使用）
@@ -3601,9 +3604,9 @@
           timeDisplay = '終日';
         } else {
           // 時刻フォーマット（JSTで表示）
-          const startTimeStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
-          const endTimeStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-          timeDisplay = `${startTimeStr}～${endTimeStr}`;
+          const startTimeStr = String(startDate.getHours()).padStart(2, '0') + ':' + String(startDate.getMinutes()).padStart(2, '0');
+          const endTimeStr = String(endDate.getHours()).padStart(2, '0') + ':' + String(endDate.getMinutes()).padStart(2, '0');
+          timeDisplay = startTimeStr + '～' + endTimeStr;
         }
         
         // 1行目：イベント名
@@ -3723,7 +3726,7 @@
         commentRow.style.marginTop = '8px';
 
         const commentInput = document.createElement('textarea');
-        commentInput.id = `comment-${event.id}-${memberName}`;
+        commentInput.id = 'comment-' + event.id + '-' + memberName;
         commentInput.className = 'comment-input';
         commentInput.placeholder = 'コメントを入力（任意）';
         commentInput.style.width = '100%';
@@ -3871,14 +3874,16 @@
         let dateStr;
         if (isMultiDay) {
           // 複数日の場合は開始日～終了日を表示
-          const startDateDisplayStr = `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
+          const dayNames = ['日','月','火','水','木','金','土'];
+          const startDateDisplayStr = startDate.getFullYear() + '年' + (startDate.getMonth() + 1) + '月' + startDate.getDate() + '日(' + dayNames[startDate.getDay()] + ')';
           // 終日イベントの場合は調整済みの終了日を使用
           const displayEndDate = isAllDay ? new Date(endDateOnlyStr) : endDate;
-          const endDateDisplayStr = `${displayEndDate.getFullYear()}年${displayEndDate.getMonth() + 1}月${displayEndDate.getDate()}日(${['日','月','火','水','木','金','土'][displayEndDate.getDay()]})`;
-          dateStr = `${startDateDisplayStr}～${endDateDisplayStr}`;
+          const endDateDisplayStr = displayEndDate.getFullYear() + '年' + (displayEndDate.getMonth() + 1) + '月' + displayEndDate.getDate() + '日(' + dayNames[displayEndDate.getDay()] + ')';
+          dateStr = startDateDisplayStr + '～' + endDateDisplayStr;
         } else {
           // 単日の場合は開始日のみ
-          dateStr = `${startDate.getFullYear()}年${startDate.getMonth() + 1}月${startDate.getDate()}日(${['日','月','火','水','木','金','土'][startDate.getDay()]})`;
+          const dayNames = ['日','月','火','水','木','金','土'];
+          dateStr = startDate.getFullYear() + '年' + (startDate.getMonth() + 1) + '月' + startDate.getDate() + '日(' + dayNames[startDate.getDay()] + ')';
         }
         
         let timeDisplay;
@@ -3886,9 +3891,9 @@
           timeDisplay = '終日';
         } else {
           // 時刻フォーマット（JSTで表示）
-          const startTimeStr = `${String(startDate.getHours()).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
-          const endTimeStr = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}`;
-          timeDisplay = `${startTimeStr}～${endTimeStr}`;
+          const startTimeStr = String(startDate.getHours()).padStart(2, '0') + ':' + String(startDate.getMinutes()).padStart(2, '0');
+          const endTimeStr = String(endDate.getHours()).padStart(2, '0') + ':' + String(endDate.getMinutes()).padStart(2, '0');
+          timeDisplay = startTimeStr + '～' + endTimeStr;
         }
 
         let locationHtml = '';
@@ -4592,7 +4597,7 @@
         const eventId = event.id;
         const status = gridData[eventId] && gridData[eventId][memberName];
         // 各イベントごとのコメントを取得（確実に正しいイベントIDを使用）
-        const commentInput = document.getElementById(`comment-${eventId}-${memberName}`);
+        const commentInput = document.getElementById('comment-' + eventId + '-' + memberName);
         const comment = commentInput ? commentInput.value.trim() : '';
         
         // 元のデータを取得（変更検知用）
@@ -4955,7 +4960,7 @@
       const day = String(date.getDate()).padStart(2, '0');
       const hours = String(date.getHours()).padStart(2, '0');
       const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${year}/${month}/${day} ${hours}:${minutes}`;
+      return year + '/' + month + '/' + day + ' ' + hours + ':' + minutes;
     }
 
     /**
@@ -4992,7 +4997,7 @@
      */
     function showToast(message, type = 'success') {
       const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
+      toast.className = 'toast ' + type;
       toast.textContent = message;
       document.body.appendChild(toast);
 
@@ -5222,7 +5227,7 @@
       const day = String(date.getDate()).padStart(2, '0');
       const hours = String(date.getHours()).padStart(2, '0');
       const minutes = String(date.getMinutes()).padStart(2, '0');
-      return `${year}-${month}-${day}T${hours}:${minutes}`;
+      return year + '-' + month + '-' + day + 'T' + hours + ':' + minutes;
     }
 
     /**
@@ -5232,7 +5237,7 @@
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
       const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
+      return year + '-' + month + '-' + day;
     }
 
     /**
@@ -5511,7 +5516,7 @@
     function openDeleteConfirm(eventId, eventTitle) {
       deletingEventId = eventId;
       document.getElementById('delete-confirm-message').textContent = 
-        `「${eventTitle}」を削除しますか？この操作は取り消せません。`;
+        '「' + eventTitle + '」を削除しますか？この操作は取り消せません。';
       document.getElementById('delete-confirm').style.display = 'block';
     }
 
@@ -5574,7 +5579,7 @@
      * 個別イベント同期
      */
     function syncEvent(eventId) {
-      const syncBtn = document.getElementById(`sync-btn-${eventId}`);
+      const syncBtn = document.getElementById('sync-btn-' + eventId);
       if (!syncBtn) {
         return;
       }
@@ -5635,7 +5640,7 @@
             selectedMember = null;
             
             showToast(
-              `全データ削除完了:\nカレンダー: ${result.calendarDeleted}件\nEvents: ${result.eventsDeleted}件\nResponses: ${result.responsesDeleted}件\nAuditLog: ${result.auditLogDeleted}件`,
+              '全データ削除完了:\nカレンダー: ' + result.calendarDeleted + '件\nEvents: ' + result.eventsDeleted + '件\nResponses: ' + result.responsesDeleted + '件\nAuditLog: ' + result.auditLogDeleted + '件',
               'success'
             );
             
@@ -5669,7 +5674,7 @@
             const addLink = document.getElementById('calendar-add-link');
             // URLエンコードしてカレンダーIDを安全に渡す
             const encodedCalendarId = encodeURIComponent(result.calendarId);
-            addLink.href = `https://calendar.google.com/calendar/render?cid=${encodedCalendarId}`;
+            addLink.href = 'https://calendar.google.com/calendar/render?cid=' + encodedCalendarId;
             document.getElementById('add-to-calendar-modal').style.display = 'block';
           } else {
             showToast(result.error || 'カレンダーIDの取得に失敗しました', 'error');

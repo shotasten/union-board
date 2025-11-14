@@ -3891,17 +3891,25 @@
           timeDisplay = `${startTimeStr}～${endTimeStr}`;
         }
 
-        infoDiv.innerHTML = `
-          <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
-            <h3 style="margin: 0 0 10px 0; font-size: 1.2rem;">${event.title || '予定'}</h3>
-            <div style="color: #666; font-size: 0.9rem; line-height: 1.8;">
-              <div><strong>日付:</strong> ${dateStr}</div>
-              <div><strong>時刻:</strong> ${timeDisplay}</div>
-              ${event.location ? `<div><strong>場所:</strong> ${event.location}</div>` : ''}
-              ${event.description ? `<div style="margin-top: 10px;"><strong>説明:</strong><br>${cleanDescription(event.description).replace(/\n/g, '<br>')}</div>` : ''}
-            </div>
-          </div>
-        `;
+        let locationHtml = '';
+        if (event.location) {
+          locationHtml = '<div><strong>場所:</strong> ' + event.location + '</div>';
+        }
+        let descriptionHtml = '';
+        if (event.description) {
+          const cleanDesc = cleanDescription(event.description).replace(/\n/g, '<br>');
+          descriptionHtml = '<div style="margin-top: 10px;"><strong>説明:</strong><br>' + cleanDesc + '</div>';
+        }
+        infoDiv.innerHTML = 
+          '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">' +
+            '<h3 style="margin: 0 0 10px 0; font-size: 1.2rem;">' + (event.title || '予定') + '</h3>' +
+            '<div style="color: #666; font-size: 0.9rem; line-height: 1.8;">' +
+              '<div><strong>日付:</strong> ' + dateStr + '</div>' +
+              '<div><strong>時刻:</strong> ' + timeDisplay + '</div>' +
+              locationHtml +
+              descriptionHtml +
+            '</div>' +
+          '</div>';
       }
 
       // 全体の集計（未選択も含む）

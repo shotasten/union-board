@@ -5717,7 +5717,10 @@
           hideFullscreenLoader();
           
           if (result.success > 0 || result.failed === 0) {
-            showToast(`同期完了: 成功 ${result.success}件${result.failed > 0 ? `, 失敗 ${result.failed}件` : ''}`, 'success');
+            const message = result.failed > 0 
+              ? `同期完了: 成功 ${result.success}件, 失敗 ${result.failed}件`
+              : `同期完了: 成功 ${result.success}件`;
+            showToast(message, 'success');
             // イベント一覧を再読み込み
             loadInitData().then(() => {
               renderEvents();

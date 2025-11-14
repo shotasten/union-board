@@ -5727,7 +5727,7 @@
               renderEvents();
             });
           } else {
-            showToast(`同期失敗: ${result.errors.join(', ')}`, 'error');
+            showToast('同期失敗: ' + result.errors.join(', '), 'error');
           }
         })
         .withFailureHandler((error) => {

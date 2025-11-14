@@ -74,18 +74,21 @@ function getAllEventsForLocationHistory(): AttendanceEvent[] {
  */
 function getInitData(): { events: AttendanceEvent[]; config: Config; members: Array<{userKey: string, part: string, name: string, displayName: string}>; responsesMap: { [eventId: string]: Response[] } } {
   try {
-    
-    const events = getEvents('all');
+    // 性能改善：Configシートを1回だけ読み込む
+    const allConfig = getAllConfig();
     
     const config: Config = {
       AUTH_MODE: 'anonymous' as 'google' | 'anonymous',
-      ADMIN_TOKEN: getConfig('ADMIN_TOKEN', ''),
-      CALENDAR_ID: getConfig('CALENDAR_ID', 'primary'),
+      ADMIN_TOKEN: allConfig['ADMIN_TOKEN'] || '',
+      CALENDAR_ID: allConfig['CALENDAR_ID'] || 'primary',
       CACHE_EXPIRE_HOURS: '6',
       TIMEZONE: 'Asia/Tokyo',
-      DISPLAY_START_DATE: getConfig('DISPLAY_START_DATE', ''),
-      DISPLAY_END_DATE: getConfig('DISPLAY_END_DATE', '')
+      DISPLAY_START_DATE: allConfig['DISPLAY_START_DATE'] || '',
+      DISPLAY_END_DATE: allConfig['DISPLAY_END_DATE'] || ''
     };
+    
+    // 表示期間の設定値をgetEvents()に渡す（Configシートの再読み込みを回避）
+    const events = getEvents('all', config.DISPLAY_START_DATE, config.DISPLAY_END_DATE);
     
     // メンバー一覧を取得
     const members = getMembers().map(m => ({

@@ -170,9 +170,11 @@ function createEvent(
 /**
  * イベント一覧を取得
  * @param filter フィルター条件（upcoming: 今後のイベント, past: 過去のイベント, all: すべて）
+ * @param displayStartDateStr 表示開始日（ISO 8601形式、オプション、性能改善：Configシートの再読み込みを回避）
+ * @param displayEndDateStr 表示終了日（ISO 8601形式、オプション、性能改善：Configシートの再読み込みを回避）
  * @returns イベント配列
  */
-function getEvents(filter?: 'upcoming' | 'past' | 'all'): AttendanceEvent[] {
+function getEvents(filter?: 'upcoming' | 'past' | 'all', displayStartDateStr?: string, displayEndDateStr?: string): AttendanceEvent[] {
   try {
     const sheet = getEventsSheet();
     const data = sheet.getDataRange().getValues();
@@ -181,21 +183,23 @@ function getEvents(filter?: 'upcoming' | 'past' | 'all'): AttendanceEvent[] {
     const events: AttendanceEvent[] = [];
     const now = new Date();
     
-    // 表示期間の設定を取得
-    const displayStartDateStr = getConfig('DISPLAY_START_DATE', '');
-    const displayEndDateStr = getConfig('DISPLAY_END_DATE', '');
+    // 表示期間の設定を取得（引数で渡されていない場合はConfigシートから取得、後方互換性のため）
     let displayStartDate: Date | null = null;
     let displayEndDate: Date | null = null;
     
-    if (displayStartDateStr) {
-      displayStartDate = new Date(displayStartDateStr);
+    // 引数で渡された場合はそれを使用（性能改善：Configシートの再読み込みを回避）
+    const startStr = displayStartDateStr !== undefined ? displayStartDateStr : getConfig('DISPLAY_START_DATE', '');
+    const endStr = displayEndDateStr !== undefined ? displayEndDateStr : getConfig('DISPLAY_END_DATE', '');
+    
+    if (startStr) {
+      displayStartDate = new Date(startStr);
       if (isNaN(displayStartDate.getTime())) {
         displayStartDate = null;
       }
     }
     
-    if (displayEndDateStr) {
-      displayEndDate = new Date(displayEndDateStr);
+    if (endStr) {
+      displayEndDate = new Date(endStr);
       if (isNaN(displayEndDate.getTime())) {
         displayEndDate = null;
       }

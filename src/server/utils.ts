@@ -414,6 +414,41 @@ function getConfig(key: string, defaultValue: string = ''): string {
 }
 
 /**
+ * 全Config値を一度に取得（性能改善：Configシートを1回だけ読み込む）
+ * @returns Config値のマップ {key: value}
+ */
+function getAllConfig(): { [key: string]: string } {
+  try {
+    const spreadsheet = getOrCreateSpreadsheet();
+    const sheet = spreadsheet.getSheetByName('Config');
+    
+    if (!sheet) {
+      Logger.log('⚠️ 警告: Configシートが存在しません。空のオブジェクトを返します');
+      return {};
+    }
+    
+    const data = sheet.getDataRange().getValues();
+    const configMap: { [key: string]: string } = {};
+    
+    // ヘッダー行をスキップして、すべての設定値を取得
+    for (let i = 1; i < data.length; i++) {
+      const key = data[i][0];
+      const value = data[i][1];
+      if (key) {
+        configMap[String(key)] = String(value || '');
+      }
+    }
+    
+    Logger.log(`✅ 全Config値取得完了: ${Object.keys(configMap).length}件`);
+    return configMap;
+  } catch (error) {
+    Logger.log(`❌ エラー: 全Config取得失敗 - ${(error as Error).message}`);
+    Logger.log((error as Error).stack);
+    return {};
+  }
+}
+
+/**
  * Config値を設定
  * @param key 設定キー
  * @param value 設定値

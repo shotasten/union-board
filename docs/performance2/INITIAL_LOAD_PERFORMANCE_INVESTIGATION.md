@@ -9,7 +9,9 @@
 ## 調査結果サマリー
 
 ### 主要な問題点
-1. **ConfigシートのN+1問題**: `getConfig()`が合計5回呼ばれ、毎回Configシート全体を読み込んでいる
+1. **ConfigシートのN+1問題**: `getConfig()`が合計6回呼ばれ、毎回Configシート全体を読み込んでいる
+   - `getInitData()`内: 4回（ADMIN_TOKEN, CALENDAR_ID, DISPLAY_START_DATE, DISPLAY_END_DATE）
+   - `getEvents()`内: 2回（DISPLAY_START_DATE, DISPLAY_END_DATE）
 2. **大量のDOM操作**: `renderGridTable()`でイベント数 × メンバー数のセルを作成している
 3. **GAS Cold Start**: 初回アクセス時のCold Startによる遅延
 
@@ -39,9 +41,16 @@ google.script.run.getInitData()
   ↓
 [サーバー側処理]
   - getEvents('all')
-  - getConfig() × 3回（ADMIN_TOKEN, CALENDAR_ID, DISPLAY_START_DATE, DISPLAY_END_DATE）
+    - getConfig('DISPLAY_START_DATE') × 1回
+    - getConfig('DISPLAY_END_DATE') × 1回
+  - getConfig('ADMIN_TOKEN') × 1回
+  - getConfig('CALENDAR_ID') × 1回
+  - getConfig('DISPLAY_START_DATE') × 1回（重複）
+  - getConfig('DISPLAY_END_DATE') × 1回（重複）
   - getMembers()
   - getAllResponses()
+  
+  ※合計: getConfig()が6回呼ばれている（DISPLAY_START_DATE, DISPLAY_END_DATEは重複）
   ↓
 [クライアント側処理]
   - renderEvents()
@@ -74,7 +83,8 @@ function getInitData() {
 
 **問題点:**
 - `getConfig()`が4回呼ばれ、毎回Configシート全体を読み込んでいる
-- `getEvents()`内でも`getConfig()`が2回呼ばれている（合計6回の可能性）
+- `getEvents()`内でも`getConfig()`が2回呼ばれている
+- **合計6回のConfigシート読み込みが発生**（DISPLAY_START_DATE, DISPLAY_END_DATEは重複）
 
 #### 2.2. `getEvents()`関数（`src/server/events.ts:175-276`）
 
@@ -98,6 +108,7 @@ function getEvents(filter) {
 **問題点:**
 - `getDataRange().getValues()`でEventsシート全体を取得（必要最小限のデータのみ取得できない）
 - `getConfig()`が2回呼ばれている（`getInitData()`内でも呼ばれているため重複）
+- DISPLAY_START_DATE, DISPLAY_END_DATEは`getInitData()`と`getEvents()`の両方で取得されている
 
 #### 2.3. `getConfig()`関数（`src/server/utils.ts:386-414`）
 

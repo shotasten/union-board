@@ -1666,6 +1666,9 @@
             🔐 管理者ログイン
           </button>
           <div class="header-action-group" style="display: none;">
+            <button class="add-to-calendar-btn icon-action-btn" onclick="showAddToCalendarModal()" id="add-to-calendar-btn" title="カレンダーに追加">
+              <i class="fas fa-calendar-plus"></i>
+            </button>
             <button class="sync-all-btn icon-action-btn" onclick="syncAllEvents()" id="sync-all-btn" title="同期">
               <i class="fas fa-rotate"></i>
             </button>
@@ -2079,6 +2082,42 @@
       <div class="form-actions" style="margin-top: 20px;">
         <button type="button" class="form-btn cancel" onclick="closeMemberDeleteConfirm()">キャンセル</button>
         <button type="button" class="form-btn danger confirm-delete-member-btn" onclick="confirmDeleteMember()">削除</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- カレンダーに追加モーダル -->
+  <div id="add-to-calendar-modal" class="modal" style="display: none;">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h2>📅 自分のGoogleカレンダーに追加</h2>
+        <button class="close-btn" onclick="closeAddToCalendarModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+          <p style="margin: 0 0 10px 0; line-height: 1.6;">
+            このボタンをクリックすると、<strong>楽団のイベントカレンダー</strong>があなたのGoogleカレンダーに追加されます。
+          </p>
+          <ul style="margin: 0; padding-left: 20px; line-height: 1.8; color: #666;">
+            <li>イベントは自動的に同期され、常に最新の情報が表示されます</li>
+            <li>あなたの「他のカレンダー」セクションに表示されます</li>
+            <li>閲覧のみ可能です（編集は本アプリから行ってください）</li>
+          </ul>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+          <a id="calendar-add-link" href="#" target="_blank" 
+             style="display: inline-block; padding: 14px 28px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 1rem; transition: background 0.3s;">
+            📅 Googleカレンダーに追加
+          </a>
+        </div>
+        <div style="margin-top: 20px; padding: 12px; background: #fff3cd; border-radius: 6px;">
+          <p style="margin: 0; font-size: 0.85rem; color: #856404; line-height: 1.5;">
+            <strong>ℹ️ ヒント:</strong> カレンダーを削除したい場合は、Googleカレンダーの設定から「Tokyo Music Union イベントカレンダー」の購読を解除してください。
+          </p>
+        </div>
+      </div>
+      <div class="form-actions" style="margin-top: 20px;">
+        <button type="button" class="form-btn cancel" onclick="closeAddToCalendarModal()">閉じる</button>
       </div>
     </div>
   </div>
@@ -5601,6 +5640,33 @@
           showToast('エラーが発生しました: ' + error.message, 'error');
         })
         .adminCleanupAllData(currentUserKey, localStorage.getItem('adminToken'));
+    }
+
+    /**
+     * カレンダーに追加モーダルを表示
+     */
+    function showAddToCalendarModal() {
+      google.script.run
+        .withSuccessHandler((result) => {
+          if (result.success && result.calendarId) {
+            const addLink = document.getElementById('calendar-add-link');
+            addLink.href = `https://calendar.google.com/calendar/render?cid=${result.calendarId}`;
+            document.getElementById('add-to-calendar-modal').style.display = 'block';
+          } else {
+            showToast(result.error || 'カレンダーIDの取得に失敗しました', 'error');
+          }
+        })
+        .withFailureHandler((error) => {
+          showToast('カレンダーIDの取得に失敗しました: ' + error.message, 'error');
+        })
+        .getCalendarIdForSharing();
+    }
+
+    /**
+     * カレンダーに追加モーダルを閉じる
+     */
+    function closeAddToCalendarModal() {
+      document.getElementById('add-to-calendar-modal').style.display = 'none';
     }
 
     /**

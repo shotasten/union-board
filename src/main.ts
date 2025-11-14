@@ -915,6 +915,35 @@ function syncResponsesDiffToCalendar(
 
 
 /**
+ * カレンダーIDを取得（カレンダー共有用）
+ * @returns カレンダーID
+ */
+function getCalendarIdForSharing(): { success: boolean; calendarId?: string; error?: string } {
+  try {
+    const calendarId = getConfig('CALENDAR_ID', '');
+    if (!calendarId) {
+      Logger.log('❌ エラー: カレンダーIDが設定されていません');
+      return {
+        success: false,
+        error: 'カレンダーIDが設定されていません。管理者に連絡してください。'
+      };
+    }
+    
+    Logger.log(`✅ カレンダーID取得成功: ${calendarId}`);
+    return {
+      success: true,
+      calendarId: calendarId
+    };
+  } catch (error) {
+    Logger.log(`❌ エラー: カレンダーID取得失敗 - ${(error as Error).message}`);
+    return {
+      success: false,
+      error: (error as Error).message
+    };
+  }
+}
+
+/**
  * 管理者用: 表示期間設定API
  * @param startDate 表示開始日（ISO 8601形式、空文字列で制限解除）
  * @param endDate 表示終了日（ISO 8601形式、空文字列で制限解除）

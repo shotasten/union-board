@@ -1665,10 +1665,10 @@
           <button class="admin-login-btn" onclick="showAdminLoginModal()" id="admin-login-btn" style="display: inline-block;">
             🔐 管理者ログイン
           </button>
+          <button class="add-to-calendar-btn icon-action-btn" onclick="showAddToCalendarModal()" id="add-to-calendar-btn" title="カレンダーに追加" style="display: inline-flex;">
+            <i class="fas fa-calendar-plus"></i>
+          </button>
           <div class="header-action-group" style="display: none;">
-            <button class="add-to-calendar-btn icon-action-btn" onclick="showAddToCalendarModal()" id="add-to-calendar-btn" title="カレンダーに追加">
-              <i class="fas fa-calendar-plus"></i>
-            </button>
             <button class="sync-all-btn icon-action-btn" onclick="syncAllEvents()" id="sync-all-btn" title="同期">
               <i class="fas fa-rotate"></i>
             </button>
@@ -2280,8 +2280,12 @@
       const createEventBtn = document.getElementById('create-event-btn');
       const displayPeriodEditBtn = document.getElementById('display-period-edit-btn');
       const memberRegisterBtn = document.querySelector('.member-register-btn');
+      const addToCalendarBtn = document.getElementById('add-to-calendar-btn');
       
       const headerActionGroup = document.querySelector('.header-action-group');
+      
+      // カレンダーに追加ボタンはすべてのユーザーに表示
+      if (addToCalendarBtn) addToCalendarBtn.style.display = 'inline-flex';
       
       if (isAdminUser) {
         // 管理者の場合：ログインボタンを非表示、ログアウトボタンと管理ボタンを表示

@@ -4390,6 +4390,10 @@
      * 選択中のメンバーの出欠を一括更新（各日程ごとに個別のステータスとコメント）
      */
     function bulkUpdateResponsesForSelectedMember(updatedMemberName = null) {
+      console.log('🔍 === 出欠保存開始 ===');
+      console.time('⏱️ 出欠保存_全体');
+      console.time('⏱️ 出欠保存_変更検知');
+      
       const memberName = updatedMemberName || selectedMember;
       
       if (!memberName) {
@@ -4444,7 +4448,13 @@
         }
       });
 
+      console.timeEnd('⏱️ 出欠保存_変更検知');
+      console.log(`📊 変更検知結果: ${updates.length}件`);
+      
       if (updates.length === 0) {
+        console.timeEnd('⏱️ 出欠保存_全体');
+        console.log('✅ 変更なし - 処理終了');
+        
         // 保存ボタンを元に戻す
         if (saveBtn) {
           saveBtn.disabled = false;
@@ -4481,9 +4491,16 @@
         return;
       }
 
+      console.time('⏱️ 出欠保存_API呼び出し');
+      console.log('🚀 API呼び出し開始');
+      
       // 1回のAPI呼び出しで全件保存
       google.script.run
         .withSuccessHandler((result) => {
+          console.timeEnd('⏱️ 出欠保存_API呼び出し');
+          console.time('⏱️ 出欠保存_キャッシュ更新');
+          console.log(`✅ API呼び出し成功: ${result.success}件成功, ${result.failed}件失敗`);
+          
           // 保存ボタンを元に戻す
           if (saveBtn) {
             saveBtn.disabled = false;
@@ -4518,6 +4535,9 @@
               }
             });
             
+            console.timeEnd('⏱️ 出欠保存_キャッシュ更新');
+            console.time('⏱️ 出欠保存_UI更新');
+            
             // 更新完了後、変更をクリア
             currentEvents.forEach(event => {
               if (gridData[event.id] && gridData[event.id][memberName]) {
@@ -4543,12 +4563,20 @@
             
             // メンバー編集モーダルを閉じる
             closeMemberEditModal();
+            
+            console.timeEnd('⏱️ 出欠保存_UI更新');
+            console.timeEnd('⏱️ 出欠保存_全体');
+            console.log('✅ === 出欠保存完了 ===');
           } else {
             showToast(`${result.success}件成功、${result.failed}件失敗しました`, 'warning');
             renderGrid(); // エラーがあっても再描画
           }
         })
         .withFailureHandler((error) => {
+          console.timeEnd('⏱️ 出欠保存_API呼び出し');
+          console.timeEnd('⏱️ 出欠保存_全体');
+          console.error('❌ API呼び出し失敗:', error);
+          
           // 保存ボタンを元に戻す
           if (saveBtn) {
             saveBtn.disabled = false;

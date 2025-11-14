@@ -359,16 +359,21 @@ function userSubmitResponsesBatch(
     comment?: string;
   }>
 ): { success: number; failed: number; errors: string[] } {
+  const startTime = new Date().getTime();
+  Logger.log(`🔍 === バッチ保存開始 (${responses.length}件) ===`);
+  
   let successCount = 0;
   let failedCount = 0;
   const errors: string[] = [];
   
   
   try {
+    const sheetStartTime = new Date().getTime();
     // シートを1回だけ取得
     const sheet = getResponsesSheet();
     const data = sheet.getDataRange().getValues();
     const now = new Date().toISOString();
+    Logger.log(`⏱️ シート取得: ${new Date().getTime() - sheetStartTime}ms`);
     
     // 既存データのインデックスを作成（高速検索用）
     const existingRows = new Map<string, number>();
@@ -433,6 +438,7 @@ function userSubmitResponsesBatch(
     
     // 性能改善：更新と追加を1回のバッチ操作で実行
     if (rowsToUpdate.length > 0 || rowsToAdd.length > 0) {
+      const writeStartTime = new Date().getTime();
       Logger.log(`🔄 バッチ更新開始: 更新${rowsToUpdate.length}件, 追加${rowsToAdd.length}件`);
       
       // 既存の全データを取得
@@ -463,21 +469,28 @@ function userSubmitResponsesBatch(
       }
       
       Logger.log(`✅ バッチ更新完了: 合計${allData.length - 1}件`);
+      Logger.log(`⏱️ Spreadsheet書き込み: ${new Date().getTime() - writeStartTime}ms`);
     }
     
+    const dataWriteTime = new Date().getTime() - startTime;
     Logger.log(`✅ バッチ保存完了: 成功 ${successCount}件, 失敗 ${failedCount}件`);
+    Logger.log(`⏱️ データ保存合計: ${dataWriteTime}ms`);
     
     // 出欠データ保存後、関連イベントのカレンダー説明欄を同期
     if (successCount > 0) {
+      const calendarSyncStartTime = new Date().getTime();
+      Logger.log(`📅 カレンダー同期開始...`);
+      
       const syncedEventIds = new Set<string>();
       
       responses.forEach(response => {
         // 各イベントについて1回だけ同期（重複を避ける）
         if (!syncedEventIds.has(response.eventId)) {
           try {
+            const eventSyncStartTime = new Date().getTime();
             syncCalendarDescriptionForEvent(response.eventId);
             syncedEventIds.add(response.eventId);
-            Logger.log(`✅ カレンダー同期成功: ${response.eventId}`);
+            Logger.log(`✅ カレンダー同期成功: ${response.eventId} (${new Date().getTime() - eventSyncStartTime}ms)`);
           } catch (error) {
             Logger.log(`⚠️ カレンダー同期失敗: ${response.eventId} - ${(error as Error).message}`);
             // カレンダー同期失敗してもエラーカウントには含めない（出欠データは保存済み）
@@ -485,7 +498,9 @@ function userSubmitResponsesBatch(
         }
       });
       
-      Logger.log(`📅 カレンダー同期完了: ${syncedEventIds.size}件のイベント`);
+      const calendarSyncTime = new Date().getTime() - calendarSyncStartTime;
+      Logger.log(`📅 カレンダー同期完了: ${syncedEventIds.size}件のイベント (${calendarSyncTime}ms)`);
+      Logger.log(`⏱️ === バッチ保存全体: ${new Date().getTime() - startTime}ms ===`);
     }
     
   } catch (error) {

@@ -431,21 +431,38 @@ function userSubmitResponsesBatch(
       }
     });
     
-    // 一括更新（既存データ）
-    if (rowsToUpdate.length > 0) {
-      Logger.log(`✅ 既存データ更新: ${rowsToUpdate.length}件`);
+    // 性能改善：更新と追加を1回のバッチ操作で実行
+    if (rowsToUpdate.length > 0 || rowsToAdd.length > 0) {
+      Logger.log(`🔄 バッチ更新開始: 更新${rowsToUpdate.length}件, 追加${rowsToAdd.length}件`);
+      
+      // 既存の全データを取得
+      const allData = data.slice(); // dataのコピー
+      
+      // 既存データを更新
       rowsToUpdate.forEach(update => {
-        const range = sheet.getRange(update.row + 1, 1, 1, 6);
-        range.setValues([update.data]);
+        allData[update.row] = update.data;
       });
-    }
-    
-    // 一括追加（新規データ）
-    if (rowsToAdd.length > 0) {
-      Logger.log(`✅ 新規データ追加: ${rowsToAdd.length}件`);
-      const lastRow = sheet.getLastRow();
-      const range = sheet.getRange(lastRow + 1, 1, rowsToAdd.length, 6);
-      range.setValues(rowsToAdd);
+      
+      // 新規データを追加
+      if (rowsToAdd.length > 0) {
+        allData.push(...rowsToAdd);
+      }
+      
+      // 1回のAPI呼び出しで全データを書き込み
+      sheet.clear();
+      if (allData.length > 0) {
+        sheet.getRange(1, 1, allData.length, allData[0].length)
+          .setValues(allData);
+        
+        // ヘッダー行のスタイルを復元
+        sheet.getRange(1, 1, 1, allData[0].length)
+          .setFontWeight('bold')
+          .setBackground('#667eea')
+          .setFontColor('#ffffff');
+        sheet.setFrozenRows(1);
+      }
+      
+      Logger.log(`✅ バッチ更新完了: 合計${allData.length - 1}件`);
     }
     
     Logger.log(`✅ バッチ保存完了: 成功 ${successCount}件, 失敗 ${failedCount}件`);

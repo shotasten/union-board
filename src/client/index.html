@@ -4758,59 +4758,6 @@
         .createMember(userKey, part, name, displayName);
     }
 
-    /**
-     * 一括更新を実行
-     */
-    function bulkUpdateResponses() {
-      // gridDataから全ての変更を取得
-      const updates = [];
-      
-      Object.keys(gridData).forEach(eventId => {
-        Object.keys(gridData[eventId]).forEach(memberName => {
-          const status = gridData[eventId][memberName];
-          updates.push({
-            eventId: eventId,
-            memberName: memberName,
-            status: status
-          });
-        });
-      });
-
-      if (updates.length === 0) {
-        showToast('更新するデータがありません', 'info');
-        return;
-      }
-
-      const comment = document.getElementById('grid-comment').value.trim();
-      
-      // 各更新を順次実行（簡易版：実際には一括更新APIを実装する必要がある）
-      let completed = 0;
-      let failed = 0;
-
-      updates.forEach(update => {
-        // 現在のユーザー情報を使用（実際にはメンバー名からuserKeyを取得する必要がある）
-        google.script.run
-          .withSuccessHandler((result) => {
-            completed++;
-            if (completed + failed === updates.length) {
-              if (failed === 0) {
-                showToast(`${completed}件の出欠を更新しました`, 'success');
-                gridData = {}; // 更新完了後、変更をクリア
-                renderGrid();
-              } else {
-                showToast(`${completed}件成功、${failed}件失敗しました`, 'error');
-              }
-            }
-          })
-          .withFailureHandler((error) => {
-            failed++;
-            if (completed + failed === updates.length) {
-              showToast(`${completed}件成功、${failed}件失敗しました`, 'error');
-            }
-          })
-          .userSubmitResponse(update.eventId, update.memberUserKey, update.memberName, update.status, comment);
-      });
-    }
 
     /**
      * グリッド編集をキャンセル

@@ -296,55 +296,6 @@ function adminDeleteEvent(
   }
 }
 
-/**
- * ユーザー用: 出欠回答登録API
- * @param eventId イベントID
- * @param userKey ユーザー識別子
- * @param status 出欠ステータス（○、△、×）
- * @param comment コメント（オプション）
- * @returns 成功時: { success: true }, 失敗時: { success: false, error: string }
- */
-function userSubmitResponse(
-  eventId: string,
-  userKey: string,
-  status: '○' | '△' | '×' | '-',
-  comment?: string
-): { success: boolean; error?: string } {
-  try {
-    if (!eventId || !userKey || !status) {
-      return {
-        success: false,
-        error: 'eventId, userKey, statusは必須です'
-      };
-    }
-    
-    if (status !== '○' && status !== '△' && status !== '×' && status !== '-') {
-      return {
-        success: false,
-        error: 'statusは○、△、×、-のいずれかである必要があります'
-      };
-    }
-    
-    const result = submitResponse(eventId, userKey, status, comment);
-    
-    if (result) {
-      return {
-        success: true
-      };
-    } else {
-      return {
-        success: false,
-        error: '出欠回答登録に失敗しました'
-      };
-    }
-  } catch (error) {
-    Logger.log(`❌ エラー: 出欠回答登録API失敗 - ${(error as Error).message}`);
-    return {
-      success: false,
-      error: (error as Error).message
-    };
-  }
-}
 
 /**
  * 複数の出欠回答を一括登録

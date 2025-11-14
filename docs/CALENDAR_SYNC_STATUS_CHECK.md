@@ -4,17 +4,17 @@
 
 ### 1. `userSubmitResponse()`の使用状況
 
-**結論**: ⚠️ **使用されていない（削除可能）**
+**結論**: ✅ **削除完了**
+
+**削除内容**:
+- ✅ `src/main.ts:307` - `userSubmitResponse()`関数を削除
+- ✅ `src/server/responses.ts:31` - `submitResponse()`関数を削除
+- ✅ `src/client/index.html:4764` - `bulkUpdateResponses()`関数を削除
 
 **理由**:
-- `bulkUpdateResponses()`関数内で呼び出されている（4811行目）
-- しかし、`bulkUpdateResponses()`関数自体が呼び出されていない
+- `bulkUpdateResponses()`関数内で呼び出されていたが、`bulkUpdateResponses()`自体が呼び出されていない
 - 現在は`bulkUpdateResponsesForSelectedMember()`が使用されている
-
-**削除対象**:
-- `src/main.ts:307` - `userSubmitResponse()`関数
-- `src/server/responses.ts:31` - `submitResponse()`関数（`userSubmitResponse()`から呼ばれる）
-- `src/client/index.html:4764` - `bulkUpdateResponses()`関数（未使用）
+- テストファイルはモック関数を使用しているため影響なし
 
 ---
 
@@ -79,23 +79,14 @@ function userSubmitResponsesBatch(
 
 ---
 
-## 🎯 対応方針
+## 📊 まとめ
 
-### 1. `userSubmitResponse()`の削除
+### 削除完了
+- ✅ `userSubmitResponse()`関数
+- ✅ `submitResponse()`関数
+- ✅ `bulkUpdateResponses()`関数
 
-**削除対象**:
-1. `src/main.ts:307` - `userSubmitResponse()`関数
-2. `src/server/responses.ts:31` - `submitResponse()`関数（ただし、他で使われていないか確認）
-3. `src/client/index.html:4764` - `bulkUpdateResponses()`関数
-
-**注意**: `submitResponse()`が他で使われていないか確認が必要
-
-### 2. `userSubmitResponsesBatch()`のスキップ処理
-
-**現状**: ✅ **正常に動作している**
-- スキップ処理は実装済み
-- クライアント側で`skipCalendarSync=true`を指定
-- カレンダー同期は実行されない
-
-**変更不要**
-
+### スキップ処理の状態
+- ✅ **実装済み・正常に動作中**
+- ✅ クライアント側で`skipCalendarSync=true`を指定
+- ✅ カレンダー同期は実行されない（定期同期に任せる）

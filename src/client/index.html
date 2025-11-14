@@ -3870,10 +3870,10 @@
         
         const isMultiDay = startDateOnlyStr !== endDateOnlyStr;
         
+        const dayNames = ['日','月','火','水','木','金','土'];
         let dateStr;
         if (isMultiDay) {
           // 複数日の場合は開始日～終了日を表示
-          const dayNames = ['日','月','火','水','木','金','土'];
           const startDateDisplayStr = startDate.getFullYear() + '年' + (startDate.getMonth() + 1) + '月' + startDate.getDate() + '日(' + dayNames[startDate.getDay()] + ')';
           // 終日イベントの場合は調整済みの終了日を使用
           const displayEndDate = isAllDay ? new Date(endDateOnlyStr) : endDate;
@@ -3881,7 +3881,6 @@
           dateStr = startDateDisplayStr + '～' + endDateDisplayStr;
         } else {
           // 単日の場合は開始日のみ
-          const dayNames = ['日','月','火','水','木','金','土'];
           dateStr = startDate.getFullYear() + '年' + (startDate.getMonth() + 1) + '月' + startDate.getDate() + '日(' + dayNames[startDate.getDay()] + ')';
         }
         

@@ -4562,8 +4562,8 @@
             userKey: u.memberUserKey,
             status: u.status,
             comment: u.comment
-          })),
-          true  // skipCalendarSync: カレンダー同期は定期同期（cron）に任せる
+          }))
+          // カレンダー同期は定期同期（cron）に任せる（性能改善）
         );
     }
 

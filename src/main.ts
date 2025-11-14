@@ -308,8 +308,7 @@ function userSubmitResponsesBatch(
     userKey: string;
     status: '○' | '△' | '×' | '-';
     comment?: string;
-  }>,
-  skipCalendarSync: boolean = false
+  }>
 ): { success: number; failed: number; errors: string[] } {
   let successCount = 0;
   let failedCount = 0;
@@ -415,24 +414,7 @@ function userSubmitResponsesBatch(
     
     Logger.log(`✅ バッチ保存完了: 成功 ${successCount}件, 失敗 ${failedCount}件`);
     
-    // 出欠データ保存後、関連イベントのカレンダー説明欄を同期
-    // 性能改善：カレンダー同期をスキップして、定期同期（cron）に任せる
-    if (successCount > 0 && !skipCalendarSync) {
-      const syncedEventIds = new Set<string>();
-      
-      responses.forEach(response => {
-        // 各イベントについて1回だけ同期（重複を避ける）
-        if (!syncedEventIds.has(response.eventId)) {
-          try {
-            syncCalendarDescriptionForEvent(response.eventId);
-            syncedEventIds.add(response.eventId);
-          } catch (error) {
-            Logger.log(`⚠️ カレンダー同期失敗: ${response.eventId} - ${(error as Error).message}`);
-            // カレンダー同期失敗してもエラーカウントには含めない（出欠データは保存済み）
-          }
-        }
-      });
-    }
+    // カレンダー同期は定期同期（cron）に任せる（性能改善）
     
   } catch (error) {
     Logger.log(`❌ バッチ保存エラー: ${(error as Error).message}`);

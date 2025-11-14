@@ -179,7 +179,7 @@ function adminCreateEvent(
       return {
         success: true,
         eventId: eventId,
-        event: event
+        event: event || undefined
       };
     } else {
       return {

@@ -777,10 +777,10 @@ function syncAllEvents(userKey?: string, adminToken?: string, limitToDisplayPeri
 }
 
 /**
- * cron用: Responsesシートの差分をカレンダーに同期（15分ごと）
+ * cron用: Responsesシートの差分をカレンダーに同期
  * - 前回同期以降に更新された出欠データのみを同期
- * - 9:00〜25:00（翌1:00）まで15分ごとに実行
- * - 土日12:40〜13:20は5分ごとの関数との重複を避ける
+ * - 15分ごとまたは5分ごとのトリガーで実行可能
+ * - 重複実行防止: 10分以内の再実行を自動的にスキップ
  */
 function scheduledSyncResponsesToCalendar(): void {
   const PROPERTY_KEY = 'LAST_CRON_CALENDAR_SYNC_TIMESTAMP';
@@ -788,7 +788,7 @@ function scheduledSyncResponsesToCalendar(): void {
   
   try {
     const now = new Date();
-    Logger.log(`📅 [cron 15分] 同期開始: ${now.toISOString()}`);
+    Logger.log(`📅 [cron] 同期開始: ${now.toISOString()}`);
     
     // 重複実行の防止チェック
     const properties = PropertiesService.getScriptProperties();
@@ -810,46 +810,13 @@ function scheduledSyncResponsesToCalendar(): void {
     // 同期時刻を保存
     properties.setProperty(PROPERTY_KEY, now.toISOString());
     
-    Logger.log(`✅ [cron 15分] 同期完了: ${result.synced}件同期, ${result.failed}件失敗, ${result.skipped}件スキップ`);
+    Logger.log(`✅ [cron] 同期完了: ${result.synced}件同期, ${result.failed}件失敗, ${result.skipped}件スキップ`);
     
     if (result.errors.length > 0) {
       Logger.log(`⚠️ エラー詳細: ${result.errors.slice(0, 5).join(', ')}${result.errors.length > 5 ? ' ...' : ''}`);
     }
   } catch (error) {
-    Logger.log(`❌ [cron 15分] 同期エラー: ${(error as Error).message}`);
-    Logger.log((error as Error).stack);
-  }
-}
-
-/**
- * cron用: Responsesシートの差分をカレンダーに同期（5分ごと、土日12:40-13:20のみ）
- * - 前回同期以降に更新された出欠データのみを同期
- * - 土日のみ12:40〜13:20の間、5分ごとに実行
- */
-function scheduledSyncResponsesToCalendarHighFrequency(): void {
-  const PROPERTY_KEY = 'LAST_CRON_CALENDAR_SYNC_TIMESTAMP';
-  
-  try {
-    const now = new Date();
-    Logger.log(`🚀 [cron 5分] 同期開始: ${now.toISOString()}`);
-    
-    // 前回同期時刻を取得
-    const properties = PropertiesService.getScriptProperties();
-    const lastSyncStr = properties.getProperty(PROPERTY_KEY);
-    
-    // 差分同期を実行
-    const result = syncResponsesDiffToCalendar(lastSyncStr);
-    
-    // 同期時刻を保存
-    properties.setProperty(PROPERTY_KEY, now.toISOString());
-    
-    Logger.log(`✅ [cron 5分] 同期完了: ${result.synced}件同期, ${result.failed}件失敗, ${result.skipped}件スキップ`);
-    
-    if (result.errors.length > 0) {
-      Logger.log(`⚠️ エラー詳細: ${result.errors.slice(0, 5).join(', ')}${result.errors.length > 5 ? ' ...' : ''}`);
-    }
-  } catch (error) {
-    Logger.log(`❌ [cron 5分] 同期エラー: ${(error as Error).message}`);
+    Logger.log(`❌ [cron] 同期エラー: ${(error as Error).message}`);
     Logger.log((error as Error).stack);
   }
 }

@@ -4308,6 +4308,13 @@
       const newDisplayName = newPart + newName;
       const nameChanged = newDisplayName !== oldDisplayName;
 
+      // 保存ボタンを無効化
+      const saveBtn = document.querySelector('#member-info-edit-modal .form-btn.primary');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = '保存中...';
+      }
+
       // サーバーに更新を送信する前に、現在のメンバー情報を取得（更新前の状態）
       let oldMember = memberList.find(m => getMemberDisplayName(m) === oldDisplayName);
       
@@ -4389,6 +4396,12 @@
       
       google.script.run
         .withSuccessHandler((result) => {
+          // 保存ボタンを元に戻す
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '保存';
+          }
+          
           if (result.success) {
             // 更新成功
             showToast('メンバー情報を更新しました', 'success');
@@ -4437,6 +4450,12 @@
           }
         })
         .withFailureHandler((error) => {
+          // 保存ボタンを元に戻す
+          if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = '保存';
+          }
+          
           showToast('メンバー更新に失敗しました', 'error');
           // エラー時はローカルに戻す（oldMemberIndexを使用）
           if (oldMemberIndex !== -1) {
@@ -4694,7 +4713,8 @@
         return;
       }
 
-      // 保存ボタンを無効化
+      // このメンバー編集パネルは現在使用されていない（メンバー情報編集モーダルに統合済み）
+      // 念のため保存ボタンの状態管理を追加
       const saveBtn = document.querySelector('#member-edit-panel button[onclick="updateMemberName()"]');
       if (saveBtn) {
         saveBtn.disabled = true;

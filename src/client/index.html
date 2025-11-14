@@ -2107,8 +2107,12 @@
           </ul>
         </div>
         <div style="text-align: center; margin-top: 20px;">
+          <div id="calendar-loading" style="display: none; padding: 20px; color: #666;">
+            <div class="spinner" style="width: 20px; height: 20px; border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px;"></div>
+            <p style="margin: 0; font-size: 0.9rem;">読み込み中...</p>
+          </div>
           <a id="calendar-add-link" href="#" target="_blank" 
-             style="display: inline-block; padding: 14px 28px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 1rem; transition: background 0.3s;">
+             style="display: none; inline-block; padding: 14px 28px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 1rem; transition: background 0.3s;">
             📅 Googleカレンダーに追加
           </a>
         </div>
@@ -5670,22 +5674,63 @@
 
     /**
      * カレンダーに追加モーダルを表示
+     * 性能改善: モーダルを先に表示し、カレンダーID取得を非同期で行う
      */
     function showAddToCalendarModal() {
+      // モーダルを即座に表示（性能改善）
+      const modal = document.getElementById('add-to-calendar-modal');
+      const loadingDiv = document.getElementById('calendar-loading');
+      const addLink = document.getElementById('calendar-add-link');
+      
+      if (modal) {
+        modal.style.display = 'block';
+      }
+      
+      // ローディング表示
+      if (loadingDiv) {
+        loadingDiv.style.display = 'block';
+      }
+      if (addLink) {
+        addLink.style.display = 'none';
+      }
+      
+      // カレンダーIDを非同期で取得
       google.script.run
         .withSuccessHandler((result) => {
+          if (loadingDiv) {
+            loadingDiv.style.display = 'none';
+          }
+          
           if (result.success && result.calendarId) {
-            const addLink = document.getElementById('calendar-add-link');
             // URLエンコードしてカレンダーIDを安全に渡す
             const encodedCalendarId = encodeURIComponent(result.calendarId);
-            addLink.href = 'https://calendar.google.com/calendar/render?cid=' + encodedCalendarId;
-            document.getElementById('add-to-calendar-modal').style.display = 'block';
+            if (addLink) {
+              addLink.href = 'https://calendar.google.com/calendar/render?cid=' + encodedCalendarId;
+              addLink.style.display = 'inline-block';
+            }
           } else {
+            if (addLink) {
+              addLink.style.display = 'none';
+            }
             showToast(result.error || 'カレンダーIDの取得に失敗しました', 'error');
+            // エラー時はモーダルを閉じる
+            if (modal) {
+              modal.style.display = 'none';
+            }
           }
         })
         .withFailureHandler((error) => {
+          if (loadingDiv) {
+            loadingDiv.style.display = 'none';
+          }
+          if (addLink) {
+            addLink.style.display = 'none';
+          }
           showToast('カレンダーIDの取得に失敗しました: ' + error.message, 'error');
+          // エラー時はモーダルを閉じる
+          if (modal) {
+            modal.style.display = 'none';
+          }
         })
         .getCalendarIdForSharing();
     }

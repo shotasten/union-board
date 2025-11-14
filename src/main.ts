@@ -916,11 +916,31 @@ function syncResponsesDiffToCalendar(
 
 /**
  * カレンダーIDを取得（カレンダー共有用）
+ * Script Propertiesにキャッシュして高速化
  * @returns カレンダーID
  */
 function getCalendarIdForSharing(): { success: boolean; calendarId?: string; error?: string } {
   try {
-    const calendarId = getConfig('CALENDAR_ID', '');
+    const PROPERTY_KEY = 'CALENDAR_ID_CACHE';
+    const properties = PropertiesService.getScriptProperties();
+    
+    // まずScript Propertiesから取得を試みる（高速）
+    let calendarId = properties.getProperty(PROPERTY_KEY);
+    
+    if (!calendarId) {
+      // Script Propertiesにない場合はConfigシートから取得
+      Logger.log('📝 Script Propertiesにキャッシュがないため、Configシートから取得');
+      calendarId = getConfig('CALENDAR_ID', '');
+      
+      if (calendarId) {
+        // Configシートから取得できた場合はScript Propertiesにキャッシュ
+        properties.setProperty(PROPERTY_KEY, calendarId);
+        Logger.log(`✅ カレンダーIDをScript Propertiesにキャッシュしました: ${calendarId}`);
+      }
+    } else {
+      Logger.log(`⚡ Script PropertiesからカレンダーIDを高速取得: ${calendarId}`);
+    }
+    
     if (!calendarId) {
       Logger.log('❌ エラー: カレンダーIDが設定されていません');
       return {
@@ -929,7 +949,6 @@ function getCalendarIdForSharing(): { success: boolean; calendarId?: string; err
       };
     }
     
-    Logger.log(`✅ カレンダーID取得成功: ${calendarId}`);
     return {
       success: true,
       calendarId: calendarId

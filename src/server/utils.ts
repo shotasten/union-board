@@ -449,6 +449,17 @@ function setConfig(key: string, value: string): void {
       sheet.appendRow([key, value]);
       Logger.log(`✅ Config追加: ${key} = ${value}`);
     }
+    
+    // CALENDAR_IDの場合はScript Propertiesにもキャッシュ（性能改善）
+    if (key === 'CALENDAR_ID') {
+      try {
+        const properties = PropertiesService.getScriptProperties();
+        properties.setProperty('CALENDAR_ID_CACHE', value);
+        Logger.log(`⚡ CALENDAR_IDをScript Propertiesにキャッシュしました: ${value}`);
+      } catch (cacheError) {
+        Logger.log(`⚠️ Script Propertiesへのキャッシュ保存に失敗しました（無視）: ${(cacheError as Error).message}`);
+      }
+    }
   } catch (error) {
     Logger.log(`❌ エラー: Config設定失敗 (key: ${key}, value: ${value}) - ${(error as Error).message}`);
     Logger.log((error as Error).stack);

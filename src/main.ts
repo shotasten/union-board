@@ -776,6 +776,176 @@ function syncAllEvents(userKey?: string, adminToken?: string, limitToDisplayPeri
   }
 }
 
+/**
+ * cron用: Responsesシートの差分をカレンダーに同期（15分ごと）
+ * - 前回同期以降に更新された出欠データのみを同期
+ * - 9:00〜25:00（翌1:00）まで15分ごとに実行
+ * - 土日12:40〜13:20は5分ごとの関数との重複を避ける
+ */
+function scheduledSyncResponsesToCalendar(): void {
+  const PROPERTY_KEY = 'LAST_CRON_CALENDAR_SYNC_TIMESTAMP';
+  const DUPLICATE_PREVENTION_MINUTES = 10; // 10分以内の再実行を防止
+  
+  try {
+    const now = new Date();
+    Logger.log(`📅 [cron 15分] 同期開始: ${now.toISOString()}`);
+    
+    // 重複実行の防止チェック
+    const properties = PropertiesService.getScriptProperties();
+    const lastSyncStr = properties.getProperty(PROPERTY_KEY);
+    
+    if (lastSyncStr) {
+      const lastSync = new Date(lastSyncStr);
+      const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
+      
+      if (diffMinutes < DUPLICATE_PREVENTION_MINUTES) {
+        Logger.log(`⏭️ スキップ: 前回同期から ${Math.round(diffMinutes)} 分しか経過していません`);
+        return;
+      }
+    }
+    
+    // 差分同期を実行
+    const result = syncResponsesDiffToCalendar(lastSyncStr);
+    
+    // 同期時刻を保存
+    properties.setProperty(PROPERTY_KEY, now.toISOString());
+    
+    Logger.log(`✅ [cron 15分] 同期完了: ${result.synced}件同期, ${result.failed}件失敗, ${result.skipped}件スキップ`);
+    
+    if (result.errors.length > 0) {
+      Logger.log(`⚠️ エラー詳細: ${result.errors.slice(0, 5).join(', ')}${result.errors.length > 5 ? ' ...' : ''}`);
+    }
+  } catch (error) {
+    Logger.log(`❌ [cron 15分] 同期エラー: ${(error as Error).message}`);
+    Logger.log((error as Error).stack);
+  }
+}
+
+/**
+ * cron用: Responsesシートの差分をカレンダーに同期（5分ごと、土日12:40-13:20のみ）
+ * - 前回同期以降に更新された出欠データのみを同期
+ * - 土日のみ12:40〜13:20の間、5分ごとに実行
+ */
+function scheduledSyncResponsesToCalendarHighFrequency(): void {
+  const PROPERTY_KEY = 'LAST_CRON_CALENDAR_SYNC_TIMESTAMP';
+  
+  try {
+    const now = new Date();
+    Logger.log(`🚀 [cron 5分] 同期開始: ${now.toISOString()}`);
+    
+    // 前回同期時刻を取得
+    const properties = PropertiesService.getScriptProperties();
+    const lastSyncStr = properties.getProperty(PROPERTY_KEY);
+    
+    // 差分同期を実行
+    const result = syncResponsesDiffToCalendar(lastSyncStr);
+    
+    // 同期時刻を保存
+    properties.setProperty(PROPERTY_KEY, now.toISOString());
+    
+    Logger.log(`✅ [cron 5分] 同期完了: ${result.synced}件同期, ${result.failed}件失敗, ${result.skipped}件スキップ`);
+    
+    if (result.errors.length > 0) {
+      Logger.log(`⚠️ エラー詳細: ${result.errors.slice(0, 5).join(', ')}${result.errors.length > 5 ? ' ...' : ''}`);
+    }
+  } catch (error) {
+    Logger.log(`❌ [cron 5分] 同期エラー: ${(error as Error).message}`);
+    Logger.log((error as Error).stack);
+  }
+}
+
+/**
+ * Responsesシートの差分をカレンダーに同期
+ * @param lastSyncTimestamp 前回同期時刻（ISO 8601形式）
+ * @returns 同期結果
+ */
+function syncResponsesDiffToCalendar(
+  lastSyncTimestamp: string | null
+): { synced: number; failed: number; skipped: number; errors: string[] } {
+  const result = {
+    synced: 0,
+    failed: 0,
+    skipped: 0,
+    errors: [] as string[]
+  };
+  
+  try {
+    // Responsesシートを取得
+    const sheet = getResponsesSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    if (data.length <= 1) {
+      Logger.log('ℹ️ Responsesシートにデータがありません');
+      return result;
+    }
+    
+    // 前回同期時刻
+    const lastSync = lastSyncTimestamp ? new Date(lastSyncTimestamp) : null;
+    Logger.log(`📊 前回同期時刻: ${lastSync ? lastSync.toISOString() : '初回実行'}`);
+    
+    // 更新されたイベントIDを収集
+    const updatedEventIds = new Set<string>();
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const eventId = row[0]; // A列: eventId
+      const updatedAtStr = row[5]; // F列: updatedAt
+      
+      if (!eventId || !updatedAtStr) {
+        continue;
+      }
+      
+      // updatedAt を Date に変換
+      let updatedAt: Date;
+      try {
+        updatedAt = new Date(updatedAtStr);
+        if (isNaN(updatedAt.getTime())) {
+          Logger.log(`⚠️ 不正な日付形式: 行${i + 1}, updatedAt="${updatedAtStr}"`);
+          continue;
+        }
+      } catch (error) {
+        Logger.log(`⚠️ 日付変換エラー: 行${i + 1}, ${(error as Error).message}`);
+        continue;
+      }
+      
+      // 前回同期以降に更新されたか確認
+      if (!lastSync || updatedAt > lastSync) {
+        updatedEventIds.add(eventId);
+      }
+    }
+    
+    Logger.log(`🔍 差分検知: ${updatedEventIds.size}件のイベントに更新あり`);
+    
+    if (updatedEventIds.size === 0) {
+      Logger.log('✨ 更新なし - カレンダー同期をスキップ');
+      return result;
+    }
+    
+    // 各イベントをカレンダーに同期
+    for (const eventId of updatedEventIds) {
+      try {
+        syncCalendarDescriptionForEvent(eventId);
+        result.synced++;
+        Logger.log(`✅ 同期成功: ${eventId}`);
+      } catch (error) {
+        result.failed++;
+        const errorMsg = `同期失敗: ${eventId} - ${(error as Error).message}`;
+        result.errors.push(errorMsg);
+        Logger.log(`❌ ${errorMsg}`);
+      }
+    }
+    
+    result.skipped = 0; // 差分検知でフィルタ済み
+    
+  } catch (error) {
+    Logger.log(`❌ 差分同期エラー: ${(error as Error).message}`);
+    Logger.log((error as Error).stack);
+    result.errors.push((error as Error).message);
+  }
+  
+  return result;
+}
+
 
 /**
  * 管理者用: 表示期間設定API

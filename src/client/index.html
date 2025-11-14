@@ -2982,7 +2982,6 @@
         const isMultiDay = startDateOnlyStr !== endDateOnlyStr;
         
         let dateStrShort;
-        const dayNames = ['日','月','火','水','木','金','土'];
         if (isMultiDay) {
           // 複数日の場合は開始日～終了日を表示
           const startDateDisplayStr = (startDate.getMonth() + 1) + '/' + startDate.getDate() + '(' + dayNames[startDate.getDay()] + ')';

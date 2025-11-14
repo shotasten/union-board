@@ -3979,10 +3979,10 @@
           // 全体の集計を表示（未選択も含む）
           html += '<h3 style="margin: 0 0 15px 0; font-size: 1.1rem;">全体の集計</h3>';
           html += '<div style="margin-bottom: 20px; padding: 12px; background: white; border-radius: 6px; display: flex; gap: 20px; justify-content: center;">';
-          html += `<div style="text-align: center;"><span style="color: #4caf50; font-weight: bold; font-size: 1.2rem;">○</span><br><span style="font-size: 0.9rem; color: #666;">${totalCounts['○']}人</span></div>`;
-          html += `<div style="text-align: center;"><span style="color: #ff9800; font-weight: bold; font-size: 1.2rem;">△</span><br><span style="font-size: 0.9rem; color: #666;">${totalCounts['△']}人</span></div>`;
-          html += `<div style="text-align: center;"><span style="color: #f44336; font-weight: bold; font-size: 1.2rem;">×</span><br><span style="font-size: 0.9rem; color: #666;">${totalCounts['×']}人</span></div>`;
-          html += `<div style="text-align: center;"><span style="color: #999; font-weight: bold; font-size: 1.2rem;">-</span><br><span style="font-size: 0.9rem; color: #666;">${totalCounts['-']}人</span></div>`;
+          html += '<div style="text-align: center;"><span style="color: #4caf50; font-weight: bold; font-size: 1.2rem;">○</span><br><span style="font-size: 0.9rem; color: #666;">' + totalCounts['○'] + '人</span></div>';
+          html += '<div style="text-align: center;"><span style="color: #ff9800; font-weight: bold; font-size: 1.2rem;">△</span><br><span style="font-size: 0.9rem; color: #666;">' + totalCounts['△'] + '人</span></div>';
+          html += '<div style="text-align: center;"><span style="color: #f44336; font-weight: bold; font-size: 1.2rem;">×</span><br><span style="font-size: 0.9rem; color: #666;">' + totalCounts['×'] + '人</span></div>';
+          html += '<div style="text-align: center;"><span style="color: #999; font-weight: bold; font-size: 1.2rem;">-</span><br><span style="font-size: 0.9rem; color: #666;">' + totalCounts['-'] + '人</span></div>';
           html += '</div>';
           
           // 各ステータスごとの内訳を表示（未選択も含む）
@@ -3996,20 +3996,20 @@
               return; // このステータスの回答がない場合はスキップ
             }
             
-            html += `<div style="margin-bottom: 20px;">`;
-            html += `<h4 style="margin: 0 0 10px 0; font-size: 1rem; color: ${statusColor}; font-weight: bold;">${status} (${statusLabel}) の内訳</h4>`;
+            html += '<div style="margin-bottom: 20px;">';
+            html += '<h4 style="margin: 0 0 10px 0; font-size: 1rem; color: ' + statusColor + '; font-weight: bold;">' + status + ' (' + statusLabel + ') の内訳</h4>';
             
             sortedParts.forEach(part => {
               const names = partData[part];
               if (names.length === 0) return;
               
-              html += `<div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 6px; border-left: 4px solid ${statusColor};">`;
-              html += `<div style="font-weight: bold; margin-bottom: 5px; font-size: 0.95rem;">${part || 'その他'} (${names.length}人)</div>`;
-              html += `<div style="color: #666; font-size: 0.9rem;">${names.join('、')}</div>`;
-              html += `</div>`;
+              html += '<div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 6px; border-left: 4px solid ' + statusColor + ';">';
+              html += '<div style="font-weight: bold; margin-bottom: 5px; font-size: 0.95rem;">' + (part || 'その他') + ' (' + names.length + '人)</div>';
+              html += '<div style="color: #666; font-size: 0.9rem;">' + names.join('、') + '</div>';
+              html += '</div>';
             });
             
-            html += `</div>`;
+            html += '</div>';
           });
           
           html += '</div>';
@@ -4048,13 +4048,22 @@
             }
 
             const statusColor = response.status === '○' ? '#4caf50' : response.status === '△' ? '#ff9800' : response.status === '×' ? '#f44336' : '#999';
-            html += `<div style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid ${statusColor};">`;
-            html += `<div style="font-weight: bold; margin-bottom: 5px; font-size: 0.95rem;">`;
-            html += `<span style="color: ${statusColor}; margin-right: 5px;">${response.status}</span>`;
-            html += `<span>${part ? part + ' ' : ''}${name}</span>`;
-            html += `</div>`;
-            html += `<div style="color: #333; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap;">${response.comment.replace(/\n/g, '<br>')}</div>`;
-            html += `</div>`;
+            // コメントの改行を<br>に変換し、XSS対策として特殊文字をエスケープ
+            // まず改行を<br>に変換
+            let commentHtml = response.comment.replace(/\n/g, '<br>');
+            // <br>タグを一時的に置き換え
+            commentHtml = commentHtml.replace(/<br\s*\/?>/gi, '___BR_TAG___');
+            // 残りのHTMLタグをエスケープ
+            commentHtml = commentHtml.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // <br>タグを元に戻す
+            commentHtml = commentHtml.replace(/___BR_TAG___/g, '<br>');
+            html += '<div style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 6px; border-left: 4px solid ' + statusColor + ';">';
+            html += '<div style="font-weight: bold; margin-bottom: 5px; font-size: 0.95rem;">';
+            html += '<span style="color: ' + statusColor + '; margin-right: 5px;">' + response.status + '</span>';
+            html += '<span>' + (part ? part + ' ' : '') + name + '</span>';
+            html += '</div>';
+            html += '<div style="color: #333; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap;">' + commentHtml + '</div>';
+            html += '</div>';
           });
           
           html += '</div>';

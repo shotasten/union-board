@@ -776,48 +776,6 @@ function syncAllEvents(userKey?: string, adminToken?: string, limitToDisplayPeri
   }
 }
 
-/**
- * 定期的にカレンダーから表示期間のイベントを同期（cron用）
- * Google Apps Script のトリガーで実行することを想定
- * 表示期間（DISPLAY_START_DATE ～ DISPLAY_END_DATE）のイベントのみを同期
- */
-function scheduledSync(): void {
-  try {
-    const now = new Date();
-    Logger.log(`📅 定期同期実行: ${now.toISOString()}`);
-    
-    const result = syncAll(true); // 表示期間のみに制限
-    Logger.log(`✅ 定期同期完了: 成功 ${result.success}件, 失敗 ${result.failed}件`);
-    
-    if (result.errors.length > 0) {
-      Logger.log(`⚠️ エラー詳細: ${result.errors.join(', ')}`);
-    }
-  } catch (error) {
-    Logger.log(`❌ 定期同期エラー: ${(error as Error).message}`);
-    Logger.log((error as Error).stack);
-  }
-}
-
-/**
- * 高頻度同期用の関数（土日13時前後20分間用）
- * 5分おきのトリガーで実行することを想定
- */
-function scheduledSyncHighFrequency(): void {
-  try {
-    const now = new Date();
-    Logger.log(`🚀 高頻度同期実行: ${now.toISOString()}`);
-    
-    const result = syncAll(true); // 表示期間のみに制限
-    Logger.log(`✅ 高頻度同期完了: 成功 ${result.success}件, 失敗 ${result.failed}件`);
-    
-    if (result.errors.length > 0) {
-      Logger.log(`⚠️ エラー詳細: ${result.errors.join(', ')}`);
-    }
-  } catch (error) {
-    Logger.log(`❌ 高頻度同期エラー: ${(error as Error).message}`);
-    Logger.log((error as Error).stack);
-  }
-}
 
 /**
  * 管理者用: 表示期間設定API

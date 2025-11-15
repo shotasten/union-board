@@ -3783,9 +3783,15 @@
         // 下部：コメント入力欄（ラベルを削除し、プレースホルダーで対応）
         const commentRow = document.createElement('div');
         commentRow.style.display = 'flex';
-        commentRow.style.flexDirection = 'column';
+        commentRow.style.flexDirection = 'row';
         commentRow.style.gap = '4px';
         commentRow.style.marginTop = '8px';
+        commentRow.style.alignItems = 'flex-start';
+
+        // コメント入力エリアのラッパー
+        const commentInputWrapper = document.createElement('div');
+        commentInputWrapper.style.flex = '1';
+        commentInputWrapper.style.position = 'relative';
 
         const commentInput = document.createElement('textarea');
         commentInput.id = 'comment-' + event.id + '-' + memberName;
@@ -3793,6 +3799,7 @@
         commentInput.placeholder = 'コメントを入力（任意）';
         commentInput.style.width = '100%';
         commentInput.style.padding = '6px 8px';
+        commentInput.style.paddingRight = '28px'; // クリアボタンのスペースを確保
         commentInput.style.border = '1px solid #ddd';
         commentInput.style.borderRadius = '4px';
         commentInput.style.fontSize = '0.85rem';
@@ -3804,7 +3811,52 @@
           commentInput.value = existingData.comment;
         }
         
-        commentRow.appendChild(commentInput);
+        // クリアボタン
+        const clearButton = document.createElement('button');
+        clearButton.type = 'button';
+        clearButton.innerHTML = '×';
+        clearButton.style.position = 'absolute';
+        clearButton.style.right = '4px';
+        clearButton.style.top = '4px';
+        clearButton.style.width = '20px';
+        clearButton.style.height = '20px';
+        clearButton.style.padding = '0';
+        clearButton.style.border = 'none';
+        clearButton.style.background = 'transparent';
+        clearButton.style.color = '#999';
+        clearButton.style.cursor = 'pointer';
+        clearButton.style.fontSize = '18px';
+        clearButton.style.lineHeight = '1';
+        clearButton.style.display = commentInput.value ? 'block' : 'none'; // コメントがある場合のみ表示
+        clearButton.style.borderRadius = '50%';
+        clearButton.style.transition = 'all 0.2s';
+        clearButton.title = 'コメントをクリア';
+        
+        // クリアボタンのホバー効果
+        clearButton.onmouseenter = () => {
+          clearButton.style.background = '#f0f0f0';
+          clearButton.style.color = '#333';
+        };
+        clearButton.onmouseleave = () => {
+          clearButton.style.background = 'transparent';
+          clearButton.style.color = '#999';
+        };
+        
+        // クリアボタンのクリック処理
+        clearButton.onclick = () => {
+          commentInput.value = '';
+          clearButton.style.display = 'none';
+          commentInput.focus();
+        };
+        
+        // コメント入力時のクリアボタン表示制御
+        commentInput.oninput = () => {
+          clearButton.style.display = commentInput.value ? 'block' : 'none';
+        };
+        
+        commentInputWrapper.appendChild(commentInput);
+        commentInputWrapper.appendChild(clearButton);
+        commentRow.appendChild(commentInputWrapper);
         eventRow.appendChild(commentRow);
 
         container.appendChild(eventRow);

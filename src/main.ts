@@ -17,7 +17,7 @@ declare function syncAll(limitToDisplayPeriod?: boolean): { success: number, fai
 /**
  * GET リクエストのハンドラー
  * @param e リクエスト情報
- * @returns HTMLページ
+ * @returns HTMLページまたは画像データ
  */
 function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutput {
   // URLパラメータから管理者トークンを取得
@@ -27,6 +27,14 @@ function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutp
   let htmlOutput = HtmlService.createHtmlOutputFromFile('index')
     .setTitle('UnionBoard')
     .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+  
+  // faviconを設定（Google DriveのURLを直接使用）
+  try {
+    const faviconUrl = 'https://drive.google.com/uc?id=1SC3-gvHVF115ONOFgOVAvz0IDjFa9v6C&.png';
+    htmlOutput.setFaviconUrl(faviconUrl);
+  } catch (error) {
+    Logger.log('⚠️ favicon設定エラー: ' + (error as Error).message);
+  }
   
   // 管理者トークンがURLパラメータに含まれている場合、HTMLに埋め込む
   if (adminToken) {
@@ -48,10 +56,19 @@ function doGet(e: GoogleAppsScript.Events.DoGet): GoogleAppsScript.HTML.HtmlOutp
     htmlOutput = HtmlService.createHtmlOutput(modifiedContent)
       .setTitle('出欠管理アプリ')
       .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+    
+    // 管理者トークン処理後もfaviconを再設定
+    try {
+      const faviconUrl = 'https://drive.google.com/uc?id=1SC3-gvHVF115ONOFgOVAvz0IDjFa9v6C&.png';
+      htmlOutput.setFaviconUrl(faviconUrl);
+    } catch (error) {
+      Logger.log('⚠️ favicon設定エラー: ' + (error as Error).message);
+    }
   }
   
   return htmlOutput;
 }
+
 
 /**
  * 場所履歴取得用API
@@ -74,6 +91,7 @@ function getAllEventsForLocationHistory(): AttendanceEvent[] {
  */
 function getInitData(): { events: AttendanceEvent[]; config: Config; members: Array<{userKey: string, part: string, name: string, displayName: string}>; responsesMap: { [eventId: string]: Response[] } } {
   try {
+    Logger.log('=== getInitData 開始 ===');
     // 性能改善：Configシートを1回だけ読み込む
     const allConfig = getAllConfig();
     
@@ -89,6 +107,7 @@ function getInitData(): { events: AttendanceEvent[]; config: Config; members: Ar
     
     // 表示期間の設定値をgetEvents()に渡す（Configシートの再読み込みを回避）
     const events = getEvents('all', config.DISPLAY_START_DATE, config.DISPLAY_END_DATE);
+    Logger.log(`📊 getInitData: イベント取得完了: ${events.length}件`);
     
     // メンバー一覧を取得
     const members = getMembers().map(m => ({
@@ -97,9 +116,11 @@ function getInitData(): { events: AttendanceEvent[]; config: Config; members: Ar
       name: m.name,
       displayName: m.displayName
     }));
+    Logger.log(`📊 getInitData: メンバー取得完了: ${members.length}人`);
     
     // 全出欠データを取得してイベントIDごとにグループ化
     const allResponses = getAllResponses();
+    Logger.log(`📊 getInitData: 出欠データ取得完了: ${allResponses.length}件`);
     
     const responsesMap: { [eventId: string]: Response[] } = {};
     allResponses.forEach(response => {
@@ -109,6 +130,8 @@ function getInitData(): { events: AttendanceEvent[]; config: Config; members: Ar
       responsesMap[response.eventId].push(response);
     });
     
+    Logger.log(`📊 getInitData: responsesMap作成完了: ${Object.keys(responsesMap).length}イベント分`);
+    Logger.log(`✅ getInitData 完了: イベント${events.length}件, メンバー${members.length}人, 出欠データ${allResponses.length}件, responsesMap${Object.keys(responsesMap).length}イベント分`);
     
     return {
       events: events,
@@ -626,12 +649,15 @@ function getAllEventsWithResponses(): {
   error?: string;
 } {
   try {
+    Logger.log('=== getAllEventsWithResponses 開始 ===');
     
     // イベント一覧を取得（既存関数を使用）
     const events = getEvents('all');
+    Logger.log(`📊 getAllEventsWithResponses: イベント取得完了: ${events.length}件`);
     
     // 全出欠データを1回で取得
     const allResponses = getAllResponses();
+    Logger.log(`📊 getAllEventsWithResponses: 出欠データ取得完了: ${allResponses.length}件`);
     
     // イベントIDごとにグループ化
     const responsesMap: { [eventId: string]: Response[] } = {};
@@ -642,6 +668,8 @@ function getAllEventsWithResponses(): {
       responsesMap[response.eventId].push(response);
     });
     
+    Logger.log(`📊 getAllEventsWithResponses: responsesMap作成完了: ${Object.keys(responsesMap).length}イベント分`);
+    Logger.log(`✅ getAllEventsWithResponses 完了: イベント${events.length}件, 出欠データ${allResponses.length}件, responsesMap${Object.keys(responsesMap).length}イベント分`);
     
     return {
       success: true,

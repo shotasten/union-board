@@ -1864,7 +1864,10 @@
         </div>
         <div class="form-group" style="margin-top: 20px;">
           <label for="member-name">名前</label>
-          <input type="text" id="member-name" placeholder="例: 田中太郎" maxlength="50" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+          <input type="text" id="member-name" placeholder="例: 山田" maxlength="50" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+          <div style="font-size: 0.85rem; color: #f44336; margin-top: 6px; line-height: 1.4;">
+            ⚠️ 名前は公開されます。フルネームの入力は控えてください。
+          </div>
         </div>
         <div class="form-actions" style="margin-top: 20px;">
           <button type="button" class="form-btn cancel" onclick="closeMemberRegisterModal()">キャンセル</button>
@@ -1936,7 +1939,10 @@
         </div>
         <div class="form-group" style="margin-top: 20px;">
           <label for="member-info-name">名前</label>
-          <input type="text" id="member-info-name" placeholder="例: 春名" maxlength="50" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+          <input type="text" id="member-info-name" placeholder="例: 山田" maxlength="50" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+          <div style="font-size: 0.85rem; color: #f44336; margin-top: 6px; line-height: 1.4;">
+            ⚠️ 名前は公開されます。フルネームの入力は控えてください。
+          </div>
         </div>
         <div class="form-actions" style="margin-top: 20px; display: flex; gap: 10px;">
           <button type="button" class="form-btn cancel" onclick="closeMemberInfoEditModal()" style="flex: 1;">キャンセル</button>
@@ -2141,7 +2147,13 @@
      * 全出欠データのキャッシュ
      * 構造: { [eventId: string]: Response[] }
      */
-    window.allResponsesCache = {};
+    window.allResponsesCache = undefined; // 初期値はundefined（キャッシュがない状態）
+    
+    /**
+     * キャッシュのタイムスタンプ（ミリ秒）
+     * キャッシュが設定された時刻を記録
+     */
+    window.allResponsesCacheTimestamp = undefined;
 
     // ページ読み込み時に初期化
     window.addEventListener('DOMContentLoaded', () => {
@@ -2192,8 +2204,10 @@
             if (data.responsesMap) {
               window.allResponsesCache = data.responsesMap;
             } else {
-              window.allResponsesCache = {};
+              window.allResponsesCache = {}; // 空のオブジェクトでもキャッシュとして設定
             }
+            // キャッシュのタイムスタンプを更新
+            window.allResponsesCacheTimestamp = Date.now();
             
             // 設定をキャッシュに保存（性能改善：期間設定モーダル用）
             currentConfig = data.config;
@@ -3492,23 +3506,65 @@
     function renderEventStatusList(memberName) {
       const container = document.getElementById('event-status-list');
       
+      console.log('🔍 renderEventStatusList開始:', {
+        memberName: memberName,
+        allResponsesCacheKeys: window.allResponsesCache ? Object.keys(window.allResponsesCache).length : 0,
+        currentEventsLength: currentEvents ? currentEvents.length : 0
+      });
+      
       // キャッシュがない場合は読み込み表示
-      if (!window.allResponsesCache || Object.keys(window.allResponsesCache).length === 0) {
+      // 無限ループ防止: ローディング中フラグをチェック
+      // キャッシュの有効性をチェック:
+      // 1. window.allResponsesCacheがundefinedまたはnullの場合 → API呼び出し
+      // 2. キャッシュが古い場合（5分以上経過） → API呼び出し（最新データを取得）
+      // 3. 空のオブジェクト{}でも、キャッシュが新しい場合は使用（データが0件の場合）
+      const CACHE_EXPIRE_MS = 5 * 60 * 1000; // 5分
+      const isCacheExpired = window.allResponsesCacheTimestamp && 
+        (Date.now() - window.allResponsesCacheTimestamp > CACHE_EXPIRE_MS);
+      
+      if (window.allResponsesCache === undefined || window.allResponsesCache === null || isCacheExpired) {
+        // 既にローディング中の場合は、再呼び出しを防止
+        if (window.isLoadingEventsWithResponses) {
+          console.log('⏸️ 既にローディング中のため、再呼び出しをスキップ');
+          return;
+        }
+        
+        console.log('⚠️ キャッシュがないため、getAllEventsWithResponses()を呼び出します');
+        window.isLoadingEventsWithResponses = true; // ローディング中フラグを設定
         container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; background-color: #f8f9fa; border-radius: 6px;">読み込み中...</div>';
         
         // キャッシュがない場合は、バッチAPIで取得
         google.script.run
           .withSuccessHandler((result) => {
-            if (result.success && result.responsesMap) {
+            console.log('✅ getAllEventsWithResponses成功:', {
+              success: result.success,
+              eventsLength: result.events ? result.events.length : 0,
+              responsesMapKeys: result.responsesMap ? Object.keys(result.responsesMap).length : 0
+            });
+            window.isLoadingEventsWithResponses = false; // ローディング完了
+            
+            if (result.success && result.responsesMap !== undefined) {
+              // responsesMapが空のオブジェクト{}でも正常に処理（出欠データが0件の場合）
+              // 空のオブジェクト{}を設定することで、次回以降はAPI呼び出しをスキップ
               window.allResponsesCache = result.responsesMap;
+              // キャッシュのタイムスタンプを更新
+              window.allResponsesCacheTimestamp = Date.now();
+              // イベント一覧も更新（getAllEventsWithResponsesで取得したeventsを使用）
+              if (result.events && Array.isArray(result.events)) {
+                currentEvents = result.events;
+                console.log('✅ currentEvents更新:', currentEvents.length + '件');
+              }
               // 再帰的に呼び出し（キャッシュがある状態で）
               renderEventStatusList(memberName);
             } else {
+              console.error('❌ getAllEventsWithResponses失敗: result.success=' + result.success);
               container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">データの取得に失敗しました</div>';
             }
           })
           .withFailureHandler((error) => {
-            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">データの取得に失敗しました</div>';
+            window.isLoadingEventsWithResponses = false; // エラー時もフラグをリセット
+            console.error('❌ getAllEventsWithResponsesエラー:', error);
+            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">データの取得に失敗しました: ' + (error.message || '不明なエラー') + '</div>';
           })
           .getAllEventsWithResponses();
         
@@ -3516,6 +3572,7 @@
       }
 
       if (currentEvents.length === 0) {
+        console.warn('⚠️ currentEventsが空です');
         container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; background-color: #f8f9fa; border-radius: 6px; font-weight: 500;">イベントがありません</div>';
         return;
       }
@@ -4680,6 +4737,9 @@
             showToast(result.success + '件の出欠を更新しました', 'success');
             
             // キャッシュを更新
+            if (!window.allResponsesCache) {
+              window.allResponsesCache = {};
+            }
             updates.forEach(update => {
               if (!window.allResponsesCache[update.eventId]) {
                 window.allResponsesCache[update.eventId] = [];
@@ -4702,6 +4762,8 @@
                 });
               }
             });
+            // キャッシュのタイムスタンプを更新（最新データを反映したため）
+            window.allResponsesCacheTimestamp = Date.now();
             
             // 更新完了後、変更をクリア
             currentEvents.forEach(event => {
@@ -5486,9 +5548,12 @@
               currentEvents.push(result.event);
               
               // 出欠データキャッシュに空の配列を追加（性能改善）
-              if (window.allResponsesCache) {
-                window.allResponsesCache[result.event.id] = [];
+              if (!window.allResponsesCache) {
+                window.allResponsesCache = {};
               }
+              window.allResponsesCache[result.event.id] = [];
+              // キャッシュのタイムスタンプを更新
+              window.allResponsesCacheTimestamp = Date.now();
               
               // 再描画（API呼び出しなし）
               renderEvents();

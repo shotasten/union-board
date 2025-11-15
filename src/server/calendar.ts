@@ -902,7 +902,7 @@ function pullFromCalendar(calendarId?: string, startDate?: Date, endDate?: Date)
               }
             } else {
               Logger.log(`⏭️ スキップ: Spreadsheetの方が新しい - ${existingEvent.id}`);
-              result.success++; // スキップも成功としてカウント
+              // スキップは成功数に含めない（実際の同期処理が行われていないため）
             }
           }
         } else {
@@ -1421,11 +1421,11 @@ function syncAll(limitToDisplayPeriod: boolean = false): { success: number, fail
             calendarEvent.setDescription(description);
             updateEventCalendarInfo(event.id, event.calendarEventId, notesHash);
             Logger.log(`✅ 説明欄更新: ${event.id}`);
+            descriptionSyncSuccess++; // 実際に更新した場合のみ成功としてカウント
           } else {
             Logger.log(`⏭️ スキップ（変更なし）: ${event.id}`);
+            // 変更がない場合は成功数に含めない（実際の同期処理が行われていないため）
           }
-          
-          descriptionSyncSuccess++;
         } catch (error) {
           Logger.log(`⚠️ 説明欄同期失敗: ${event.id} - ${(error as Error).message}`);
           descriptionSyncFailed++;

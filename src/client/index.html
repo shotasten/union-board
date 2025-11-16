@@ -1420,6 +1420,16 @@
         padding: 12px 16px;
       }
 
+      .add-to-calendar-btn {
+        justify-content: center !important;
+      }
+
+      .member-register-btn {
+        width: 100%;
+        font-size: 0.9rem;
+        padding: 12px 16px;
+      }
+
       .main-actions-bar {
         flex-direction: column;
         align-items: stretch !important;
@@ -1431,10 +1441,21 @@
         align-items: stretch;
       }
 
+      .left-actions .member-register-btn,
+      .left-actions .primary-btn,
+      .left-actions .secondary-btn {
+        width: 100%;
+      }
+
       .right-actions {
         width: 100%;
         flex-direction: column;
         align-items: stretch;
+      }
+
+      .right-actions .primary-btn,
+      .right-actions .secondary-btn {
+        width: 100%;
       }
 
       main {
@@ -1467,6 +1488,30 @@
         padding: 20px;
         width: 95% !important;
         max-width: 95% !important;
+      }
+
+      /* メンバー編集モーダル内のレスポンシブ対応（768px以下：2段表示） */
+      #event-status-list .event-row-top {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+      }
+
+      #event-status-list .event-date-label {
+        width: 100% !important;
+        min-width: 100% !important;
+      }
+
+      #event-status-list .event-status-buttons {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+      }
+
+      #event-status-list .response-btn {
+        flex: 1 1 calc(25% - 6px) !important;
+        min-width: calc(25% - 6px) !important;
+        max-width: calc(25% - 6px) !important;
       }
 
       .modal-header h2 {
@@ -1608,6 +1653,16 @@
         padding: 6px 12px;
       }
 
+      .add-to-calendar-btn {
+        justify-content: center !important;
+      }
+
+      .member-register-btn {
+        width: 100%;
+        font-size: 0.8rem;
+        padding: 6px 12px;
+      }
+
       .main-actions-bar {
         flex-direction: column;
         align-items: stretch !important;
@@ -1634,6 +1689,30 @@
         padding: 15px;
         width: 98% !important;
         max-width: 98% !important;
+      }
+
+      /* メンバー編集モーダル内のレスポンシブ対応（480px以下） */
+      #event-status-list .event-row-top {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 10px !important;
+      }
+
+      #event-status-list .event-date-label {
+        width: 100% !important;
+        min-width: 100% !important;
+      }
+
+      #event-status-list .event-status-buttons {
+        width: 100% !important;
+        justify-content: flex-start !important;
+        flex-wrap: wrap !important;
+      }
+
+      #event-status-list .response-btn {
+        flex: 1 1 calc(25% - 6px) !important;
+        min-width: calc(25% - 6px) !important;
+        max-width: calc(25% - 6px) !important;
       }
 
       .attendance-grid th,
@@ -3639,12 +3718,14 @@
 
         // 上部：日付/イベント名とステータス選択
         const topRow = document.createElement('div');
+        topRow.className = 'event-row-top';
         topRow.style.display = 'flex';
         topRow.style.alignItems = 'center';
         topRow.style.gap = '15px';
 
         // 日付/イベント名（2行表示：1行目に日付・イベント名・場所、2行目に時間）
         const dateLabelContainer = document.createElement('div');
+        dateLabelContainer.className = 'event-date-label';
         dateLabelContainer.style.flex = '1';
         dateLabelContainer.style.minWidth = '200px';
         dateLabelContainer.style.display = 'flex';
@@ -3708,8 +3789,10 @@
 
         // ステータス選択ボタン
         const statusGroup = document.createElement('div');
+        statusGroup.className = 'event-status-buttons';
         statusGroup.style.display = 'flex';
         statusGroup.style.gap = '6px';
+        statusGroup.style.flexShrink = '0';
         statusGroup.dataset.eventId = event.id;
         statusGroup.dataset.memberName = memberName;
 

@@ -110,13 +110,15 @@ function computeHash(text: string): string {
  * @param userDescription ユーザーが入力した説明（オプション）
  * @param eventResponses キャッシュされた出欠データ
  * @param memberMap キャッシュされたメンバーデータマップ
+ * @param includePartBreakdown パート別内訳を含めるか（デフォルト: false）
  * @returns 説明文
  */
 function buildDescriptionWithMemberMap(
   eventId: string,
   userDescription: string | undefined,
   eventResponses: Response[],
-  memberMap: Map<string, any>
+  memberMap: Map<string, any>,
+  includePartBreakdown: boolean = false
 ): string {
   try {
     // 出欠を集計（キャッシュデータから）
@@ -149,6 +151,104 @@ function buildDescriptionWithMemberMap(
     description += `× 欠席: ${absentCount}人\n`;
     description += `合計: ${totalCount}人\n\n`;
     
+    // パート別内訳を追加（includePartBreakdown=trueの場合）
+    if (includePartBreakdown) {
+      description += '【パート別内訳】\n';
+      
+      // ステータスごとのパート内訳を集計
+      const statusBreakdown: { [status: string]: { [part: string]: string[] } } = {
+        '○': {},
+        '△': {},
+        '×': {},
+        '-': {}
+      };
+      
+      eventResponses.forEach(response => {
+        if (response.status === '○' || response.status === '△' || response.status === '×' || response.status === '-') {
+          // メンバー情報を取得（キャッシュから）
+          const member = memberMap.get(response.userKey);
+          let part = '';
+          let name = '';
+          
+          if (member) {
+            part = member.part || '';
+            name = member.name || member.displayName || '不明';
+          } else {
+            // メンバーが見つからない場合、userKeyから推測を試みる
+            if (response.userKey && response.userKey.startsWith('anon-')) {
+              const userName = response.userKey.replace('anon-', '');
+              // 簡易的なパース（パート名で始まる場合）
+              const partOrder = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc'];
+              for (const p of partOrder) {
+                if (userName.startsWith(p)) {
+                  part = p;
+                  name = userName.substring(p.length) || userName;
+                  break;
+                }
+              }
+              if (!part) {
+                part = '';
+                name = userName;
+              }
+            } else {
+              part = '';
+              name = '不明';
+            }
+          }
+          
+          // パートが空の場合は「その他」として扱う
+          const partKey = part || 'その他';
+          if (!statusBreakdown[response.status][partKey]) {
+            statusBreakdown[response.status][partKey] = [];
+          }
+          statusBreakdown[response.status][partKey].push(name);
+        }
+      });
+      
+      // パートの順序を定義
+      const partOrder = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc', 'その他'];
+      
+      // パートをソートする関数
+      const sortParts = (parts: string[]): string[] => {
+        return parts.sort((a, b) => {
+          const indexA = partOrder.indexOf(a);
+          const indexB = partOrder.indexOf(b);
+          if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+          if (indexA === -1 && indexB !== -1) return 1;
+          if (indexA !== -1 && indexB === -1) return -1;
+          return a.localeCompare(b, 'ja');
+        });
+      };
+      
+      // 各ステータスごとの内訳を表示
+      const statusConfig = [
+        { status: '○', label: '出席' },
+        { status: '△', label: '未定' },
+        { status: '×', label: '欠席' },
+        { status: '-', label: '未選択' }
+      ];
+      
+      statusConfig.forEach(({ status, label }) => {
+        const partData = statusBreakdown[status];
+        const sortedParts = sortParts(Object.keys(partData));
+        
+        if (sortedParts.length === 0) {
+          return; // このステータスの回答がない場合はスキップ
+        }
+        
+        description += `${status} (${label}) の内訳\n`;
+        
+        sortedParts.forEach(part => {
+          const names = partData[part];
+          if (names.length === 0) return;
+          
+          description += `${part || 'その他'} (${names.length}人): ${names.join('、')}\n`;
+        });
+        
+        description += '\n';
+      });
+    }
+    
     // コメント一覧を追加
     const comments = eventResponses.filter(r => r.comment && r.comment.trim());
     
@@ -179,9 +279,10 @@ function buildDescriptionWithMemberMap(
  * 出欠サマリーを含む説明文を生成
  * @param eventId イベントID
  * @param userDescription ユーザーが入力した説明（オプション）
+ * @param includePartBreakdown パート別内訳を含めるか（デフォルト: false）
  * @returns 説明文
  */
-function buildDescription(eventId: string, userDescription?: string): string {
+function buildDescription(eventId: string, userDescription?: string, includePartBreakdown: boolean = false): string {
   try {
     const tally = tallyResponses(eventId);
     const now = new Date();
@@ -200,6 +301,117 @@ function buildDescription(eventId: string, userDescription?: string): string {
     description += `△ 未定: ${tally.maybeCount}人\n`;
     description += `× 欠席: ${tally.absentCount}人\n`;
     description += `合計: ${tally.totalCount}人\n\n`;
+    
+    // パート別内訳を追加（includePartBreakdown=trueの場合）
+    if (includePartBreakdown) {
+      try {
+        const responses = getResponses(eventId);
+        const members = getMembers();
+        const memberMap = new Map<string, Member>();
+        members.forEach(m => {
+          memberMap.set(m.userKey, m);
+        });
+        
+        description += '【パート別内訳】\n';
+        
+        // ステータスごとのパート内訳を集計
+        const statusBreakdown: { [status: string]: { [part: string]: string[] } } = {
+          '○': {},
+          '△': {},
+          '×': {},
+          '-': {}
+        };
+        
+        responses.forEach(response => {
+          if (response.status === '○' || response.status === '△' || response.status === '×' || response.status === '-') {
+            // メンバー情報を取得
+            const member = memberMap.get(response.userKey);
+            let part = '';
+            let name = '';
+            
+            if (member) {
+              part = member.part || '';
+              name = member.name || member.displayName || '不明';
+            } else {
+              // メンバーが見つからない場合、userKeyから推測を試みる
+              if (response.userKey && response.userKey.startsWith('anon-')) {
+                const userName = response.userKey.replace('anon-', '');
+                // 簡易的なパース（パート名で始まる場合）
+                const partOrder = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc'];
+                for (const p of partOrder) {
+                  if (userName.startsWith(p)) {
+                    part = p;
+                    name = userName.substring(p.length) || userName;
+                    break;
+                  }
+                }
+                if (!part) {
+                  part = '';
+                  name = userName;
+                }
+              } else {
+                part = '';
+                name = '不明';
+              }
+            }
+            
+            // パートが空の場合は「その他」として扱う
+            const partKey = part || 'その他';
+            if (!statusBreakdown[response.status][partKey]) {
+              statusBreakdown[response.status][partKey] = [];
+            }
+            statusBreakdown[response.status][partKey].push(name);
+          }
+        });
+        
+        // パートの順序を定義
+        const partOrder = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc', 'その他'];
+        
+        // パートをソートする関数
+        const sortParts = (parts: string[]): string[] => {
+          return parts.sort((a, b) => {
+            const indexA = partOrder.indexOf(a);
+            const indexB = partOrder.indexOf(b);
+            if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+            if (indexA === -1 && indexB !== -1) return 1;
+            if (indexA !== -1 && indexB === -1) return -1;
+            return a.localeCompare(b, 'ja');
+          });
+        };
+        
+        // 各ステータスごとの内訳を表示
+        const statusConfig = [
+          { status: '○', label: '出席' },
+          { status: '△', label: '未定' },
+          { status: '×', label: '欠席' },
+          { status: '-', label: '未選択' }
+        ];
+        
+        statusConfig.forEach(({ status, label }) => {
+          const partData = statusBreakdown[status];
+          const sortedParts = sortParts(Object.keys(partData));
+          
+          if (sortedParts.length === 0) {
+            return; // このステータスの回答がない場合はスキップ
+          }
+          
+          description += `${status} (${label}) の内訳\n`;
+          
+          sortedParts.forEach(part => {
+            const names = partData[part];
+            if (names.length === 0) return;
+            
+            description += `${part || 'その他'} (${names.length}人): ${names.join('、')}\n`;
+          });
+          
+          description += '\n';
+        });
+      } catch (error) {
+        Logger.log(`⚠️ パート別内訳取得エラー（処理は続行）: ${(error as Error).message}`);
+        Logger.log(`⚠️ スタックトレース: ${(error as Error).stack}`);
+        description += '（パート別内訳取得エラー）\n';
+      }
+    }
     
     // コメント一覧を追加
     try {
@@ -313,8 +525,10 @@ function upsertCalendarEvent(event: AttendanceEvent, forceCreate: boolean = fals
     }
     
     // 説明文を生成（ユーザーが入力した説明 + 出欠サマリーを含む）
-    const description = buildDescription(event.id, event.description);
-    Logger.log(`📝 説明文生成完了: ${description.length}文字`);
+    // Configからパート別内訳の表示設定を取得
+    const showPartBreakdown = getConfig('CALENDAR_SHOW_PART_BREAKDOWN', 'false') === 'true';
+    const description = buildDescription(event.id, event.description, showPartBreakdown);
+    Logger.log(`📝 説明文生成完了: ${description.length}文字 (パート別内訳: ${showPartBreakdown ? '有効' : '無効'})`);
     
     // 説明文のハッシュを計算
     const notesHash = computeHash(description);
@@ -557,8 +771,10 @@ function syncCalendarDescriptionForEvent(eventId: string): void {
     try {
       const calendarEvent = calendar.getEventById(event.calendarEventId);
       Logger.log(`📝 説明文生成開始: ${eventId}`);
-      const description = buildDescription(eventId, event.description);
-      Logger.log(`📝 説明文生成完了: ${description.length}文字`);
+      // Configからパート別内訳の表示設定を取得
+      const showPartBreakdown = getConfig('CALENDAR_SHOW_PART_BREAKDOWN', 'false') === 'true';
+      const description = buildDescription(eventId, event.description, showPartBreakdown);
+      Logger.log(`📝 説明文生成完了: ${description.length}文字 (パート別内訳: ${showPartBreakdown ? '有効' : '無効'})`);
       Logger.log(`📝 説明文内容（最初の200文字）:\n${description.substring(0, 200)}`);
       const notesHash = computeHash(description);
       Logger.log(`📝 notesHash: ${notesHash}`);
@@ -1406,11 +1622,14 @@ function syncAll(limitToDisplayPeriod: boolean = false): { success: number, fail
           const eventResponses = responsesMap.get(event.id) || [];
           
           // 説明文を生成（キャッシュデータを使用）
+          // Configからパート別内訳の表示設定を取得
+          const showPartBreakdown = getConfig('CALENDAR_SHOW_PART_BREAKDOWN', 'false') === 'true';
           const description = buildDescriptionWithMemberMap(
             event.id,
             event.description,
             eventResponses,
-            memberMap
+            memberMap,
+            showPartBreakdown
           );
           
           // notesHashを計算

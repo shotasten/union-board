@@ -225,7 +225,8 @@ function initializeSpreadsheet(): void {
       ['ADMIN_TOKEN', generateAdminToken()],
       ['CALENDAR_ID', 'primary'],
       ['DISPLAY_START_DATE', ''],
-      ['DISPLAY_END_DATE', '']
+      ['DISPLAY_END_DATE', ''],
+      ['CALENDAR_SHOW_PART_BREAKDOWN', 'false']
     ];
     sheet.getRange(2, 1, configData.length, 2).setValues(configData);
     sheet.setFrozenRows(1);
@@ -245,7 +246,8 @@ function initializeSpreadsheet(): void {
       ['ADMIN_TOKEN', generateAdminToken()],
       ['CALENDAR_ID', 'primary'],
       ['DISPLAY_START_DATE', ''],
-      ['DISPLAY_END_DATE', '']
+      ['DISPLAY_END_DATE', ''],
+      ['CALENDAR_SHOW_PART_BREAKDOWN', 'false']
     ];
     requiredConfig.forEach(([key, defaultValue]) => {
       if (!existingKeys.includes(key)) {

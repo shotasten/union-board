@@ -331,35 +331,59 @@
     }
 
     /* スクロール可能な場合の左右のフェードアウト効果 */
-    .attendance-grid-container::before,
-    .attendance-grid-container::after {
+    /* グラデーションをwrapperに配置して、スクロールしても移動しないようにする */
+    .attendance-grid-wrapper::before,
+    .attendance-grid-wrapper::after {
       content: '';
       position: absolute;
       top: 0;
       bottom: 0;
       width: 30px;
       pointer-events: none;
-      z-index: 2;
+      z-index: 3;
       transition: opacity 0.2s ease;
       opacity: 0;
     }
 
-    .attendance-grid-container::before {
+    .attendance-grid-wrapper::before {
       left: 0;
       background: linear-gradient(to right, rgba(255, 255, 255, 0.95), transparent);
     }
 
-    .attendance-grid-container::after {
+    .attendance-grid-wrapper::after {
       right: 0;
       background: linear-gradient(to left, rgba(255, 255, 255, 0.95), transparent);
     }
 
-    .attendance-grid-container.scrollable-left::before {
+    .attendance-grid-wrapper.scrollable-left::before {
       opacity: 1;
     }
 
-    .attendance-grid-container.scrollable-right::after {
+    .attendance-grid-wrapper.scrollable-right::after {
       opacity: 1;
+    }
+    
+    /* スクロール可能な場合の上部のフェードアウト効果 */
+    .attendance-grid-wrapper-top-fade {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 20px;
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), transparent);
+      pointer-events: none;
+      z-index: 4;
+      transition: opacity 0.2s ease;
+      opacity: 0;
+    }
+
+    .attendance-grid-wrapper.scrollable-top .attendance-grid-wrapper-top-fade {
+      opacity: 1;
+    }
+    
+    /* スクロール時に上部グラデーションを非表示 */
+    .attendance-grid-wrapper.scrolled .attendance-grid-wrapper-top-fade {
+      opacity: 0;
     }
 
     /* スクロールヒント */
@@ -1808,6 +1832,7 @@
             </div>
           </div>
           <div class="table-responsive attendance-grid-wrapper">
+            <div class="attendance-grid-wrapper-top-fade"></div>
             <div id="attendance-grid-scrollbar-top" class="attendance-grid-scrollbar-top"></div>
             <div id="attendance-grid" class="attendance-grid-container">
               <!-- 表形式のグリッドがここに動的に生成されます -->
@@ -3305,9 +3330,13 @@
       const scrollLeft = container.scrollLeft;
       const scrollRight = container.scrollWidth - container.scrollLeft - container.clientWidth;
       const topScrollbar = document.getElementById('attendance-grid-scrollbar-top');
+      const wrapper = container.closest('.attendance-grid-wrapper');
       
       // クラスを更新（一旦全て削除）
-      container.classList.remove('scrollable-left', 'scrollable-right');
+      // グラデーションはwrapperに配置されているため、wrapperにクラスを追加
+      if (wrapper) {
+        wrapper.classList.remove('scrollable-left', 'scrollable-right', 'scrollable-top', 'scrolled');
+      }
       
       if (isScrollable) {
         // 上部スクロールバーを表示
@@ -3326,13 +3355,23 @@
         }
         
         // 左側のグラデーション：左端にいない時のみ表示（スクロール可能で、かつ左端にいない）
-        if (scrollLeft > 5) {
-          container.classList.add('scrollable-left');
+        if (wrapper && scrollLeft > 5) {
+          wrapper.classList.add('scrollable-left');
         }
         
         // 右側のグラデーション：右端にいない時のみ表示（スクロール可能で、かつ右端にいない）
-        if (scrollRight > 5) {
-          container.classList.add('scrollable-right');
+        if (wrapper && scrollRight > 5) {
+          wrapper.classList.add('scrollable-right');
+        }
+        
+        // 上部のグラデーション：スクロール可能で、かつ上端にいない時のみ表示
+        if (wrapper) {
+          const scrollTop = container.scrollTop;
+          if (scrollTop > 5) {
+            wrapper.classList.add('scrolled');
+          } else {
+            wrapper.classList.add('scrollable-top');
+          }
         }
         
         // スクロール可能な場合、最初の表示時にヒントを表示

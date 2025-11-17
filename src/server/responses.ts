@@ -173,6 +173,7 @@ function tallyResponses(eventId: string): EventTally {
         attendCount: 0,
         maybeCount: 0,
         absentCount: 0,
+        unselectedCount: 0,
         totalCount: 0,
         tallyAt: new Date().toISOString()
       };
@@ -181,16 +182,19 @@ function tallyResponses(eventId: string): EventTally {
     const responses = getResponses(eventId);
     
     let attendCount = 0;
-    let maybeCount = 0;
-    let absentCount = 0;
+  let maybeCount = 0;
+  let absentCount = 0;
+  let unselectedCount = 0;
     
     responses.forEach(response => {
       if (response.status === '○') {
         attendCount++;
       } else if (response.status === '△') {
         maybeCount++;
-      } else if (response.status === '×') {
-        absentCount++;
+    } else if (response.status === '×') {
+      absentCount++;
+    } else if (response.status === '-') {
+      unselectedCount++;
       }
     });
     
@@ -199,11 +203,12 @@ function tallyResponses(eventId: string): EventTally {
       attendCount: attendCount,
       maybeCount: maybeCount,
       absentCount: absentCount,
+      unselectedCount: unselectedCount,
       totalCount: responses.length,
       tallyAt: new Date().toISOString()
     };
     
-    Logger.log(`✅ 出欠集計完了: ${eventId} - 出席:${attendCount} 未定:${maybeCount} 欠席:${absentCount} 合計:${responses.length}`);
+    Logger.log(`✅ 出欠集計完了: ${eventId} - 出席:${attendCount} 遅早:${maybeCount} 欠席:${absentCount} 未定(-):${unselectedCount} 合計:${responses.length}`);
     return tally;
     
   } catch (error) {
@@ -214,6 +219,7 @@ function tallyResponses(eventId: string): EventTally {
       attendCount: 0,
       maybeCount: 0,
       absentCount: 0,
+      unselectedCount: 0,
       totalCount: 0,
       tallyAt: new Date().toISOString()
     };

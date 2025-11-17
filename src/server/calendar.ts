@@ -125,14 +125,16 @@ function buildDescriptionWithMemberMap(
     let attendCount = 0;
     let maybeCount = 0;
     let absentCount = 0;
+    let unselectedCount = 0;
     
     eventResponses.forEach(response => {
       if (response.status === '○') attendCount++;
       else if (response.status === '△') maybeCount++;
       else if (response.status === '×') absentCount++;
+      else if (response.status === '-') unselectedCount++;
     });
     
-    const totalCount = attendCount + maybeCount + absentCount;
+    const totalCount = attendCount + maybeCount + absentCount + unselectedCount;
     
     const now = new Date();
     const formattedDate = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm');
@@ -147,9 +149,12 @@ function buildDescriptionWithMemberMap(
     // 出欠サマリーを追加
     description += '【出欠状況】\n';
     description += `○ 参加: ${attendCount}人\n`;
-    description += `△ 未定: ${maybeCount}人\n`;
+    description += `△ 遅早: ${maybeCount}人\n`;
     description += `× 欠席: ${absentCount}人\n`;
+    description += `- 未定: ${unselectedCount}人\n`;
     description += `合計: ${totalCount}人\n\n`;
+    
+    Logger.log(`📊 出欠集計: 参加=${attendCount}, 遅早=${maybeCount}, 欠席=${absentCount}, 未定=${unselectedCount}, 合計=${totalCount}`);
     
     // パート別内訳を追加（includePartBreakdown=trueの場合）
     if (includePartBreakdown) {
@@ -223,9 +228,9 @@ function buildDescriptionWithMemberMap(
       // 各ステータスごとの内訳を表示
       const statusConfig = [
         { status: '○', label: '出席' },
-        { status: '△', label: '未定' },
+        { status: '△', label: '遅早' },
         { status: '×', label: '欠席' },
-        { status: '-', label: '未選択' }
+        { status: '-', label: '未定' }
       ];
       
       statusConfig.forEach(({ status, label }) => {
@@ -298,9 +303,12 @@ function buildDescription(eventId: string, userDescription?: string, includePart
     // 出欠サマリーを追加
     description += '【出欠状況】\n';
     description += `○ 参加: ${tally.attendCount}人\n`;
-    description += `△ 未定: ${tally.maybeCount}人\n`;
+    description += `△ 遅早: ${tally.maybeCount}人\n`;
     description += `× 欠席: ${tally.absentCount}人\n`;
+    description += `- 未定: ${tally.unselectedCount}人\n`;
     description += `合計: ${tally.totalCount}人\n\n`;
+    
+    Logger.log(`📊 出欠集計: 参加=${tally.attendCount}, 遅早=${tally.maybeCount}, 欠席=${tally.absentCount}, 未定=${tally.unselectedCount}, 合計=${tally.totalCount}`);
     
     // パート別内訳を追加（includePartBreakdown=trueの場合）
     if (includePartBreakdown) {
@@ -382,9 +390,9 @@ function buildDescription(eventId: string, userDescription?: string, includePart
         // 各ステータスごとの内訳を表示
         const statusConfig = [
           { status: '○', label: '出席' },
-          { status: '△', label: '未定' },
+          { status: '△', label: '遅早' },
           { status: '×', label: '欠席' },
-          { status: '-', label: '未選択' }
+          { status: '-', label: '未定' }
         ];
         
         statusConfig.forEach(({ status, label }) => {

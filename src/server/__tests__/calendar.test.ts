@@ -34,14 +34,16 @@ function mockBuildDescriptionWithMemberMap(
   let attendCount = 0;
   let maybeCount = 0;
   let absentCount = 0;
+  let unselectedCount = 0;
   
   eventResponses.forEach(response => {
     if (response.status === '○') attendCount++;
     else if (response.status === '△') maybeCount++;
     else if (response.status === '×') absentCount++;
+    else if (response.status === '-') unselectedCount++;
   });
   
-  const totalCount = attendCount + maybeCount + absentCount;
+  const totalCount = attendCount + maybeCount + absentCount + unselectedCount;
   const now = new Date();
   const formattedDate = global.Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm');
   
@@ -53,8 +55,9 @@ function mockBuildDescriptionWithMemberMap(
   
   description += '【出欠状況】\n';
   description += `○ 参加: ${attendCount}人\n`;
-  description += `△ 未定: ${maybeCount}人\n`;
+  description += `△ 遅早: ${maybeCount}人\n`;
   description += `× 欠席: ${absentCount}人\n`;
+  description += `- 未定: ${unselectedCount}人\n`;
   description += `合計: ${totalCount}人\n\n`;
   
   const comments = eventResponses.filter(r => r.comment && r.comment.trim());
@@ -87,8 +90,9 @@ function mockBuildDescription(eventId: string, userDescription?: string): string
   
   description += '【出欠状況】\n';
   description += `○ 参加: ${tally.attendCount}人\n`;
-  description += `△ 未定: ${tally.maybeCount}人\n`;
+  description += `△ 遅早: ${tally.maybeCount}人\n`;
   description += `× 欠席: ${tally.absentCount}人\n`;
+  description += `- 未定: ${tally.unselectedCount}人\n`;
   description += `合計: ${tally.totalCount}人\n\n`;
   
   try {
@@ -303,6 +307,7 @@ describe('calendar.ts', () => {
         attendCount: 2,
         maybeCount: 1,
         absentCount: 1,
+        unselectedCount: 0,
         totalCount: 4,
       });
       mockGetResponsesForCalendar.mockReturnValue([
@@ -319,8 +324,9 @@ describe('calendar.ts', () => {
 
       // Assert
       expect(result).toContain('○ 参加: 2人');
-      expect(result).toContain('△ 未定: 1人');
+      expect(result).toContain('△ 遅早: 1人');
       expect(result).toContain('× 欠席: 1人');
+      expect(result).toContain('- 未定: 0人');
       expect(result).toContain('合計: 4人');
       expect(result).toContain('○ Fl.太郎: 参加します');
       expect(result).toContain('△ Cl.花子: 未定です');
@@ -334,6 +340,7 @@ describe('calendar.ts', () => {
         attendCount: 0,
         maybeCount: 0,
         absentCount: 0,
+        unselectedCount: 0,
         totalCount: 0,
       });
       mockGetResponsesForCalendar.mockReturnValue([]);
@@ -353,6 +360,7 @@ describe('calendar.ts', () => {
         attendCount: 0,
         maybeCount: 0,
         absentCount: 0,
+        unselectedCount: 0,
         totalCount: 0,
       });
       mockGetResponsesForCalendar.mockImplementation(() => {

@@ -67,6 +67,8 @@ declare interface EventTally {
   maybeCount: number;
   /** 欠席（×）の人数 */
   absentCount: number;
+  /** 未定（-）の人数 */
+  unselectedCount: number;
   /** 回答総数 */
   totalCount: number;
   /** 集計日時（ISO 8601形式） */

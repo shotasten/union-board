@@ -72,8 +72,8 @@ Google Apps Script (GAS) とHTML Serviceを使用した、TMU（Tokyo Music Unio
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/shotasten/gas-attendance-manager.git
-cd gas-attendance-manager
+git clone https://github.com/shotasten/UnionBoard.git
+cd UnionBoard
 
 # 依存関係をインストール
 npm install

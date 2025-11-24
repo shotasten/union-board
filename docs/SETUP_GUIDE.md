@@ -11,8 +11,8 @@
 ## ステップ1: リポジトリのクローン
 
 ```bash
-git clone https://github.com/shotasten/UnionBoard.git
-cd UnionBoard
+git clone https://github.com/shotasten/union-board.git
+cd union-board
 ```
 
 ## ステップ2: 依存関係のインストール

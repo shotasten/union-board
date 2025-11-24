@@ -3623,12 +3623,6 @@
     function renderEventStatusList(memberName) {
       const container = document.getElementById('event-status-list');
       
-      console.log('🔍 renderEventStatusList開始:', {
-        memberName: memberName,
-        allResponsesCacheKeys: window.allResponsesCache ? Object.keys(window.allResponsesCache).length : 0,
-        currentEventsLength: currentEvents ? currentEvents.length : 0
-      });
-      
       // キャッシュがない場合は読み込み表示
       // 無限ループ防止: ローディング中フラグをチェック
       // キャッシュの有効性をチェック:
@@ -3642,22 +3636,15 @@
       if (window.allResponsesCache === undefined || window.allResponsesCache === null || isCacheExpired) {
         // 既にローディング中の場合は、再呼び出しを防止
         if (window.isLoadingEventsWithResponses) {
-          console.log('⏸️ 既にローディング中のため、再呼び出しをスキップ');
           return;
         }
         
-        console.log('⚠️ キャッシュがないため、getAllEventsWithResponses()を呼び出します');
         window.isLoadingEventsWithResponses = true; // ローディング中フラグを設定
         container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; background-color: #f8f9fa; border-radius: 6px;">読み込み中...</div>';
         
         // キャッシュがない場合は、バッチAPIで取得
         google.script.run
           .withSuccessHandler((result) => {
-            console.log('✅ getAllEventsWithResponses成功:', {
-              success: result.success,
-              eventsLength: result.events ? result.events.length : 0,
-              responsesMapKeys: result.responsesMap ? Object.keys(result.responsesMap).length : 0
-            });
             window.isLoadingEventsWithResponses = false; // ローディング完了
             
             if (result.success && result.responsesMap !== undefined) {
@@ -3669,18 +3656,15 @@
               // イベント一覧も更新（getAllEventsWithResponsesで取得したeventsを使用）
               if (result.events && Array.isArray(result.events)) {
                 currentEvents = result.events;
-                console.log('✅ currentEvents更新:', currentEvents.length + '件');
               }
               // 再帰的に呼び出し（キャッシュがある状態で）
               renderEventStatusList(memberName);
             } else {
-              console.error('❌ getAllEventsWithResponses失敗: result.success=' + result.success);
               container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">データの取得に失敗しました</div>';
             }
           })
           .withFailureHandler((error) => {
             window.isLoadingEventsWithResponses = false; // エラー時もフラグをリセット
-            console.error('❌ getAllEventsWithResponsesエラー:', error);
             container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">データの取得に失敗しました: ' + (error.message || '不明なエラー') + '</div>';
           })
           .getAllEventsWithResponses();
@@ -3689,7 +3673,6 @@
       }
 
       if (currentEvents.length === 0) {
-        console.warn('⚠️ currentEventsが空です');
         container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; background-color: #f8f9fa; border-radius: 6px; font-weight: 500;">イベントがありません</div>';
         return;
       }

@@ -91,7 +91,6 @@ function getAllEventsForLocationHistory(): AttendanceEvent[] {
  */
 function getInitData(): { events: AttendanceEvent[]; config: Config; members: Array<{userKey: string, part: string, name: string, displayName: string}>; responsesMap: { [eventId: string]: Response[] } } {
   try {
-    Logger.log('=== getInitData 開始 ===');
     // 性能改善：Configシートを1回だけ読み込む
     const allConfig = getAllConfig();
     
@@ -107,7 +106,6 @@ function getInitData(): { events: AttendanceEvent[]; config: Config; members: Ar
     
     // 表示期間の設定値をgetEvents()に渡す（Configシートの再読み込みを回避）
     const events = getEvents('all', config.DISPLAY_START_DATE, config.DISPLAY_END_DATE);
-    Logger.log(`📊 getInitData: イベント取得完了: ${events.length}件`);
     
     // メンバー一覧を取得
     const members = getMembers().map(m => ({
@@ -116,11 +114,9 @@ function getInitData(): { events: AttendanceEvent[]; config: Config; members: Ar
       name: m.name,
       displayName: m.displayName
     }));
-    Logger.log(`📊 getInitData: メンバー取得完了: ${members.length}人`);
     
     // 全出欠データを取得してイベントIDごとにグループ化
     const allResponses = getAllResponses();
-    Logger.log(`📊 getInitData: 出欠データ取得完了: ${allResponses.length}件`);
     
     const responsesMap: { [eventId: string]: Response[] } = {};
     allResponses.forEach(response => {
@@ -129,9 +125,6 @@ function getInitData(): { events: AttendanceEvent[]; config: Config; members: Ar
       }
       responsesMap[response.eventId].push(response);
     });
-    
-    Logger.log(`📊 getInitData: responsesMap作成完了: ${Object.keys(responsesMap).length}イベント分`);
-    Logger.log(`✅ getInitData 完了: イベント${events.length}件, メンバー${members.length}人, 出欠データ${allResponses.length}件, responsesMap${Object.keys(responsesMap).length}イベント分`);
     
     return {
       events: events,
@@ -438,8 +431,6 @@ function userSubmitResponsesBatch(
       }
     }
     
-    Logger.log(`✅ バッチ保存完了: 成功 ${successCount}件, 失敗 ${failedCount}件`);
-    
     // カレンダー同期は定期同期（cron）に任せる（性能改善）
     
   } catch (error) {
@@ -649,15 +640,11 @@ function getAllEventsWithResponses(): {
   error?: string;
 } {
   try {
-    Logger.log('=== getAllEventsWithResponses 開始 ===');
-    
     // イベント一覧を取得（既存関数を使用）
     const events = getEvents('all');
-    Logger.log(`📊 getAllEventsWithResponses: イベント取得完了: ${events.length}件`);
     
     // 全出欠データを1回で取得
     const allResponses = getAllResponses();
-    Logger.log(`📊 getAllEventsWithResponses: 出欠データ取得完了: ${allResponses.length}件`);
     
     // イベントIDごとにグループ化
     const responsesMap: { [eventId: string]: Response[] } = {};
@@ -667,9 +654,6 @@ function getAllEventsWithResponses(): {
       }
       responsesMap[response.eventId].push(response);
     });
-    
-    Logger.log(`📊 getAllEventsWithResponses: responsesMap作成完了: ${Object.keys(responsesMap).length}イベント分`);
-    Logger.log(`✅ getAllEventsWithResponses 完了: イベント${events.length}件, 出欠データ${allResponses.length}件, responsesMap${Object.keys(responsesMap).length}イベント分`);
     
     return {
       success: true,
@@ -795,7 +779,6 @@ function syncAllEvents(userKey?: string, adminToken?: string, limitToDisplayPeri
       };
     }
     
-    Logger.log(`📅 全イベント同期: 表示期間制限=${limitToDisplayPeriod}`);
     return syncAll(limitToDisplayPeriod);
   } catch (error) {
     Logger.log(`❌ エラー: 全イベント同期API失敗 - ${(error as Error).message}`);
@@ -819,7 +802,6 @@ function scheduledSyncResponsesToCalendar(): void {
   
   try {
     const now = new Date();
-    Logger.log(`📅 [cron] 同期開始: ${now.toISOString()}`);
     
     // 重複実行の防止チェック
     const properties = PropertiesService.getScriptProperties();
@@ -830,7 +812,6 @@ function scheduledSyncResponsesToCalendar(): void {
       const diffMinutes = (now.getTime() - lastSync.getTime()) / (1000 * 60);
       
       if (diffMinutes < DUPLICATE_PREVENTION_MINUTES) {
-        Logger.log(`⏭️ スキップ: 前回同期から ${Math.round(diffMinutes)} 分しか経過していません`);
         return;
       }
     }
@@ -840,12 +821,6 @@ function scheduledSyncResponsesToCalendar(): void {
     
     // 同期時刻を保存
     properties.setProperty(PROPERTY_KEY, now.toISOString());
-    
-    Logger.log(`✅ [cron] 同期完了: ${result.synced}件同期, ${result.failed}件失敗, ${result.skipped}件スキップ`);
-    
-    if (result.errors.length > 0) {
-      Logger.log(`⚠️ エラー詳細: ${result.errors.slice(0, 5).join(', ')}${result.errors.length > 5 ? ' ...' : ''}`);
-    }
   } catch (error) {
     Logger.log(`❌ [cron] 同期エラー: ${(error as Error).message}`);
     Logger.log((error as Error).stack);
@@ -873,13 +848,11 @@ function syncResponsesDiffToCalendar(
     const data = sheet.getDataRange().getValues();
     
     if (data.length <= 1) {
-      Logger.log('ℹ️ Responsesシートにデータがありません');
       return result;
     }
     
     // 前回同期時刻
     const lastSync = lastSyncTimestamp ? new Date(lastSyncTimestamp) : null;
-    Logger.log(`📊 前回同期時刻: ${lastSync ? lastSync.toISOString() : '初回実行'}`);
     
     // 更新されたイベントIDを収集
     const updatedEventIds = new Set<string>();
@@ -912,10 +885,7 @@ function syncResponsesDiffToCalendar(
       }
     }
     
-    Logger.log(`🔍 差分検知: ${updatedEventIds.size}件のイベントに更新あり`);
-    
     if (updatedEventIds.size === 0) {
-      Logger.log('✨ 更新なし - カレンダー同期をスキップ');
       return result;
     }
     
@@ -924,7 +894,6 @@ function syncResponsesDiffToCalendar(
       try {
         syncCalendarDescriptionForEvent(eventId);
         result.synced++;
-        Logger.log(`✅ 同期成功: ${eventId}`);
       } catch (error) {
         result.failed++;
         const errorMsg = `同期失敗: ${eventId} - ${(error as Error).message}`;
@@ -966,10 +935,7 @@ function getCalendarIdForSharing(): { success: boolean; calendarId?: string; err
       if (calendarId) {
         // Configシートから取得できた場合はScript Propertiesにキャッシュ
         properties.setProperty(PROPERTY_KEY, calendarId);
-        Logger.log(`✅ カレンダーIDをScript Propertiesにキャッシュしました: ${calendarId}`);
       }
-    } else {
-      Logger.log(`⚡ Script PropertiesからカレンダーIDを高速取得: ${calendarId}`);
     }
     
     if (!calendarId) {
@@ -1053,8 +1019,6 @@ function adminSetDisplayPeriod(
     setConfig('DISPLAY_START_DATE', startDate.trim() || '');
     setConfig('DISPLAY_END_DATE', endDate.trim() || '');
 
-    Logger.log(`✅ 表示期間設定成功: ${startDate || '制限なし'} ～ ${endDate || '制限なし'}`);
-    
     return {
       success: true
     };

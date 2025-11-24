@@ -437,6 +437,9 @@ function buildDescription(eventId: string, userDescription?: string, includePart
           const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';
           description += `${statusLabel} ${displayName}: ${response.comment}\n`;
         });
+      } else {
+        description += '【コメント】\n';
+        description += '（コメントなし）\n';
       }
     } catch (error) {
       Logger.log(`⚠️ コメント取得エラー（処理は続行）: ${(error as Error).message}`);

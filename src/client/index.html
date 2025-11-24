@@ -5699,6 +5699,7 @@
   <script>
     (function () {
       const BASE_WIDTH = 1200;
+      let resizeTimeout = null;
 
       function adjustLayoutScale() {
         const wrapper = document.getElementById('scale-wrapper');
@@ -5707,22 +5708,49 @@
           return;
         }
 
-        const viewportWidth = window.innerWidth;
-        if (viewportWidth < BASE_WIDTH) {
-          const scale = viewportWidth / BASE_WIDTH;
-          root.style.transform = `scale(${scale})`;
-          root.style.transformOrigin = 'top left';
-          wrapper.style.height = `${root.offsetHeight * scale}px`;
-          wrapper.style.justifyContent = 'flex-start';
-        } else {
-          root.style.transform = '';
-          wrapper.style.height = '';
-          wrapper.style.justifyContent = 'center';
-        }
+        // requestAnimationFrameを使用して、レンダリング後に計算
+        requestAnimationFrame(() => {
+          const viewportWidth = window.innerWidth;
+          if (viewportWidth < BASE_WIDTH) {
+            const scale = viewportWidth / BASE_WIDTH;
+            root.style.transform = `scale(${scale})`;
+            root.style.transformOrigin = 'top left';
+            // 次のフレームで高さを再計算（レイアウトが確定した後）
+            requestAnimationFrame(() => {
+              wrapper.style.height = `${root.offsetHeight * scale}px`;
+              wrapper.style.justifyContent = 'flex-start';
+            });
+          } else {
+            root.style.transform = '';
+            wrapper.style.height = '';
+            wrapper.style.justifyContent = 'center';
+          }
+        });
       }
 
-      window.addEventListener('resize', adjustLayoutScale);
-      window.addEventListener('load', adjustLayoutScale);
+      // リサイズ時のデバウンス処理
+      function debouncedAdjustLayoutScale() {
+        if (resizeTimeout) {
+          clearTimeout(resizeTimeout);
+        }
+        resizeTimeout = setTimeout(adjustLayoutScale, 100);
+      }
+
+      // 複数のタイミングで再計算（コンテンツのレンダリング完了を確実に待つ）
+      window.addEventListener('resize', debouncedAdjustLayoutScale);
+      window.addEventListener('load', () => {
+        // loadイベント後、少し遅延させて再計算（動的コンテンツのレンダリングを待つ）
+        setTimeout(adjustLayoutScale, 100);
+        // さらに遅延させて再計算（確実にレンダリング完了を待つ）
+        setTimeout(adjustLayoutScale, 500);
+      });
+      // DOMContentLoadedでも実行（早期の初期化）
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', adjustLayoutScale);
+      } else {
+        // 既に読み込み済みの場合は即座に実行
+        adjustLayoutScale();
+      }
     })();
   </script>
   <!-- 全画面ローダー -->

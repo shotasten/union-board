@@ -19,3 +19,6 @@ Thumbs.db
 # Environment
 .env
 
+# Built HTML (contains sensitive URL)
+public/index.html
+

@@ -72,8 +72,8 @@ Google Apps Script (GAS) とHTML Serviceを使用した、TMU（Tokyo Music Unio
 
 ```bash
 # リポジトリをクローン
-git clone https://github.com/shotasten/UnionBoard.git
-cd UnionBoard
+git clone https://github.com/shotasten/union-board.git
+cd union-board
 
 # 依存関係をインストール
 npm install

@@ -260,6 +260,9 @@ function buildDescriptionWithMemberMap(
         const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';
         description += `${statusLabel} ${displayName}: ${response.comment}\n`;
       });
+    } else {
+      description += '【コメント】\n';
+      description += '（コメントなし）\n';
     }
     
     description += `\n最終更新: ${formattedDate}`;

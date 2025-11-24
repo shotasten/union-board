@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <!-- スマホの実際の幅を使う（ここを 1200 固定にしてはいけない！） -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <title>UnionBoard</title>
+  
+  <!-- Favicon and App Icons -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+  <link rel="icon" type="image/png" sizes="1024x1024" href="icon-1024.png">
+  
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="UnionBoard">
+  
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+    }
+
+    .iframe-wrapper {
+      width: 100%;
+      height: 100vh;
+    }
+
+    iframe {
+      border: none;
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="iframe-wrapper">
+    <iframe id="gas-app-iframe" src=""></iframe>
+  </div>
+  
+  <script>
+    (function () {
+      const baseUrl = '{{GAS_APP_URL}}';
+      const urlParams = new URLSearchParams(window.location.search);
+      let iframeUrl = baseUrl;
+
+      urlParams.forEach((value, key) => {
+        const hasQuery = iframeUrl.includes('?');
+        const endsWithSeparator = iframeUrl.endsWith('?') || iframeUrl.endsWith('&');
+        const separator = endsWithSeparator ? '' : (hasQuery ? '&' : '?');
+        iframeUrl += separator + encodeURIComponent(key) + '=' + encodeURIComponent(value);
+      });
+
+      document.getElementById('gas-app-iframe').src = iframeUrl;
+    })();
+  </script>
+</body>
+</html>
+

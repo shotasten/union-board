@@ -50,6 +50,7 @@ Google Apps Script (GAS) とHTML Serviceを使用した、TMU（Tokyo Music Unio
 │   └── types/
 │       └── models.ts         # 型定義（共通インターフェース）
 ├── dist/                     # コンパイル済みファイル
+├── public/                   # ホスティング用ファイル
 ├── docs/                     # ドキュメント
 │   ├── SPECIFICATION.md       # 機能仕様、技術仕様
 │   ├── OPERATION_MANUAL.md    # 日常運用手順
@@ -58,9 +59,12 @@ Google Apps Script (GAS) とHTML Serviceを使用した、TMU（Tokyo Music Unio
 │   ├── CALENDAR_PUBLIC_SETUP.md # カレンダー公開設定ガイド
 │   └── tmp/                  # 開発・調査資料（一時保存）
 ├── .clasp.json               # clasp設定（.gitignoreで除外、初回セットアップ時に作成）
+├── .env                      # 環境変数（GAS_APP_URL等、.gitignoreで除外）
 ├── tsconfig.json             # TypeScript設定
 ├── appsscript.json           # GAS設定（OAuth スコープ）
 ├── package.json              # npm設定
+├── scripts/                  # ビルドスクリプト
+│   └── build-html.js         # HTMLビルドスクリプト
 └── README.md                 # 本ファイル
 ```
 
@@ -77,6 +81,16 @@ cd union-board
 
 # 依存関係をインストール
 npm install
+
+# 環境変数を設定（index.htmlビルド用）
+# .envファイルをルートディレクトリに作成し、GAS_APP_URLを設定
+echo 'GAS_APP_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec' > .env
+# または手動で.envファイルを作成して以下を記述:
+# GAS_APP_URL=https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec
+
+# index.htmlをビルド（環境変数からURLを注入）
+# 出力先: public/index.html
+npm run build:html
 
 # Google Apps Script APIを有効化
 # https://script.google.com/home/usersettings
@@ -142,6 +156,10 @@ npm run push
 # ビルド
 npm run build
 
+# index.htmlをビルド（環境変数からURLを注入）
+# 出力先: public/index.html
+npm run build:html
+
 # ビルド + プッシュ（--force で強制プッシュ、変更検出の問題を回避）
 npm run push
 
@@ -153,6 +171,33 @@ npm test
 ```
 
 **注意**: `npm run push` は `--force` フラグを使用して強制プッシュします。これにより、clasp の変更検出の問題を回避し、確実にコードが更新されます。
+
+### ホスティング用HTMLのビルド
+
+`public/`ディレクトリには、GASアプリをiframeで埋め込むためのHTMLファイルが含まれています。
+
+#### ビルドプロセス
+
+1. **テンプレートファイル**: `public/index.html.template`
+   - プレースホルダー `{{GAS_APP_URL}}` を含むテンプレート
+   - Gitにコミットされます
+
+2. **環境変数**: `.env`（ルートディレクトリ）
+   - `GAS_APP_URL` にGASアプリのURLを設定
+   - `.gitignore`で除外されるため、機密情報を保護
+
+3. **ビルドコマンド**: `npm run build:html`
+   - `.env`からURLを読み込み
+   - テンプレートのプレースホルダーを置換
+   - `public/index.html`を生成
+
+4. **生成されたファイル**: `public/index.html`
+   - ビルド成果物（`.gitignore`で除外）
+   - ホスティングサーバーにデプロイするファイル
+
+#### 画像ファイルの管理
+
+`public/image/`ディレクトリには、アイコンやファビコンなどの画像ファイルが含まれています。現在のサイズ（約1.7MB）は通常のGitで管理可能です。将来的に画像が増える場合は、Git LFSの導入を検討してください。
 
 ### 初回セットアップ後の作業
 
@@ -276,6 +321,27 @@ npm test
 - [セットアップ手順](docs/SETUP_GUIDE.md) - 初回セットアップガイド
 - [定期同期設定ガイド](docs/CRON_SYNC_SETUP_GUIDE.md) - cron設定手順
 - [カレンダー公開設定ガイド](docs/CALENDAR_PUBLIC_SETUP.md) - カレンダー公開設定手順
+
+## 🔒 セキュリティと機密情報の管理
+
+### 環境変数ファイル（.env）
+
+- **場所**: ルートディレクトリ（`.env`）
+- **内容**: GASアプリのURLなど、機密情報を含む設定
+- **Git管理**: `.gitignore`で除外されているため、リポジトリにコミットされません
+- **設定方法**: リポジトリをクローン後、`.env`ファイルを手動で作成してください
+
+### ビルド成果物
+
+- **`public/index.html`**: ビルド時に生成されるファイル
+  - `.gitignore`で除外されているため、リポジトリにコミットされません
+  - ホスティングサーバーにデプロイする際は、このファイルを使用します
+
+### テンプレートファイル
+
+- **`public/index.html.template`**: プレースホルダーを含むテンプレート
+  - 機密情報を含まないため、Gitにコミットされます
+  - URLを変更する場合は、`.env`を編集してから`npm run build:html`を実行してください
 
 ## 🚀 パフォーマンス
 

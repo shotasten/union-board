@@ -2,8 +2,8 @@
 <html lang="ja">
 <head>
   <meta charset="UTF-8">
-  <!-- PC表示にするため、viewportを固定幅に設定（直接開いた時とwrapper経由の時で同じ表示） -->
-  <meta name="viewport" content="width=1200, initial-scale=1.0">
+  <!-- 端末幅に応じて自然に表示させる -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UnionBoard</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <style>
@@ -19,7 +19,7 @@
       color: #333;
       background: #fafafa;
       min-height: 100vh;
-      padding: 20px;
+      overflow-x: hidden;
       -webkit-text-size-adjust: 100%;
       -ms-text-size-adjust: 100%;
       /* スクロールバーの色設定（ライトブルー） */
@@ -45,14 +45,31 @@
       background: #4A8BC2;
     }
 
+    #scale-wrapper {
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+    }
+
+    #app-root {
+      width: 100%;
+      min-width: 1200px;
+    }
+
+    .page-shell {
+      width: 100%;
+      padding: 20px;
+      box-sizing: border-box;
+    }
+
     .container {
-      max-width: 1200px;
+      width: 100%;
       margin: 0 auto;
       background: white;
       border-radius: 12px;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
       overflow: hidden;
-      width: 100%;
     }
 
     header {
@@ -415,89 +432,7 @@
       table-layout: fixed;
     }
 
-    @media (max-width: 768px) {
-      .attendance-grid {
-        min-width: 600px;
-      }
-
-      /* モバイルでのイベント名スタイル調整 */
-      .event-name-clickable {
-        padding: 6px 24px 6px 6px;
-        margin: -6px;
-      }
-
-      .event-name-clickable::after {
-        font-size: 1.2rem;
-        right: 6px;
-      }
-
-      /* 名前列の幅固定（モバイル表示: 日本語4文字程度、2行表示） */
-      .member-name-col {
-        min-width: 70px !important;
-        max-width: 70px !important;
-        width: 70px !important;
-      }
-
-      /* 名前列のリンク内テキストの折り返し制御（2行表示） */
-      .member-name-col a {
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        word-break: break-all;
-        line-height: 1.3;
-      }
-
-      /* 出欠状況セルの固定幅 */
-      .attendance-grid .status-cell {
-        min-width: 40px;
-        width: 40px;
-        max-width: 40px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      .attendance-grid {
-        min-width: 500px;
-      }
-
-      /* 小画面モバイルでのイベント名スタイル調整 */
-      .event-name-clickable {
-        padding: 5px 22px 5px 5px;
-        margin: -5px;
-      }
-
-      .event-name-clickable::after {
-        font-size: 1.1rem;
-        right: 5px;
-      }
-
-      /* 名前列の幅固定（小画面モバイル表示: 日本語4文字程度、2行表示） */
-      .member-name-col {
-        min-width: 70px !important;
-        max-width: 70px !important;
-        width: 70px !important;
-      }
-
-      /* 名前列のリンク内テキストの折り返し制御（2行表示） */
-      .member-name-col a {
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        word-break: break-all;
-        line-height: 1.3;
-      }
-
-      /* 出欠状況セルの固定幅 */
-      .attendance-grid .status-cell {
-        min-width: 40px;
-        width: 40px;
-        max-width: 40px;
-      }
-    }
+    /* レスポンシブデザインのメディアクエリは削除済み - PCレイアウト固定（1200px） */
 
     .attendance-grid th,
     .attendance-grid td {
@@ -742,6 +677,95 @@
     .response-btn.active {
       background: #00796B;
       color: white;
+    }
+
+    .member-info-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .member-info-block {
+      flex: 1;
+      min-width: 140px;
+    }
+
+    .member-info-block + .member-info-block {
+      margin-left: 20px;
+    }
+
+    .member-info-actions {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .member-info-actions button {
+      white-space: nowrap;
+    }
+
+    .event-row-top {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
+
+    .event-status-buttons {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .event-status-buttons .response-btn {
+      flex: 1 1 auto;
+      min-width: 70px;
+    }
+
+    @media (max-width: 600px) {
+      .member-info-header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .member-info-block + .member-info-block {
+        margin-left: 0;
+      }
+
+      .member-info-actions {
+        width: 100%;
+        justify-content: stretch;
+        flex-direction: column;
+      }
+
+      .member-info-actions button {
+        width: 100%;
+      }
+
+      .event-row-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+      }
+
+      .event-status-buttons {
+        width: 100%;
+        justify-content: flex-start;
+      }
+
+      .event-status-buttons .response-btn {
+        flex: 1 1 calc(50% - 6px);
+        min-width: 120px;
+      }
+    }
+
+    @media (max-width: 420px) {
+      .event-status-buttons .response-btn {
+        flex: 1 1 100%;
+        min-width: 0;
+      }
     }
 
     .response-btn.attend {
@@ -1377,390 +1401,14 @@
       border-top: 1px solid #e0e0e0;
     }
 
-    /* レスポンシブデザイン */
-    @media (max-width: 768px) {
-      body {
-        padding: 10px;
-      }
-
-      .container {
-        border-radius: 8px;
-        max-width: 100%;
-        width: 100%;
-      }
-
-      header {
-        padding: 15px;
-      }
-
-      .header-top {
-        flex-wrap: wrap;
-      }
-
-      header h1 {
-        font-size: 1.5rem;
-      }
-
-      .header-actions {
-        width: 100%;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-      }
-
-      header p {
-        font-size: 0.9rem;
-      }
-
-      .admin-login-btn {
-        font-size: 0.9rem;
-        padding: 10px 14px;
-        min-width: auto;
-        flex-shrink: 0;
-      }
-
-      .header-action-group {
-        flex-shrink: 0;
-      }
-
-      .icon-action-btn {
-        width: 40px;
-        height: 40px;
-        padding: 8px;
-      }
-
-      .icon-action-btn i {
-        font-size: 1rem;
-      }
-
-      .create-event-btn {
-        width: 100%;
-        font-size: 0.9rem;
-        padding: 12px 16px;
-      }
-
-      .secondary-btn {
-        width: 100%;
-        font-size: 0.9rem;
-        padding: 12px 16px;
-      }
-
-      .add-to-calendar-btn {
-        justify-content: center !important;
-      }
-
-      .member-register-btn {
-        width: 100%;
-        font-size: 0.9rem;
-        padding: 12px 16px;
-      }
-
-      .main-actions-bar {
-        flex-direction: column;
-        align-items: stretch !important;
-      }
-
-      .left-actions {
-        width: 100%;
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .left-actions .member-register-btn,
-      .left-actions .primary-btn,
-      .left-actions .secondary-btn {
-        width: 100%;
-      }
-
-      .right-actions {
-        width: 100%;
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .right-actions .primary-btn,
-      .right-actions .secondary-btn {
-        width: 100%;
-      }
-
-      main {
-        padding: 15px;
-      }
-
-
-      .response-buttons {
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .response-btn {
-        width: 100%;
-        padding: 12px;
-        font-size: 1rem;
-      }
-
-      .tally-stats {
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .tally-stat {
-        width: 100%;
-      }
-
-      .modal-content {
-        margin: 5% auto;
-        padding: 20px;
-        width: 95% !important;
-        max-width: 95% !important;
-      }
-
-      /* メンバー編集モーダル内のレスポンシブ対応（768px以下：2段表示） */
-      #event-status-list .event-row-top {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 10px !important;
-      }
-
-      #event-status-list .event-date-label {
-        width: 100% !important;
-        min-width: 100% !important;
-      }
-
-      #event-status-list .event-status-buttons {
-        width: 100% !important;
-        justify-content: flex-start !important;
-        flex-wrap: wrap !important;
-      }
-
-      #event-status-list .response-btn {
-        flex: 1 1 calc(25% - 6px) !important;
-        min-width: calc(25% - 6px) !important;
-        max-width: calc(25% - 6px) !important;
-      }
-
-      .modal-header h2 {
-        font-size: 1.2rem;
-      }
-
-      .admin-actions {
-        flex-direction: column;
-        gap: 8px;
-      }
-
-      .admin-btn {
-        width: 100%;
-      }
-
-      .attendance-grid-container {
-        font-size: 0.75rem;
-      }
-
-      .attendance-grid th,
-      .attendance-grid td {
-        padding: 4px 6px;
-        font-size: 0.75rem;
-      }
-
-      .attendance-grid th:first-child {
-        min-width: 150px;
-        width: 150px;
-        max-width: 150px;
-      }
-
-      .attendance-grid td:first-child {
-        min-width: 150px;
-        width: 150px;
-        max-width: 150px;
-      }
-    }
-
-    /* 600px以下: ボタン群を縦に積み重ね */
-    @media (max-width: 600px) {
-      .main-actions-bar {
-        flex-direction: column;
-        align-items: stretch !important;
-        gap: 10px;
-      }
-
-      .left-actions {
-        width: 100%;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-      }
-
-      .right-actions {
-        width: 100%;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-      }
-
-      .left-actions .primary-btn,
-      .left-actions .secondary-btn,
-      .right-actions .primary-btn,
-      .right-actions .secondary-btn {
-        width: 100%;
-        margin-bottom: 0;
-      }
-    }
-
-    /* 500px以下: サブタイトルを非表示 */
-    @media (max-width: 500px) {
-      header p {
-        display: none;
-      }
-
-      header {
-        padding: 12px 15px;
-      }
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 5px;
-      }
-
-      .container {
-        max-width: 100%;
-        width: 100%;
-        border-radius: 0;
-      }
-
-      header {
-        padding: 12px 10px;
-      }
-
-      .header-top {
-        flex-wrap: wrap;
-      }
-
-      header h1 {
-        font-size: 1.3rem;
-      }
-
-      .header-actions {
-        width: 100%;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-        gap: 6px;
-      }
-
-      .admin-login-btn {
-        font-size: 0.8rem;
-        padding: 8px 12px;
-        min-width: auto;
-        flex-shrink: 0;
-      }
-
-      .header-action-group {
-        flex-shrink: 0;
-      }
-
-      .icon-action-btn {
-        width: 36px;
-        height: 36px;
-        padding: 6px;
-      }
-
-      .icon-action-btn i {
-        font-size: 0.95rem;
-      }
-
-      .create-event-btn {
-        font-size: 0.8rem;
-        padding: 6px 12px;
-      }
-
-      .secondary-btn {
-        font-size: 0.8rem;
-        padding: 6px 12px;
-      }
-
-      .add-to-calendar-btn {
-        justify-content: center !important;
-      }
-
-      .member-register-btn {
-        width: 100%;
-        font-size: 0.8rem;
-        padding: 6px 12px;
-      }
-
-      .main-actions-bar {
-        flex-direction: column;
-        align-items: stretch !important;
-      }
-
-      .left-actions {
-        width: 100%;
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      .right-actions {
-        width: 100%;
-        flex-direction: column;
-        align-items: stretch;
-      }
-
-      main {
-        padding: 10px;
-      }
-
-      .modal-content {
-        margin: 2% auto;
-        padding: 15px;
-        width: 98% !important;
-        max-width: 98% !important;
-      }
-
-      /* メンバー編集モーダル内のレスポンシブ対応（480px以下） */
-      #event-status-list .event-row-top {
-        flex-direction: column !important;
-        align-items: flex-start !important;
-        gap: 10px !important;
-      }
-
-      #event-status-list .event-date-label {
-        width: 100% !important;
-        min-width: 100% !important;
-      }
-
-      #event-status-list .event-status-buttons {
-        width: 100% !important;
-        justify-content: flex-start !important;
-        flex-wrap: wrap !important;
-      }
-
-      #event-status-list .response-btn {
-        flex: 1 1 calc(25% - 6px) !important;
-        min-width: calc(25% - 6px) !important;
-        max-width: calc(25% - 6px) !important;
-      }
-
-      .attendance-grid th,
-      .attendance-grid td {
-        padding: 3px 4px;
-        font-size: 0.7rem;
-      }
-
-      .attendance-grid th:first-child {
-        min-width: 120px;
-        width: 120px;
-        max-width: 120px;
-      }
-
-      .attendance-grid td:first-child {
-        min-width: 120px;
-        width: 120px;
-        max-width: 120px;
-      }
-    }
+    /* レスポンシブデザインは削除 - PCレイアウト固定（1200px）で縮小拡大表示 */
   </style>
 </head>
 <body>
-  <div class="container">
+  <div id="scale-wrapper">
+    <div id="app-root">
+      <div class="page-shell">
+        <div class="container">
     <header>
       <div class="header-top">
         <h1>UnionBoard</h1>
@@ -1845,6 +1493,9 @@
     <footer>
       <p>&copy; 2025 UnionBoard - Tokyo Music Union</p>
     </footer>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- イベント作成・編集モーダル -->
@@ -1989,23 +1640,23 @@
         <button class="close-btn" onclick="closeMemberEditModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <div style="margin-top: 10px; padding: 12px; background: #f8f9fa; border-radius: 6px; display: flex; justify-content: space-between; align-items: center;">
-          <div>
+        <div class="member-info-header" style="margin-top: 10px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+          <div class="member-info-block">
             <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">パート</div>
             <div id="member-part-display" style="font-weight: bold; font-size: 1rem;">-</div>
           </div>
-          <div style="margin-left: 20px; flex: 1;">
+          <div class="member-info-block">
             <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">名前</div>
             <div id="member-name-display" style="font-weight: bold; font-size: 1rem;">-</div>
           </div>
-          <div style="display: flex; gap: 8px;">
-            <button type="button" onclick="openMemberInfoEditModal()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; white-space: nowrap;">編集</button>
-            <button type="button" onclick="deleteMemberFromModal()" style="padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem; white-space: nowrap;">削除</button>
+          <div class="member-info-actions">
+            <button type="button" onclick="openMemberInfoEditModal()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">編集</button>
+            <button type="button" onclick="deleteMemberFromModal()" style="padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">削除</button>
           </div>
         </div>
         <div style="margin-top: 20px;">
           <label style="font-weight: bold; display: block; margin-bottom: 10px;">各日程の出欠を選択:</label>
-          <div id="event-status-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; background-color: #ffffff;">
+          <div id="event-status-list" style="max-height: 520px; min-height: 360px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; background-color: #ffffff;">
             <!-- 各日程のステータス選択UIがここに動的に生成されます -->
           </div>
         </div>
@@ -3811,9 +3462,6 @@
         // ステータス選択ボタン
         const statusGroup = document.createElement('div');
         statusGroup.className = 'event-status-buttons';
-        statusGroup.style.display = 'flex';
-        statusGroup.style.gap = '6px';
-        statusGroup.style.flexShrink = '0';
         statusGroup.dataset.eventId = event.id;
         statusGroup.dataset.memberName = memberName;
 
@@ -6048,7 +5696,35 @@
       }
     }
   </script>
+  <script>
+    (function () {
+      const BASE_WIDTH = 1200;
 
+      function adjustLayoutScale() {
+        const wrapper = document.getElementById('scale-wrapper');
+        const root = document.getElementById('app-root');
+        if (!wrapper || !root) {
+          return;
+        }
+
+        const viewportWidth = window.innerWidth;
+        if (viewportWidth < BASE_WIDTH) {
+          const scale = viewportWidth / BASE_WIDTH;
+          root.style.transform = `scale(${scale})`;
+          root.style.transformOrigin = 'top left';
+          wrapper.style.height = `${root.offsetHeight * scale}px`;
+          wrapper.style.justifyContent = 'flex-start';
+        } else {
+          root.style.transform = '';
+          wrapper.style.height = '';
+          wrapper.style.justifyContent = 'center';
+        }
+      }
+
+      window.addEventListener('resize', adjustLayoutScale);
+      window.addEventListener('load', adjustLayoutScale);
+    })();
+  </script>
   <!-- 全画面ローダー -->
   <div id="fullscreen-loader" class="fullscreen-loader">
     <div class="loader-spinner"></div>

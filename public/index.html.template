@@ -33,18 +33,15 @@
       height: 100%;
     }
 
-    /* iframe を縮小表示するためのラッパー */
     .iframe-wrapper {
       width: 100%;
-      overflow-x: hidden;
-      position: relative;
+      height: 100vh;
     }
 
     iframe {
       border: none;
-      width: 1200px;  /* GAS 側と合わせる */
-      height: 100vh;
-      transform-origin: top left;
+      width: 100%;
+      height: 100%;
       display: block;
     }
   </style>
@@ -55,7 +52,6 @@
   </div>
   
   <script>
-    // --- パラメータ転送 ---
     (function () {
       const baseUrl = '{{GAS_APP_URL}}';
       const urlParams = new URLSearchParams(window.location.search);
@@ -67,30 +63,6 @@
 
       document.getElementById('gas-app-iframe').src = iframeUrl;
     })();
-
-    // --- 画面幅に応じて iframe を縮小する ---
-    function resizeIframe() {
-      const baseWidth = 1200; // GAS 側 UI 基準
-      const viewportWidth = window.innerWidth;
-      const scale = Math.min(viewportWidth / baseWidth, 1); // 拡大はしない（最大1.0）
-      const iframe = document.getElementById('gas-app-iframe');
-      iframe.style.transform = `scale(${scale})`;
-      // 縮小後の幅に合わせて wrapper の高さを調整
-      const scaledHeight = window.innerHeight / scale;
-      iframe.style.height = scaledHeight + "px";
-    }
-
-    // リサイズイベントのパフォーマンス最適化（throttle）
-    let resizeTimer;
-    function throttledResize() {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(resizeIframe, 100);
-    }
-
-    window.addEventListener("resize", throttledResize);
-    window.addEventListener("load", resizeIframe);
-    // 初期表示時にも実行
-    resizeIframe();
   </script>
 </body>
 </html>

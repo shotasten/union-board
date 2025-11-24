@@ -70,6 +70,9 @@ function mockBuildDescriptionWithMemberMap(
       const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';
       description += `${statusLabel} ${displayName}: ${response.comment}\n`;
     });
+  } else {
+    description += '【コメント】\n';
+    description += '（コメントなし）\n';
   }
   
   description += `\n最終更新: ${formattedDate}`;
@@ -113,6 +116,9 @@ function mockBuildDescription(eventId: string, userDescription?: string): string
         const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';
         description += `${statusLabel} ${displayName}: ${response.comment}\n`;
       });
+    } else {
+      description += '【コメント】\n';
+      description += '（コメントなし）\n';
     }
   } catch (error) {
     description += '（コメント取得エラー）\n';
@@ -241,7 +247,7 @@ describe('calendar.ts', () => {
       // Assert
       expect(result).toContain('テストイベント');
       expect(result).toContain('○ 参加: 1人');
-      expect(result).toContain('△ 未定: 1人');
+      expect(result).toContain('△ 遅早: 1人');
       expect(result).toContain('× 欠席: 1人');
       expect(result).toContain('合計: 3人');
       expect(result).toContain('○ Fl.太郎: 参加します');

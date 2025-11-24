@@ -58,7 +58,10 @@
       let iframeUrl = baseUrl;
 
       urlParams.forEach((value, key) => {
-        iframeUrl += (iframeUrl.includes('?') ? '&' : '?') + encodeURIComponent(key) + '=' + encodeURIComponent(value);
+        const hasQuery = iframeUrl.includes('?');
+        const endsWithSeparator = iframeUrl.endsWith('?') || iframeUrl.endsWith('&');
+        const separator = endsWithSeparator ? '' : (hasQuery ? '&' : '?');
+        iframeUrl += separator + encodeURIComponent(key) + '=' + encodeURIComponent(value);
       });
 
       document.getElementById('gas-app-iframe').src = iframeUrl;

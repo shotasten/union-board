@@ -108,12 +108,10 @@ function upsertMember(
     if (existingRowIndex > 0) {
       // 更新
       sheet.getRange(existingRowIndex, 2, 1, 4).setValues([[part, name, displayName, now]]);
-      Logger.log(`✅ メンバー更新: ${displayName} (${userKey})`);
     } else {
       // 新規作成
       const nextRow = sheet.getLastRow() + 1;
       sheet.getRange(nextRow, 1, 1, 6).setValues([[userKey, part, name, displayName, now, now]]);
-      Logger.log(`✅ メンバー作成: ${displayName} (${userKey})`);
     }
     
     return true;
@@ -143,7 +141,6 @@ function deleteMember(userKey: string): boolean {
     for (let i = 1; i < data.length; i++) {
       if (data[i][0] === userKey) {
         sheet.deleteRow(i + 1); // 1ベースの行番号
-        Logger.log(`✅ メンバー削除: ${userKey}`);
         return true;
       }
     }

@@ -33,9 +33,6 @@ function getOrCreateSpreadsheet(): GoogleAppsScript.Spreadsheet.Spreadsheet {
     spreadsheetId = spreadsheet.getId();
     scriptProperties.setProperty('SPREADSHEET_ID', spreadsheetId);
     
-    Logger.log(`✅ 新規Spreadsheet作成: ${spreadsheetId}`);
-    Logger.log(`URL: ${spreadsheet.getUrl()}`);
-    
     return spreadsheet;
   } catch (error) {
     Logger.log(`❌ エラー: Spreadsheet取得・作成失敗 - ${(error as Error).message}`);
@@ -51,8 +48,6 @@ function getOrCreateSpreadsheet(): GoogleAppsScript.Spreadsheet.Spreadsheet {
  * 注意: AuditLogシートとSessionsシートは削除済み（ログイン機能が不要なため）
  */
 function initializeSpreadsheet(): void {
-  Logger.log('=== Spreadsheet初期化開始 ===');
-  
   const spreadsheet = getOrCreateSpreadsheet();
   
   // 既存のシートを削除（デフォルトのSheet1など）
@@ -81,7 +76,6 @@ function initializeSpreadsheet(): void {
     ]]);
     sheet.getRange('A1:M1').setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
     sheet.setFrozenRows(1);
-    Logger.log('✅ Eventsシート作成完了');
   } else {
     // ヘッダーのみ確認・更新（isAllDayカラムを追加・移動）
     const lastColumn = sheet.getLastColumn();
@@ -101,7 +95,6 @@ function initializeSpreadsheet(): void {
         const newHeaderRange = sheet.getRange('A1:M1');
         newHeaderRange.setValues([expectedHeaders]);
         newHeaderRange.setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
-        Logger.log('✅ EventsシートのヘッダーにisAllDayカラムを追加しました');
       } else {
         // 既に13列以上ある場合、最後の列をisAllDayに変更してから移動
         const lastCol = sheet.getLastColumn();
@@ -121,11 +114,9 @@ function initializeSpreadsheet(): void {
         // ヘッダーを更新
         headerRange.setValues([expectedHeaders]);
         headerRange.setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
-        Logger.log('✅ EventsシートのisAllDayカラムをstart/endの後に移動しました');
       }
     } else if (currentIsAllDayIndex !== expectedIsAllDayIndex) {
       // isAllDayカラムが存在するが、正しい位置にない場合、移動
-      Logger.log(`🔄 isAllDayカラムを位置${currentIsAllDayIndex + 1}から位置${expectedIsAllDayIndex + 1}に移動します`);
       
       const lastRow = sheet.getLastRow();
       if (lastRow > 1) {
@@ -175,7 +166,6 @@ function initializeSpreadsheet(): void {
     ]]);
     sheet.getRange('A1:F1').setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
     sheet.setFrozenRows(1);
-    Logger.log('✅ Membersシート作成完了');
   } else {
     // ヘッダーのみ確認・更新
     const headerRange = sheet.getRange('A1:F1');
@@ -199,7 +189,6 @@ function initializeSpreadsheet(): void {
     ]]);
     sheet.getRange('A1:F1').setFontWeight('bold').setBackground('#667eea').setFontColor('#ffffff');
     sheet.setFrozenRows(1);
-    Logger.log('✅ Responsesシート作成完了');
   } else {
     // ヘッダーのみ確認・更新
     const headerRange = sheet.getRange('A1:F1');
@@ -230,7 +219,6 @@ function initializeSpreadsheet(): void {
     ];
     sheet.getRange(2, 1, configData.length, 2).setValues(configData);
     sheet.setFrozenRows(1);
-    Logger.log('✅ Configシート作成完了');
   } else {
     // ヘッダーのみ確認・更新
     const headerRange = sheet.getRange('A1:B1');
@@ -255,7 +243,6 @@ function initializeSpreadsheet(): void {
         // ADMIN_TOKENの場合は毎回生成
         const value = key === 'ADMIN_TOKEN' ? generateAdminToken() : defaultValue;
         sheet.getRange(nextRow, 1, 1, 2).setValues([[key, value]]);
-        Logger.log(`✅ Config値追加: ${key} = ${value}`);
       }
     });
     sheet.setFrozenRows(1);
@@ -277,7 +264,6 @@ function initializeSpreadsheet(): void {
           // シートを正しい位置に移動
           spreadsheet.setActiveSheet(targetSheet);
           spreadsheet.moveActiveSheet(i + 1);
-          Logger.log(`✅ ${targetName}シートを位置${i + 1}に移動`);
         }
       }
     }
@@ -318,7 +304,6 @@ function initializeSpreadsheet(): void {
           const sheetToDelete = spreadsheet.getSheetByName(sheetName);
           if (sheetToDelete) {
             spreadsheet.deleteSheet(sheetToDelete);
-            Logger.log(`🗑️ ${sheetName}シートを削除`);
           } else {
             Logger.log(`⚠️ ${sheetName}シートが見つかりません（既に削除されている可能性があります）`);
           }
@@ -333,7 +318,6 @@ function initializeSpreadsheet(): void {
           const sheet1 = spreadsheet.getSheetByName('Sheet1');
           if (sheet1 && sheetNames.every(name => currentSheetNames.includes(name))) {
             spreadsheet.deleteSheet(sheet1);
-            Logger.log(`🗑️ Sheet1シートを削除`);
           }
         } catch (error) {
           Logger.log(`⚠️ Sheet1シートの削除をスキップ: ${(error as Error).message}`);
@@ -367,10 +351,6 @@ function setupApplication(): void {
     Logger.log('--- 専用カレンダー作成 ---');
     const calendarId = setupBandCalendar();
     
-    Logger.log('=== アプリケーション初期セットアップ完了 ===');
-    Logger.log(`✅ Spreadsheet初期化完了`);
-    Logger.log(`✅ 専用カレンダー作成完了: ${calendarId}`);
-    Logger.log(`✅ CALENDAR_IDがConfigシートに保存されました`);
     
   } catch (error) {
     Logger.log(`❌ エラー: アプリケーション初期セットアップ失敗 - ${(error as Error).message}`);
@@ -441,7 +421,6 @@ function getAllConfig(): { [key: string]: string } {
       }
     }
     
-    Logger.log(`✅ 全Config値取得完了: ${Object.keys(configMap).length}件`);
     return configMap;
   } catch (error) {
     Logger.log(`❌ エラー: 全Config取得失敗 - ${(error as Error).message}`);
@@ -477,14 +456,12 @@ function setConfig(key: string, value: string): void {
       if (data[i][0] === key) {
         sheet.getRange(i + 1, 2).setValue(value);
         updated = true;
-        Logger.log(`✅ Config更新: ${key} = ${value}`);
         break;
       }
     }
     
     if (!updated) {
       sheet.appendRow([key, value]);
-      Logger.log(`✅ Config追加: ${key} = ${value}`);
     }
     
     // CALENDAR_IDの場合はScript Propertiesにもキャッシュ（性能改善）
@@ -568,7 +545,6 @@ function cleanupAllData(): {
         
         Logger.log(`カレンダーイベント取得範囲: ${startDate.toISOString()} ～ ${endDate.toISOString()}`);
         const calendarEvents = calendar.getEvents(startDate, endDate);
-        Logger.log(`✅ カレンダーイベント取得: ${calendarEvents.length}件`);
         
         // 全イベントを削除
         for (const event of calendarEvents) {
@@ -582,7 +558,6 @@ function cleanupAllData(): {
           }
         }
         
-        Logger.log(`✅ カレンダーイベント削除完了: ${result.calendarDeleted}件`);
       }
     } catch (error) {
       const errorMsg = `カレンダー削除エラー: ${(error as Error).message}`;
@@ -601,9 +576,7 @@ function cleanupAllData(): {
         if (lastRow > 1) {
           eventsSheet.deleteRows(2, lastRow - 1); // ヘッダー行（1行目）を残して削除
           result.eventsDeleted = lastRow - 1;
-          Logger.log(`✅ Eventsシート削除完了: ${result.eventsDeleted}件`);
         } else {
-          Logger.log(`ℹ️ Eventsシートは既に空です`);
         }
       }
 
@@ -614,14 +587,11 @@ function cleanupAllData(): {
         if (lastRow > 1) {
           responsesSheet.deleteRows(2, lastRow - 1); // ヘッダー行（1行目）を残して削除
           result.responsesDeleted = lastRow - 1;
-          Logger.log(`✅ Responsesシート削除完了: ${result.responsesDeleted}件`);
         } else {
-          Logger.log(`ℹ️ Responsesシートは既に空です`);
         }
       }
 
       // Configシートは設定情報なので残す（必要に応じてリセット可能）
-      Logger.log(`ℹ️ Configシートは設定情報のため残しています`);
 
     } catch (error) {
       const errorMsg = `スプレッドシート削除エラー: ${(error as Error).message}`;
@@ -729,7 +699,6 @@ function resetRateLimit(userKey: string, action: string): void {
     const cache = CacheService.getScriptCache();
     const cacheKey = `ratelimit:${userKey}:${action}`;
     cache.remove(cacheKey);
-    Logger.log(`✅ レート制限リセット: ${userKey} の ${action}`);
   } catch (error) {
     Logger.log(`❌ エラー: レート制限リセット失敗 - ${(error as Error).message}`);
   }

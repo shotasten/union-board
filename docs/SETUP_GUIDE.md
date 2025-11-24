@@ -70,13 +70,13 @@ npm run push
 1. GASエディタを開く: `https://script.google.com/home/projects/<SCRIPT_ID>/edit`
    - `<SCRIPT_ID>` は `.clasp.json` の `scriptId` です
 2. `utils.gs` を選択
-3. 関数選択で `testInitializeSpreadsheet` を選択
+3. 関数選択で `initializeSpreadsheet` を選択
 4. 「実行」をクリック
 5. 実行ログを確認し、以下が表示されることを確認：
    - ✅ Eventsシート作成完了
    - ✅ Responsesシート作成完了
    - ✅ Configシート作成完了
-   - ✅ AuditLogシート作成完了
+   - ✅ Membersシート作成完了
    - Spreadsheet URL（このURLをメモしておきます）
 
 **エラーが発生した場合**:
@@ -86,22 +86,24 @@ npm run push
 ## ステップ8: カレンダー初期設定
 
 1. GASエディタで `calendar.gs` を選択
-2. 関数選択で `testCalendarSetup` を選択
+2. 関数選択で `setupBandCalendar` を選択
 3. 「実行」をクリック
 4. 実行ログを確認し、以下が表示されることを確認：
    - ✅ 専用カレンダー作成成功
    - ✅ CALENDAR_IDをConfigシートに保存
 
-**注意**: このステップで「吹奏楽団 イベントカレンダー」という名前のカレンダーが作成されます。Googleカレンダーで確認できます。
+**注意**: このステップで「Tokyo Music Union イベントカレンダー」という名前のカレンダーが作成されます。Googleカレンダーで確認できます。
 
 ## ステップ9: 管理者トークンの取得
 
 1. GASエディタで `utils.gs` を選択
-2. 関数選択で `testConfig` を選択
+2. 関数選択で `getAllConfig` を選択
 3. 「実行」をクリック
 4. 実行ログから `ADMIN_TOKEN` の値をコピー
    - 例: `ADMIN_TOKEN: eBZDfWShdv0VV767gcH5OfcpChGvDesv`
 5. **このトークンを安全な場所に保存**（管理者機能を使用する際に必要です）
+
+**注意**: `getAllConfig` が存在しない場合は、`getConfig('ADMIN_TOKEN', '')` を実行してトークンを取得してください。
 
 ## ステップ10: Webアプリとしてデプロイ
 
@@ -189,7 +191,7 @@ localStorage.setItem('adminToken', 'YOUR_ADMIN_TOKEN');
 
 ### Spreadsheet初期化エラー
 
-**症状**: `testInitializeSpreadsheet` の実行でエラーが発生する
+**症状**: `initializeSpreadsheet` の実行でエラーが発生する
 
 **対処法**:
 - 実行ログのエラーメッセージを確認
@@ -216,7 +218,7 @@ localStorage.setItem('adminToken', 'YOUR_ADMIN_TOKEN');
 
 ## 次のステップ
 
-セットアップが完了したら、[運用マニュアル](運用マニュアル.md)を参照して、アプリの使用方法を確認してください。
+セットアップが完了したら、[運用マニュアル](OPERATION_MANUAL.md)を参照して、アプリの使用方法を確認してください。
 
 ## 重要な情報の保存
 

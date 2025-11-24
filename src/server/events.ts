@@ -120,23 +120,17 @@ function createEvent(
       '' // lastSynced
     ]);
     
-    Logger.log(`✅ イベント作成成功: ${eventId} - ${title}`);
-    
     // カレンダーに同期（skipCalendarSync=falseの場合のみ実行）
     // カレンダーから新規追加する場合は、skipCalendarSync=trueを渡して複製を防止
     if (!skipCalendarSync) {
-      Logger.log(`🔄 カレンダー同期実行: ${eventId}`);
     try {
       const event = getEventById(eventId);
       if (event) {
           const calendarEventId = upsertCalendarEvent(event);
           if (calendarEventId) {
-            Logger.log(`✅ カレンダーイベントIDを即座に設定: ${eventId} - ${calendarEventId}`);
-            
             // calendarEventIdをスプレッドシートに即座に保存（複製防止のため）
             // この更新により、pullFromCalendar()の後続処理で「calendarEventId未設定」として
             // 検出されることを防ぐ
-            Logger.log(`🔄 calendarEventIdをスプレッドシートに即座に保存: ${eventId}`);
             const data = sheet.getDataRange().getValues();
             for (let i = 1; i < data.length; i++) {
               if (data[i][0] === eventId) {
@@ -145,7 +139,6 @@ function createEvent(
                 const now = new Date().toISOString();
                 sheet.getRange(rowIndex, 8).setValue(calendarEventId);
                 sheet.getRange(rowIndex, 13).setValue(now);
-                Logger.log(`✅ calendarEventIdをスプレッドシートに保存完了: ${eventId} - ${calendarEventId}`);
                 break;
               }
             }
@@ -154,8 +147,6 @@ function createEvent(
     } catch (error) {
       Logger.log(`⚠️ カレンダー同期失敗（イベントは作成済み）: ${(error as Error).message}`);
       }
-    } else {
-      Logger.log(`⏭️ カレンダー同期スキップ（skipCalendarSync=true）: ${eventId}`);
     }
     
     return eventId;
@@ -269,7 +260,6 @@ function getEvents(filter?: 'upcoming' | 'past' | 'all', displayStartDateStr?: s
       events.push(event);
     }
     
-    Logger.log(`✅ イベント取得成功: ${events.length}件（フィルター: ${filter || 'all'}${displayStartDate || displayEndDate ? `, 表示期間: ${displayStartDate ? displayStartDate.toISOString() : 'なし'} ～ ${displayEndDate ? displayEndDate.toISOString() : 'なし'}` : ''}）`);
     return events;
     
   } catch (error) {
@@ -326,7 +316,6 @@ function getEventById(eventId: string): AttendanceEvent | null {
           isAllDay: isAllDay
         };
         
-        Logger.log(`✅ イベント取得成功: ${eventId}`);
         return event;
       }
     }
@@ -493,7 +482,6 @@ function updateEvent(eventId: string, updates: Partial<AttendanceEvent>, skipCal
           }
         }
         
-        Logger.log(`✅ イベント更新成功: ${eventId}`);
         
         // カレンダーに同期（スキップフラグがfalseの場合のみ）
         if (!skipCalendarSync) {
@@ -505,8 +493,6 @@ function updateEvent(eventId: string, updates: Partial<AttendanceEvent>, skipCal
         } catch (error) {
           Logger.log(`⚠️ カレンダー同期失敗（イベントは更新済み）: ${(error as Error).message}`);
           }
-        } else {
-          Logger.log(`⏭️ カレンダー同期をスキップしました: ${eventId}`);
         }
         
         return true;
@@ -554,7 +540,6 @@ function deleteEvent(eventId: string): boolean {
           try {
             const calendarEvent = calendar.getEventById(event.calendarEventId);
             calendarEvent.deleteEvent();
-            Logger.log(`✅ カレンダーイベント削除成功: ${event.calendarEventId}`);
           } catch (error) {
             // カレンダーイベントが見つからない場合はスキップ（既に削除済みの可能性）
             Logger.log(`⚠️ カレンダーイベントが見つかりません（既に削除済みの可能性）: ${event.calendarEventId}`);
@@ -569,9 +554,7 @@ function deleteEvent(eventId: string): boolean {
     // スプレッドシートから論理削除（statusを'deleted'に変更）
     const result = updateEvent(eventId, { status: 'deleted' });
     
-    if (result) {
-      Logger.log(`✅ イベント削除成功（スプレッドシート: 論理削除, カレンダー: 物理削除）: ${eventId}`);
-    } else {
+    if (!result) {
       Logger.log(`❌ イベント削除失敗: ${eventId}`);
     }
     
@@ -613,14 +596,11 @@ function batchUpdateIsAllDayFlags(): {
     const events = getEvents('all');
     result.total = events.length;
     
-    Logger.log(`📋 処理対象イベント数: ${result.total}件`);
-    
     for (const event of events) {
       try {
         // 既にisAllDayフラグが設定されている場合はスキップ
         if (event.isAllDay !== undefined) {
           result.skipped++;
-          Logger.log(`⏭️ スキップ: ${event.id} - ${event.title} (既にisAllDayが設定済み: ${event.isAllDay})`);
           continue;
         }
         
@@ -632,7 +612,6 @@ function batchUpdateIsAllDayFlags(): {
         
         if (updateResult) {
           result.updated++;
-          Logger.log(`✅ 更新: ${event.id} - ${event.title} (isAllDay: ${isAllDay})`);
         } else {
           result.errors.push(`更新失敗: ${event.id} - ${event.title}`);
           Logger.log(`❌ 更新失敗: ${event.id} - ${event.title}`);
@@ -643,15 +622,8 @@ function batchUpdateIsAllDayFlags(): {
       }
     }
     
-    Logger.log(`\n=== isAllDayフラグ一括設定完了 ===`);
-    Logger.log(`📊 処理結果:`);
-    Logger.log(`  総数: ${result.total}件`);
-    Logger.log(`  更新: ${result.updated}件`);
-    Logger.log(`  スキップ: ${result.skipped}件`);
-    Logger.log(`  エラー: ${result.errors.length}件`);
-    
     if (result.errors.length > 0) {
-      Logger.log(`\n❌ エラー詳細:`);
+      Logger.log(`❌ エラー詳細:`);
       result.errors.forEach((error, index) => {
         Logger.log(`  ${index + 1}. ${error}`);
       });

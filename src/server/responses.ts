@@ -57,7 +57,6 @@ function getResponses(eventId: string): Response[] {
       }
     }
     
-    Logger.log(`✅ 出欠回答取得成功: ${eventId} - ${responses.length}件`);
     return responses;
     
   } catch (error) {
@@ -73,11 +72,8 @@ function getResponses(eventId: string): Response[] {
  */
 function getAllResponses(): Response[] {
   try {
-    Logger.log('=== getAllResponses 開始 ===');
     const sheet = getResponsesSheet();
-    Logger.log('✅ Responsesシート取得成功');
     const data = sheet.getDataRange().getValues();
-    Logger.log(`✅ データ取得: ${data.length}行`);
     
     const responses: Response[] = [];
     
@@ -102,8 +98,6 @@ function getAllResponses(): Response[] {
       responses.push(response);
     }
     
-    Logger.log(`✅ 全出欠回答取得成功: ${responses.length}件`);
-    Logger.log('=== getAllResponses 終了 ===');
     return responses;
     
   } catch (error) {
@@ -144,7 +138,6 @@ function getResponseByUser(eventId: string, userKey: string): Response | null {
           updatedAt: row[5]
         };
         
-        Logger.log(`✅ 出欠回答取得成功: ${eventId} - ${userKey}`);
         return response;
       }
     }
@@ -208,7 +201,6 @@ function tallyResponses(eventId: string): EventTally {
       tallyAt: new Date().toISOString()
     };
     
-    Logger.log(`✅ 出欠集計完了: ${eventId} - 出席:${attendCount} 遅早:${maybeCount} 欠席:${absentCount} 未定(-):${unselectedCount} 合計:${responses.length}`);
     return tally;
     
   } catch (error) {
@@ -270,8 +262,6 @@ function deleteResponsesByUserKey(userKey: string): number {
       return 0;
     }
     
-    Logger.log(`🔄 バッチ削除開始: ${deletedCount}件を削除, ${remainingData.length - 1}件を保持`);
-    
     // シート全体をクリア
     sheet.clear();
     
@@ -288,7 +278,6 @@ function deleteResponsesByUserKey(userKey: string): number {
       sheet.setFrozenRows(1);
     }
     
-    Logger.log(`✅ レスポンス削除成功: ${userKey} (${deletedCount}件)`);
     return deletedCount;
   } catch (error) {
     Logger.log(`❌ エラー: レスポンス削除失敗 - ${(error as Error).message}`);

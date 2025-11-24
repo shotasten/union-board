@@ -2,8 +2,6 @@
 
 UnionBoard（出欠管理アプリ）の日常的な運用方法を説明します。
 
-**最終更新**: 2025-11-12
-
 ---
 
 ## 📋 目次
@@ -193,12 +191,12 @@ Googleカレンダーのイベント説明欄には以下が自動で表示さ�
 
 #### 設定方法
 
-詳細は [定期同期設定ガイド](scheduled_sync_setup.md) を参照してください。
+詳細は [定期同期設定ガイド](CRON_SYNC_SETUP_GUIDE.md) を参照してください。
 
 **設定手順**:
 1. GASエディタを開く
 2. トリガーを追加
-3. 関数: `scheduledSync`
+3. 関数: `scheduledSyncResponsesToCalendar`
 4. イベントソース: 時間主導型
 5. 頻度: 15分おき（推奨）
 
@@ -278,7 +276,7 @@ Googleカレンダーのイベント説明欄には以下が自動で表示さ�
 
 #### 初回ログイン
 
-1. GASエディタで `testConfig` 関数を実行
+1. GASエディタで `getAllConfig` 関数を実行（または `getConfig('ADMIN_TOKEN', '')` を実行）
 2. 実行ログから `ADMIN_TOKEN` の値をコピー
 3. WebアプリのURLに以下を追加：
    ```
@@ -395,7 +393,7 @@ Googleカレンダーのイベント説明欄には以下が自動で表示さ�
 **対処法**:
 1. `localStorage.getItem('adminToken')` で確認
 2. 正しいトークンを再入力
-3. `testConfig` 関数を実行してトークンを確認
+3. `getAllConfig` 関数を実行してトークンを確認（または `getConfig('ADMIN_TOKEN', '')` を実行）
 
 **原因2**: localStorageがクリアされた
 
@@ -409,7 +407,7 @@ Googleカレンダーのイベント説明欄には以下が自動で表示さ�
 **対処法**:
 1. GASエディタの「トリガー」を確認
 2. `scheduledSync` 関数のトリガーを追加
-3. [定期同期設定ガイド](scheduled_sync_setup.md) を参照
+3. [定期同期設定ガイド](CRON_SYNC_SETUP_GUIDE.md) を参照
 
 **原因2**: 実行時エラー
 
@@ -428,7 +426,7 @@ Googleカレンダーのイベント説明欄には以下が自動で表示さ�
 
 **方法1**: GASエディタから
 1. GASエディタを開く
-2. `testConfig` 関数を実行
+2. `getAllConfig` 関数を実行（または `getConfig('ADMIN_TOKEN', '')` を実行）
 3. 実行ログから Spreadsheet URL を取得
 
 **方法2**: Script Propertiesから
@@ -534,9 +532,9 @@ Googleカレンダーのイベント説明欄には以下が自動で表示さ�
 - 他人に共有しない
 
 **漏洩時の対応**:
-1. `testConfig` 関数を再実行
-2. 新しいトークンを生成
-3. 旧トークンは無効化されます
+1. `getAllConfig` 関数を再実行（または `getConfig('ADMIN_TOKEN', '')` を実行）
+2. 新しいトークンを確認（既存のトークンが表示されます）
+3. トークンを変更する場合は、Configシートで直接編集するか、`setConfig('ADMIN_TOKEN', '新しいトークン')` を実行
 
 ### レート制限
 
@@ -567,14 +565,8 @@ Googleカレンダーのイベント説明欄には以下が自動で表示さ�
    - 不正なデータがないかチェック
 
 4. **ドキュメントを確認**:
-   - [仕様書](仕様書.md)
-   - [セットアップ手順](セットアップ手順.md)
-   - [定期同期設定ガイド](scheduled_sync_setup.md)
+   - [仕様書](SPECIFICATION.md)
+   - [セットアップ手順](SETUP_GUIDE.md)
+   - [定期同期設定ガイド](CRON_SYNC_SETUP_GUIDE.md)
 
 それでも解決しない場合は、開発者に連絡してください。
-
----
-
-**作成日**: 2025-11-06  
-**最終更新**: 2025-11-12  
-**バージョン**: 2.0

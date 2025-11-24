@@ -196,7 +196,7 @@ function checkLastSyncTime() {
 ## ✅ チェックリスト
 
 - [ ] `scheduledSyncResponsesToCalendar` のトリガーを設定（15分ごと）
-- [ ] `scheduledSyncResponsesToCalendarHighFrequency` のトリガーを設定（5分ごと）
+- [ ] `scheduledSyncResponsesToCalendar` のトリガーを設定（5分ごと、オプション）
 - [ ] 実行ログで動作を確認
 - [ ] カレンダーに出欠が正しく同期されているか確認
 

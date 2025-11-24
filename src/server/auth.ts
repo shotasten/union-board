@@ -22,7 +22,6 @@ function authenticate(authInfo: { userName?: string }): string | null {
 
     // ニックネームからuserKeyを生成（anon-xxx形式）
     const userKey = `anon-${authInfo.userName.trim()}`;
-    Logger.log(`✅ 匿名認証成功: ${userKey}`);
     return userKey;
 
   } catch (error) {

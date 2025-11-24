@@ -1,7 +1,5 @@
 # 出欠管理Webアプリ 仕様書
 
-**バージョン**: 2.0  
-**最終更新**: 2025-11-12  
 **対象**: 吹奏楽団向け出欠管理システム
 
 ---
@@ -17,7 +15,6 @@
 7. [UI/UX](#uiux)
 8. [技術仕様](#技術仕様)
 9. [運用仕様](#運用仕様)
-10. [変更履歴](#変更履歴)
 
 ---
 
@@ -237,7 +234,7 @@ Fl, Ob, Cl, Sax, Hr, Tp, Tb, Bass (Eu/Tuba), Perc, その他
 ```
 
 **パース処理**:
-- `parseMemberNameFromString()` 関数で自動判別
+- クライアント側の `parseMemberName()` 関数で自動判別
 - 例: "Fl田中" → part: "Fl", name: "田中"
 
 #### 4.2 メンバー情報の管理
@@ -276,7 +273,7 @@ DISPLAY_END_DATE: 2026-03-31
 
 **カレンダー同期**:
 - イベント同期ボタン: 表示期間のみ同期（`syncAll(true)`）
-- 定期同期（cron）: 表示期間のみ同期（`scheduledSync()`）
+- 定期同期（cron）: 表示期間のみ同期（`scheduledSyncResponsesToCalendar()`）
 - 個別のイベント操作: 表示期間に関わらず同期
 
 **パフォーマンス**:
@@ -295,7 +292,7 @@ DISPLAY_END_DATE: 2026-03-31
 **管理者トークン**:
 - Configシートの `ADMIN_TOKEN` に保存
 - 32文字のランダム文字列
-- `testConfig()` 関数で確認可能
+- `getAllConfig()` 関数で確認可能
 
 #### 6.2 カレンダー同期
 
@@ -382,7 +379,7 @@ Fl, Ob, Cl, Sax, Hr, Tp, Tb, Bass, Perc, その他
 
 **自動登録**:
 - 初回出欠登録時に自動で登録
-- 表示名から `parseMemberNameFromString()` でパート・名前を抽出
+- 表示名からクライアント側の `parseMemberName()` でパート・名前を抽出
 
 ### 3. Responses シート
 
@@ -502,7 +499,7 @@ Fl, Ob, Cl, Sax, Hr, Tp, Tb, Bass, Perc, その他
  * - 作成したカレンダーIDをConfigシートに保存
  */
 function setupBandCalendar(): string {
-  const calendar = CalendarApp.createCalendar('吹奏楽団 イベントカレンダー');
+    const calendar = CalendarApp.createCalendar('Tokyo Music Union イベントカレンダー');
   const calendarId = calendar.getId();
   
   Logger.log(`専用カレンダー作成成功: ${calendarId}`);
@@ -678,37 +675,46 @@ Tp (1人): 山田
 
 #### 設定方法
 
-**関数**: `scheduledSync()`
+**関数**: `scheduledSyncResponsesToCalendar()`
 
 **トリガー設定**:
 1. GASエディタの「トリガー」タブ
 2. 「トリガーを追加」
-3. 実行する関数: `scheduledSync`
+3. 実行する関数: `scheduledSyncResponsesToCalendar`
 4. イベントソース: 時間主導型
 5. 時間ベースのトリガー: 15分おき（推奨）
 
 **処理内容**:
 ```typescript
-function scheduledSync(): void {
-  // 表示期間のみを同期
-  const result = syncAll(true);
-  Logger.log(`✅ 定期同期完了: 成功 ${result.success}件, 失敗 ${result.failed}件`);
+function scheduledSyncResponsesToCalendar(): void {
+  // 前回同期以降に更新された出欠データのみを同期
+  // 重複実行防止: 10分以内の再実行を自動的にスキップ
+  const result = syncResponsesDiffToCalendar(lastSyncTimestamp);
+  // 同期時刻を保存
 }
 ```
 
 **ログ出力**:
 ```
-=== 定期同期開始（表示期間のみ） ===
-=== 全イベント同期開始 ===
-📅 表示期間に制限: 2025-04-01T00:00:00.000Z ～ 2026-03-31T23:59:59.999Z
-=== カレンダー → アプリ同期開始 ===
-✅ カレンダーイベント取得: 15件
-📋 カレンダー → アプリ同期完了: 成功 15件, 失敗 0件
-=== アプリ → カレンダー説明欄同期開始 ===
-📋 説明欄同期対象イベント数: 15件
-📋 説明欄同期完了: 成功 15件, 失敗 0件
-✅ 定期同期完了: 成功 30件, 失敗 0件
+📅 [cron 15分] 同期開始: 2025-11-14T10:00:00.000Z
+📊 前回同期時刻: 2025-11-14T09:45:00.000Z
+🔍 差分検知: 3件のイベントに更新あり
+✅ 同期成功: event-1
+✅ 同期成功: event-2
+✅ 同期成功: event-3
+✅ [cron 15分] 同期完了: 3件同期, 0件失敗, 0件スキップ
 ```
+
+**更新がない場合のログ**:
+```
+📅 [cron 15分] 同期開始: 2025-11-14T10:15:00.000Z
+📊 前回同期時刻: 2025-11-14T10:00:00.000Z
+🔍 差分検知: 0件のイベントに更新あり
+✨ 更新なし - カレンダー同期をスキップ
+✅ [cron 15分] 同期完了: 0件同期, 0件失敗, 0件スキップ
+```
+
+> **注意**: この関数は `syncAll()` ではなく `syncResponsesDiffToCalendar()` を呼び出し、前回同期以降に更新された出欠データのみを同期します。重複実行防止のため、10分以内の再実行は自動的にスキップされます。
 
 ---
 
@@ -825,10 +831,10 @@ function scheduledSync(): void {
 │   └── types/
 │       └── models.ts         # 型定義
 ├── docs/
-│   ├── 仕様書.md             # 本ドキュメント
-│   ├── 運用マニュアル.md     # 運用手順
-│   ├── セットアップ手順.md   # 初回セットアップ
-│   ├── scheduled_sync_setup.md # 定期同期設定
+│   ├── SPECIFICATION.md       # 本ドキュメント
+│   ├── OPERATION_MANUAL.md    # 運用手順
+│   ├── SETUP_GUIDE.md         # 初回セットアップ
+│   ├── CRON_SYNC_SETUP_GUIDE.md # 定期同期設定
 │   └── performance/          # パフォーマンス資料
 ├── .clasp.json               # clasp設定
 ├── tsconfig.json             # TypeScript設定
@@ -941,7 +947,7 @@ npm run test:coverage # カバレッジレポート生成
 
 | トリガー名 | 種類 | 頻度 | 実行関数 |
 |-----------|------|------|---------|
-| カレンダー同期 | 時間主導 | 15分ごと（推奨） | `scheduledSync()` |
+| カレンダー同期 | 時間主導 | 15分ごと（推奨） | `scheduledSyncResponsesToCalendar()` |
 
 ### バックアップ
 
@@ -965,8 +971,3 @@ npm run test:coverage # カバレッジレポート生成
 - Calendar API: 1,000,000 リクエスト/日
 - UrlFetch: 20,000 リクエスト/日
 - 通常使用では問題なし
-
----
-
-**文書作成者**: AI Assistant  
-**承認者**: プロジェクトオーナー

@@ -929,7 +929,6 @@ function getCalendarIdForSharing(): { success: boolean; calendarId?: string; err
     
     if (!calendarId) {
       // Script Propertiesにない場合はConfigシートから取得
-      Logger.log('📝 Script Propertiesにキャッシュがないため、Configシートから取得');
       calendarId = getConfig('CALENDAR_ID', '');
       
       if (calendarId) {

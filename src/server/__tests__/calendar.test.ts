@@ -116,6 +116,9 @@ function mockBuildDescription(eventId: string, userDescription?: string): string
         const statusLabel = response.status === '○' ? '○' : response.status === '△' ? '△' : response.status === '×' ? '×' : '-';
         description += `${statusLabel} ${displayName}: ${response.comment}\n`;
       });
+    } else {
+      description += '【コメント】\n';
+      description += '（コメントなし）\n';
     }
   } catch (error) {
     description += '（コメント取得エラー）\n';

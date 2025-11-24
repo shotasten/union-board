@@ -1,0 +1,40 @@
+{
+  "name": "gas-attendance-manager",
+  "version": "1.0.0",
+  "description": "吹奏楽団向け出欠管理Webアプリ",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "build": "tsc && cp src/client/index.html dist/index.html",
+    "push": "npm run build && node node_modules/@google/clasp/build/src/index.js push --force",
+    "deploy": "npm run build && node node_modules/@google/clasp/build/src/index.js push --force && node node_modules/@google/clasp/build/src/index.js deploy",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shotasten/gas-attendance-manager.git"
+  },
+  "keywords": [
+    "gas",
+    "attendance",
+    "band"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shotasten/gas-attendance-manager/issues"
+  },
+  "homepage": "https://github.com/shotasten/gas-attendance-manager#readme",
+  "devDependencies": {
+    "@google/clasp": "^3.1.1",
+    "@types/google-apps-script": "^2.0.7",
+    "@types/jest": "^30.0.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.5",
+    "typescript": "^5.9.3"
+  }
+}

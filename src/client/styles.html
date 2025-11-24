@@ -1,0 +1,125 @@
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    padding: 20px;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+  }
+
+  header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    text-align: center;
+  }
+
+  header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 10px;
+  }
+
+  header p {
+    font-size: 1.1rem;
+    opacity: 0.9;
+  }
+
+  main {
+    padding: 30px;
+  }
+
+  .card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 20px;
+    border: 1px solid #e0e0e0;
+  }
+
+  .card h2, .card h3 {
+    color: #667eea;
+    margin-bottom: 15px;
+  }
+
+  .card ul {
+    list-style-position: inside;
+    line-height: 2;
+  }
+
+  .card ul li {
+    padding-left: 10px;
+  }
+
+  button {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    font-size: 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    margin-top: 10px;
+  }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+  }
+
+  button:active {
+    transform: translateY(0);
+  }
+
+  #status {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #667eea;
+    margin: 15px 0;
+  }
+
+  footer {
+    background: #f8f9fa;
+    text-align: center;
+    padding: 20px;
+    color: #666;
+    font-size: 0.9rem;
+    border-top: 1px solid #e0e0e0;
+  }
+
+  /* レスポンシブデザイン */
+  @media (max-width: 768px) {
+    header h1 {
+      font-size: 1.8rem;
+    }
+
+    header p {
+      font-size: 1rem;
+    }
+
+    main {
+      padding: 20px;
+    }
+
+    .card {
+      padding: 20px;
+    }
+  }
+</style>
+

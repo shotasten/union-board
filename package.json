@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shotasten/gas-attendance-manager.git"
+    "url": "git+https://github.com/shotasten/UnionBoard.git"
   },
   "keywords": [
     "gas",
@@ -26,9 +26,9 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/shotasten/gas-attendance-manager/issues"
+    "url": "https://github.com/shotasten/UnionBoard/issues"
   },
-  "homepage": "https://github.com/shotasten/gas-attendance-manager#readme",
+  "homepage": "https://github.com/shotasten/UnionBoard#readme",
   "devDependencies": {
     "@google/clasp": "^3.1.1",
     "@types/google-apps-script": "^2.0.7",

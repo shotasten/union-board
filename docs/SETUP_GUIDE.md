@@ -11,8 +11,8 @@
 ## ステップ1: リポジトリのクローン
 
 ```bash
-git clone https://github.com/shotasten/gas-attendance-manager.git
-cd gas-attendance-manager
+git clone https://github.com/shotasten/UnionBoard.git
+cd UnionBoard
 ```
 
 ## ステップ2: 依存関係のインストール

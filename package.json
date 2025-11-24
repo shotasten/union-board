@@ -16,7 +16,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/shotasten/UnionBoard.git"
+    "url": "git+https://github.com/shotasten/union-board.git"
   },
   "keywords": [
     "gas",
@@ -26,9 +26,9 @@
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/shotasten/UnionBoard/issues"
+    "url": "https://github.com/shotasten/union-board/issues"
   },
-  "homepage": "https://github.com/shotasten/UnionBoard#readme",
+  "homepage": "https://github.com/shotasten/union-board#readme",
   "devDependencies": {
     "@google/clasp": "^3.1.1",
     "@types/google-apps-script": "^2.0.7",

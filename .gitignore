@@ -11,6 +11,9 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+# WSL Zone.Identifier files
+*:Zone.Identifier
+**/*:Zone.Identifier
 
 # clasp
 .clasprc.json

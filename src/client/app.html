@@ -1,0 +1,47 @@
+<script>
+  /**
+   * フロントエンドアプリケーション
+   */
+
+  // ページ読み込み時にデータ取得
+  window.addEventListener('DOMContentLoaded', () => {
+    loadData();
+  });
+
+  /**
+   * サーバーからデータを取得
+   */
+  function loadData() {
+    const statusEl = document.getElementById('status');
+    statusEl.textContent = '読み込み中...';
+
+    google.script.run
+      .withSuccessHandler(onSuccess)
+      .withFailureHandler(onFailure)
+      .getInitData();
+  }
+
+  /**
+   * データ取得成功時の処理
+   */
+  function onSuccess(data) {
+    const statusEl = document.getElementById('status');
+    statusEl.innerHTML = `
+      <strong>✅ 接続成功！</strong><br>
+      メッセージ: ${data.message}<br>
+      タイムスタンプ: ${new Date(data.timestamp).toLocaleString('ja-JP')}
+    `;
+  }
+
+  /**
+   * データ取得失敗時の処理
+   */
+  function onFailure(error) {
+    const statusEl = document.getElementById('status');
+    statusEl.innerHTML = `
+      <strong>❌ エラー</strong><br>
+      ${error.message}
+    `;
+  }
+</script>
+

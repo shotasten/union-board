@@ -305,7 +305,7 @@ function deleteResponsesByUserKey(userKey: string): number {
  * Membersシートに存在しないuserKeyのレスポンスを一括削除
  * @returns 削除結果
  */
-function cleanupOrphanResponses(): { deleted: number; total: number } {
+function cleanupDetachedResponses(): { deleted: number; total: number } {
   const result = {
     deleted: 0,
     total: 0
@@ -356,11 +356,11 @@ function cleanupOrphanResponses(): { deleted: number; total: number } {
       .setFontColor('#ffffff');
     sheet.setFrozenRows(1);
     
-    Logger.log(`✅ 孤児レスポンスを削除しました: ${result.deleted}件`);
+    Logger.log(`✅ 未所属レスポンスを削除しました: ${result.deleted}件`);
     
     return result;
   } catch (error) {
-    Logger.log(`❌ エラー: 孤児レスポンス削除失敗 - ${(error as Error).message}`);
+    Logger.log(`❌ エラー: 未所属レスポンス削除失敗 - ${(error as Error).message}`);
     Logger.log(`❌ スタックトレース: ${(error as Error).stack}`);
     result.deleted = 0;
     return result;

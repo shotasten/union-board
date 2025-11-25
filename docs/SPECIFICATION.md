@@ -56,24 +56,11 @@
 
 ### アーキテクチャ
 
-```
-┌─────────────────────────────────────┐
-│         ユーザー（ブラウザ）         │
-│     - Chrome, Safari, Firefox       │
-│     - デスクトップ & モバイル        │
-└─────────────────────────────────────┘
-                 ↓ HTTPS
-┌─────────────────────────────────────┐
-│   Google Apps Script (GAS)          │
-│   - バックエンドロジック（TypeScript）│
-│   - HTML Service（フロントエンド）   │
-└─────────────────────────────────────┘
-         ↓                    ↓
-┌──────────────────┐  ┌──────────────────┐
-│ Google Spreadsheet│  │ Google Calendar  │
-│ - データストレージ │  │ - イベント表示   │
-│ - 4シート構成     │  │ - 双方向同期     │
-└──────────────────┘  └──────────────────┘
+```mermaid
+graph TB
+    A[ユーザー（ブラウザ）<br/>Chrome, Safari, Firefox<br/>デスクトップ & モバイル] -->|HTTPS| B[Google Apps Script GAS<br/>バックエンドロジック（TypeScript）<br/>HTML Service（フロントエンド）]
+    B --> C[Google Spreadsheet<br/>データストレージ<br/>4シート構成]
+    B --> D[Google Calendar<br/>イベント表示<br/>双方向同期]
 ```
 
 ### 技術スタック

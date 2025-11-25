@@ -190,9 +190,9 @@ describe('responses.ts', () => {
     });
   });
 
-  describe('cleanupDetachedResponses', () => {
+  describe('cleanupUnlinkedResponses', () => {
     // テスト用のモック関数（実際の実装の動作を模倣）
-    function mockCleanupDetachedResponses(): { deleted: number; total: number } {
+    function mockCleanupUnlinkedResponses(): { deleted: number; total: number } {
       // Membersシートからメンバー一覧を取得
       const spreadsheet = (global.SpreadsheetApp.getActiveSpreadsheet as jest.Mock)();
       if (!spreadsheet) {
@@ -324,7 +324,7 @@ describe('responses.ts', () => {
       });
 
       // Act
-      const result = mockCleanupDetachedResponses();
+      const result = mockCleanupUnlinkedResponses();
 
       // Assert
       expect(result.deleted).toBe(0);
@@ -348,7 +348,7 @@ describe('responses.ts', () => {
       const responsesData = [
         ['eventId', 'userKey', 'status', 'comment', 'createdAt', 'updatedAt'],
         ['event-1', 'user-1', '○', 'コメント1', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
-        ['event-2', 'user-2', '×', 'コメント2', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'], // 未所属レスポンス
+        ['event-2', 'user-2', '×', 'コメント2', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'], // リンク切れレスポンス
       ];
       const responsesDataRange = {
         getValues: jest.fn(() => responsesData),
@@ -377,7 +377,7 @@ describe('responses.ts', () => {
       });
 
       // Act
-      const result = mockCleanupDetachedResponses();
+      const result = mockCleanupUnlinkedResponses();
 
       // Assert
       expect(result.deleted).toBe(1);
@@ -417,7 +417,7 @@ describe('responses.ts', () => {
       });
 
       // Act
-      const result = mockCleanupDetachedResponses();
+      const result = mockCleanupUnlinkedResponses();
 
       // Assert
       expect(result.deleted).toBe(0);
@@ -457,7 +457,7 @@ describe('responses.ts', () => {
       });
 
       // Act
-      const result = mockCleanupDetachedResponses();
+      const result = mockCleanupUnlinkedResponses();
 
       // Assert
       expect(result.deleted).toBe(0);
@@ -465,7 +465,7 @@ describe('responses.ts', () => {
       expect(responsesSheet.clear).not.toHaveBeenCalled();
     });
 
-    it('複数の未所属レスポンスが存在する場合、全て削除されること', () => {
+    it('複数のリンク切れレスポンスが存在する場合、全て削除されること', () => {
       // Arrange
       const membersData = [
         ['userKey', 'part', 'name', 'displayName', 'createdAt', 'updatedAt'],
@@ -481,8 +481,8 @@ describe('responses.ts', () => {
       const responsesData = [
         ['eventId', 'userKey', 'status', 'comment', 'createdAt', 'updatedAt'],
         ['event-1', 'user-1', '○', 'コメント1', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
-        ['event-2', 'user-2', '×', 'コメント2', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'], // 未所属
-        ['event-3', 'user-3', '△', 'コメント3', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'], // 未所属
+        ['event-2', 'user-2', '×', 'コメント2', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'], // リンク切れ
+        ['event-3', 'user-3', '△', 'コメント3', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'], // リンク切れ
       ];
       const responsesDataRange = {
         getValues: jest.fn(() => responsesData),
@@ -511,7 +511,7 @@ describe('responses.ts', () => {
       });
 
       // Act
-      const result = mockCleanupDetachedResponses();
+      const result = mockCleanupUnlinkedResponses();
 
       // Assert
       expect(result.deleted).toBe(2);

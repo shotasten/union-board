@@ -831,12 +831,12 @@ function scheduledSyncResponsesToCalendar(): void {
  * cron用: メンバーが存在しないレスポンスを定期的に掃除
  * - 深夜バッチなどの時間主導トリガーで実行
  */
-function scheduledCleanupDetachedResponses(): void {
+function scheduledCleanupUnlinkedResponses(): void {
   try {
-    const result = cleanupDetachedResponses();
-    Logger.log(`[cleanup] 未所属レスポンス削除: ${result.deleted}件 / 全${result.total}件`);
+    const result = cleanupUnlinkedResponses();
+    Logger.log(`[cleanup] リンク切れレスポンス削除: ${result.deleted}件 / 全${result.total}件`);
   } catch (error) {
-    Logger.log(`❌ [cleanup] 未所属レスポンス削除失敗 - ${(error as Error).message}`);
+    Logger.log(`❌ [cleanup] リンク切れレスポンス削除失敗 - ${(error as Error).message}`);
     Logger.log((error as Error).stack);
   }
 }
@@ -1087,12 +1087,12 @@ function adminCleanupAllData(
 }
 
 /**
- * 管理者用: 未所属レスポンス削除API
+ * 管理者用: リンク切れレスポンス削除API
  * @param userKey ユーザー識別子（オプション、管理者判定用）
  * @param adminToken 管理者トークン（オプション、匿名モード時）
  * @returns 削除結果
  */
-function adminCleanupDetachedResponses(
+function adminCleanupUnlinkedResponses(
   userKey?: string,
   adminToken?: string
 ): { success: boolean; deleted?: number; total?: number; error?: string } {
@@ -1104,14 +1104,14 @@ function adminCleanupDetachedResponses(
       };
     }
     
-    const result = cleanupDetachedResponses();
+    const result = cleanupUnlinkedResponses();
     return {
       success: true,
       deleted: result.deleted,
       total: result.total
     };
   } catch (error) {
-    Logger.log(`❌ エラー: 未所属レスポンス削除API失敗 - ${(error as Error).message}`);
+    Logger.log(`❌ エラー: リンク切れレスポンス削除API失敗 - ${(error as Error).message}`);
     return {
       success: false,
       error: (error as Error).message

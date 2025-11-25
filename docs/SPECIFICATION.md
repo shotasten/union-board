@@ -703,6 +703,18 @@ function scheduledSyncResponsesToCalendar(): void {
 
 > **注意**: この関数は `syncAll()` ではなく `syncResponsesDiffToCalendar()` を呼び出し、前回同期以降に更新された出欠データのみを同期します。重複実行防止のため、10分以内の再実行は自動的にスキップされます。
 
+### 同期動作の整理
+
+| 操作 | カレンダー同期 | 同期範囲 | 備考 |
+|-----|--------------|---------|------|
+| **イベント登録** | 自動（リアルタイム） | その予定だけ | イベント情報のみ |
+| **イベント編集** | 自動（リアルタイム） | その予定だけ | イベント情報のみ |
+| **イベント削除** | 自動（リアルタイム） | その予定だけ | カレンダーから削除 |
+| **出欠登録** | 自動（リアルタイム） | その予定だけ | 説明欄に出欠・コメント反映 |
+| **コメント更新** | 自動（リアルタイム） | その予定だけ | 説明欄に反映 |
+| **イベント同期ボタン** | 手動 | 表示期間のみ | カレンダー⇔アプリ双方向 |
+| **定期同期（cron）** | 自動（15分おき推奨） | 表示期間のみ | カレンダー→アプリ |
+
 ---
 
 ## UI/UX
@@ -799,35 +811,7 @@ function scheduledSyncResponsesToCalendar(): void {
 - **TypeScript**: 型安全な開発
 - **Git**: バージョン管理
 
-#### プロジェクト構造
-
-```
-/workspace
-├── src/
-│   ├── server/
-│   │   ├── main.ts           # エントリーポイント、API関数
-│   │   ├── events.ts         # イベントCRUD
-│   │   ├── responses.ts      # 出欠管理
-│   │   ├── members.ts        # メンバー管理
-│   │   ├── calendar.ts       # カレンダー連携
-│   │   ├── calendar-helper.ts# カレンダーヘルパー
-│   │   ├── auth.ts           # 認証処理
-│   │   └── utils.ts          # ユーティリティ
-│   ├── client/
-│   │   └── index.html        # メインHTML（CSS、JS含む）
-│   └── types/
-│       └── models.ts         # 型定義
-├── docs/
-│   ├── SPECIFICATION.md       # 本ドキュメント
-│   ├── OPERATION_MANUAL.md    # 運用手順
-│   ├── SETUP_GUIDE.md         # 初回セットアップ
-│   ├── CRON_SYNC_SETUP_GUIDE.md # 定期同期設定
-│   └── performance/          # パフォーマンス資料
-├── .clasp.json               # clasp設定
-├── tsconfig.json             # TypeScript設定
-├── appsscript.json           # GAS設定
-└── README.md                 # プロジェクト概要
-```
+> **プロジェクト構造**: プロジェクト構造の詳細については[README.md](../README.md)を参照してください。
 
 ### コーディング規約
 

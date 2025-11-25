@@ -214,6 +214,16 @@
       border-color: #00796B;
     }
 
+    .reload-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .reload-btn i {
+      font-size: 1rem;
+    }
+
     /* 管理者専用機能のスタイル */
     /* .admin-feature クラスは管理者専用機能であることを示すマーカーとして使用 */
 
@@ -1025,6 +1035,10 @@
       opacity: 0.5;
     }
 
+    .reload-btn i.spinning {
+      animation: spin 1s linear infinite;
+    }
+
 
     .sync-icon {
       display: inline-block;
@@ -1450,6 +1464,11 @@
               <button class="add-to-calendar-btn secondary-btn" onclick="showAddToCalendarModal()" id="add-to-calendar-btn" style="display: inline-flex; align-items: center; gap: 6px;">
                 <i class="fas fa-calendar-plus"></i>
                 <span>カレンダーに追加</span>
+              </button>
+              <!-- リロードボタン（すべてのユーザー、セカンダリーボタン） -->
+              <button class="reload-btn secondary-btn" onclick="reloadEvents()" id="reload-btn">
+                <i class="fas fa-rotate"></i>
+                <span>最新表示</span>
               </button>
             </div>
             <!-- 右寄せエリア（主要アクション） -->
@@ -1999,6 +2018,38 @@
           })
           .getInitData();
       });
+    }
+
+    /**
+     * 一般ユーザー向けリロードボタンの処理
+     */
+    function reloadEvents() {
+      const reloadBtn = document.getElementById('reload-btn');
+      const reloadIcon = reloadBtn ? reloadBtn.querySelector('i') : null;
+
+      if (reloadBtn) {
+        reloadBtn.disabled = true;
+      }
+      if (reloadIcon) {
+        reloadIcon.classList.add('spinning');
+      }
+
+      loadInitData()
+        .then(() => {
+          showToast('最新のデータを読み込みました', 'success');
+        })
+        .catch((error) => {
+          console.error('reloadEvents failed', error);
+          showToast('再読み込みに失敗しました', 'error');
+        })
+        .finally(() => {
+          if (reloadBtn) {
+            reloadBtn.disabled = false;
+          }
+          if (reloadIcon) {
+            reloadIcon.classList.remove('spinning');
+          }
+        });
     }
 
     /**

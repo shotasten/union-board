@@ -3739,7 +3739,11 @@
 
       // キャッシュからデータを取得（API呼び出しなし！）
       const event = currentEvents.find(e => e.id === eventId);
-      const responses = (window.allResponsesCache && window.allResponsesCache[eventId]) || [];
+      const rawResponses = (window.allResponsesCache && window.allResponsesCache[eventId]) || [];
+      
+      // メンバーが削除済みの場合は集計対象外にするため、メンバーキーのセットを作成
+      const activeMemberKeys = new Set((memberList || []).map(member => member.userKey));
+      const responses = rawResponses.filter(response => activeMemberKeys.has(response.userKey));
       
       if (!event) {
         if (infoDiv) infoDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">イベント情報の取得に失敗しました</div>';

@@ -154,6 +154,7 @@ function getResponseByUser(eventId: string, userKey: string): Response | null {
 
 /**
  * 特定イベントの出欠集計
+ * メンバーが見つからないレスポンスは集計対象外とする
  * @param eventId イベントID
  * @returns 集計結果
  */
@@ -174,20 +175,34 @@ function tallyResponses(eventId: string): EventTally {
     
     const responses = getResponses(eventId);
     
+    // メンバー一覧を取得（集計対象外のレスポンスを除外するため）
+    const members = getMembers();
+    const memberMap = new Map<string, any>();
+    members.forEach(member => {
+      memberMap.set(member.userKey, member);
+    });
+    
     let attendCount = 0;
-  let maybeCount = 0;
-  let absentCount = 0;
-  let unselectedCount = 0;
+    let maybeCount = 0;
+    let absentCount = 0;
+    let unselectedCount = 0;
+    let validResponseCount = 0; // 有効なレスポンス数（メンバーが存在するもののみ）
     
     responses.forEach(response => {
+      // メンバーが存在する場合のみ集計対象とする
+      if (!memberMap.has(response.userKey)) {
+        return; // メンバーが見つからない場合は集計対象外
+      }
+      
+      validResponseCount++;
       if (response.status === '○') {
         attendCount++;
       } else if (response.status === '△') {
         maybeCount++;
-    } else if (response.status === '×') {
-      absentCount++;
-    } else if (response.status === '-') {
-      unselectedCount++;
+      } else if (response.status === '×') {
+        absentCount++;
+      } else if (response.status === '-') {
+        unselectedCount++;
       }
     });
     
@@ -197,7 +212,7 @@ function tallyResponses(eventId: string): EventTally {
       maybeCount: maybeCount,
       absentCount: absentCount,
       unselectedCount: unselectedCount,
-      totalCount: responses.length,
+      totalCount: validResponseCount, // 有効なレスポンス数のみをカウント
       tallyAt: new Date().toISOString()
     };
     
@@ -283,6 +298,72 @@ function deleteResponsesByUserKey(userKey: string): number {
     Logger.log(`❌ エラー: レスポンス削除失敗 - ${(error as Error).message}`);
     Logger.log(`❌ スタックトレース: ${(error as Error).stack}`);
     return 0;
+  }
+}
+
+/**
+ * Membersシートに存在しないuserKeyのレスポンスを一括削除
+ * @returns 削除結果
+ */
+function cleanupUnlinkedResponses(): { deleted: number; total: number } {
+  const result = {
+    deleted: 0,
+    total: 0
+  };
+  
+  try {
+    const members = getMembers();
+    const memberSet = new Set<string>();
+    members.forEach(member => {
+      if (member.userKey) {
+        memberSet.add(member.userKey);
+      }
+    });
+    
+    const sheet = getResponsesSheet();
+    const data = sheet.getDataRange().getValues();
+    
+    if (data.length <= 1) {
+      return result;
+    }
+    
+    result.total = data.length - 1; // ヘッダーを除いた行数
+    
+    const header = data[0];
+    const remainingData: any[][] = [header];
+    
+    for (let i = 1; i < data.length; i++) {
+      const row = data[i];
+      const userKey = String(row[1] || '');
+      if (userKey && memberSet.has(userKey)) {
+        remainingData.push(row);
+      } else {
+        result.deleted++;
+      }
+    }
+    
+    if (result.deleted === 0) {
+      return result;
+    }
+    
+    sheet.clear();
+    sheet.getRange(1, 1, remainingData.length, remainingData[0].length)
+      .setValues(remainingData);
+    
+    sheet.getRange(1, 1, 1, remainingData[0].length)
+      .setFontWeight('bold')
+      .setBackground('#667eea')
+      .setFontColor('#ffffff');
+    sheet.setFrozenRows(1);
+    
+    Logger.log(`✅ リンク切れレスポンスを削除しました: ${result.deleted}件`);
+    
+    return result;
+  } catch (error) {
+    Logger.log(`❌ エラー: リンク切れレスポンス削除失敗 - ${(error as Error).message}`);
+    Logger.log(`❌ スタックトレース: ${(error as Error).stack}`);
+    result.deleted = 0;
+    return result;
   }
 }
 

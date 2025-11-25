@@ -116,12 +116,18 @@ function buildDescriptionWithMemberMap(
 ): string {
   try {
     // 出欠を集計（キャッシュデータから）
+    // メンバーが見つからないレスポンスは集計対象外とする
     let attendCount = 0;
     let maybeCount = 0;
     let absentCount = 0;
     let unselectedCount = 0;
     
     eventResponses.forEach(response => {
+      // メンバーが存在する場合のみ集計対象とする
+      if (!memberMap.has(response.userKey)) {
+        return; // メンバーが見つからない場合は集計対象外
+      }
+      
       if (response.status === '○') attendCount++;
       else if (response.status === '△') maybeCount++;
       else if (response.status === '×') absentCount++;
@@ -162,36 +168,14 @@ function buildDescriptionWithMemberMap(
       
       eventResponses.forEach(response => {
         if (response.status === '○' || response.status === '△' || response.status === '×' || response.status === '-') {
-          // メンバー情報を取得（キャッシュから）
+          // メンバーが存在する場合のみ集計対象とする
           const member = memberMap.get(response.userKey);
-          let part = '';
-          let name = '';
-          
-          if (member) {
-            part = member.part || '';
-            name = member.name || member.displayName || '不明';
-          } else {
-            // メンバーが見つからない場合、userKeyから推測を試みる
-            if (response.userKey && response.userKey.startsWith('anon-')) {
-              const userName = response.userKey.replace('anon-', '');
-              // 簡易的なパース（パート名で始まる場合）
-              const partOrder = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc'];
-              for (const p of partOrder) {
-                if (userName.startsWith(p)) {
-                  part = p;
-                  name = userName.substring(p.length) || userName;
-                  break;
-                }
-              }
-              if (!part) {
-                part = '';
-                name = userName;
-              }
-            } else {
-              part = '';
-              name = '不明';
-            }
+          if (!member) {
+            return; // メンバーが見つからない場合は集計対象外
           }
+          
+          const part = member.part || '';
+          const name = member.name || member.displayName || '不明';
           
           // パートが空の場合は「その他」として扱う
           const partKey = part || 'その他';
@@ -247,12 +231,16 @@ function buildDescriptionWithMemberMap(
     }
     
     // コメント一覧を追加
-    const comments = eventResponses.filter(r => r.comment && r.comment.trim());
+    // メンバーが見つからないレスポンスのコメントは表示しない（集計対象外）
+    const comments = eventResponses.filter(r => {
+      // コメントがあり、かつメンバーが存在する場合のみ
+      return r.comment && r.comment.trim() && memberMap.has(r.userKey);
+    });
     
     if (comments.length > 0) {
       description += '【コメント】\n';
       comments.forEach(response => {
-        // メンバー情報を取得（キャッシュから）
+        // メンバー情報を取得（キャッシュから、既に存在確認済み）
         const member = memberMap.get(response.userKey);
         const displayName = member?.displayName || member?.name || '不明';
         

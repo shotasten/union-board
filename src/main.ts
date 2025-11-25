@@ -828,6 +828,20 @@ function scheduledSyncResponsesToCalendar(): void {
 }
 
 /**
+ * cron用: メンバーが存在しないレスポンスを定期的に掃除
+ * - 深夜バッチなどの時間主導トリガーで実行
+ */
+function scheduledCleanupOrphanResponses(): void {
+  try {
+    const result = cleanupOrphanResponses();
+    Logger.log(`[cleanup] 孤児レスポンス削除: ${result.deleted}件 / 全${result.total}件`);
+  } catch (error) {
+    Logger.log(`❌ [cleanup] 孤児レスポンス削除失敗 - ${(error as Error).message}`);
+    Logger.log((error as Error).stack);
+  }
+}
+
+/**
  * Responsesシートの差分をカレンダーに同期
  * @param lastSyncTimestamp 前回同期時刻（ISO 8601形式）
  * @returns 同期結果
@@ -1068,6 +1082,39 @@ function adminCleanupAllData(
       responsesDeleted: 0,
       success: false,
       errors: [(error as Error).message]
+    };
+  }
+}
+
+/**
+ * 管理者用: 孤児レスポンス削除API
+ * @param userKey ユーザー識別子（オプション、管理者判定用）
+ * @param adminToken 管理者トークン（オプション、匿名モード時）
+ * @returns 削除結果
+ */
+function adminCleanupOrphanResponses(
+  userKey?: string,
+  adminToken?: string
+): { success: boolean; deleted?: number; total?: number; error?: string } {
+  try {
+    if (userKey && !isAdmin(userKey, adminToken)) {
+      return {
+        success: false,
+        error: '管理者権限が必要です'
+      };
+    }
+    
+    const result = cleanupOrphanResponses();
+    return {
+      success: true,
+      deleted: result.deleted,
+      total: result.total
+    };
+  } catch (error) {
+    Logger.log(`❌ エラー: 孤児レスポンス削除API失敗 - ${(error as Error).message}`);
+    return {
+      success: false,
+      error: (error as Error).message
     };
   }
 }

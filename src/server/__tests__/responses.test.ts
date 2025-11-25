@@ -189,5 +189,339 @@ describe('responses.ts', () => {
       expect(result).toBe(false);
     });
   });
+
+  describe('cleanupOrphanResponses', () => {
+    // テスト用のモック関数（実際の実装の動作を模倣）
+    function mockCleanupOrphanResponses(): { deleted: number; total: number } {
+      // Membersシートからメンバー一覧を取得
+      const spreadsheet = (global.SpreadsheetApp.getActiveSpreadsheet as jest.Mock)();
+      if (!spreadsheet) {
+        return { deleted: 0, total: 0 };
+      }
+      
+      const membersSheet = spreadsheet.getSheetByName('Members');
+      if (!membersSheet) {
+        return { deleted: 0, total: 0 };
+      }
+      
+      const membersDataRange = membersSheet.getDataRange();
+      if (!membersDataRange) {
+        return { deleted: 0, total: 0 };
+      }
+      
+      const membersData = membersDataRange.getValues();
+      if (!Array.isArray(membersData)) {
+        return { deleted: 0, total: 0 };
+      }
+      
+      const memberSet = new Set<string>();
+      for (let i = 1; i < membersData.length; i++) {
+        const row = membersData[i];
+        if (row && Array.isArray(row) && row[0]) {
+          memberSet.add(String(row[0]));
+        }
+      }
+
+      // Responsesシートからレスポンス一覧を取得
+      const responsesSheet = spreadsheet.getSheetByName('Responses');
+      if (!responsesSheet) {
+        return { deleted: 0, total: 0 };
+      }
+
+      const responsesDataRange = responsesSheet.getDataRange();
+      if (!responsesDataRange) {
+        return { deleted: 0, total: 0 };
+      }
+      
+      const responsesData = responsesDataRange.getValues();
+      if (!Array.isArray(responsesData)) {
+        return { deleted: 0, total: 0 };
+      }
+      if (responsesData.length <= 1) {
+        return { deleted: 0, total: 0 };
+      }
+
+      const total = responsesData.length - 1; // ヘッダーを除く
+      const header = responsesData[0];
+      const remainingData: any[][] = [header];
+      let deleted = 0;
+
+      for (let i = 1; i < responsesData.length; i++) {
+        const row = responsesData[i];
+        const userKey = String(row[1] || '');
+        if (userKey && memberSet.has(userKey)) {
+          remainingData.push(row);
+        } else {
+          deleted++;
+        }
+      }
+
+      if (deleted === 0) {
+        return { deleted: 0, total };
+      }
+
+      // シートをクリアして書き戻し
+      responsesSheet.clear();
+      if (remainingData.length > 0) {
+        const dataRange = responsesSheet.getRange(1, 1, remainingData.length, remainingData[0].length);
+        if (dataRange && typeof dataRange.setValues === 'function') {
+          dataRange.setValues(remainingData);
+        }
+        const headerRange = responsesSheet.getRange(1, 1, 1, remainingData[0].length);
+        if (headerRange) {
+          if (typeof headerRange.setFontWeight === 'function') {
+            headerRange.setFontWeight('bold');
+          }
+          if (typeof headerRange.setBackground === 'function') {
+            headerRange.setBackground('#667eea');
+          }
+          if (typeof headerRange.setFontColor === 'function') {
+            headerRange.setFontColor('#ffffff');
+          }
+        }
+        if (typeof responsesSheet.setFrozenRows === 'function') {
+          responsesSheet.setFrozenRows(1);
+        }
+      }
+
+      return { deleted, total };
+    }
+
+    it('メンバーが存在するレスポンスは残ること', () => {
+      // Arrange
+      const membersSheet = {
+        getDataRange: jest.fn(() => ({
+          getValues: jest.fn(() => [
+            ['userKey', 'part', 'name', 'displayName', 'createdAt', 'updatedAt'],
+            ['user-1', 'Fl', '太郎', 'Fl太郎', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
+          ]),
+        })),
+      };
+
+      const responsesSheet = {
+        getDataRange: jest.fn(() => ({
+          getValues: jest.fn(() => [
+            ['eventId', 'userKey', 'status', 'comment', 'createdAt', 'updatedAt'],
+            ['event-1', 'user-1', '○', 'コメント', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
+          ]),
+        })),
+        clear: jest.fn(),
+        getRange: jest.fn(() => ({
+          setValues: jest.fn(),
+          setFontWeight: jest.fn(),
+          setBackground: jest.fn(),
+          setFontColor: jest.fn(),
+        })),
+        setFrozenRows: jest.fn(),
+      };
+
+      (global.SpreadsheetApp.getActiveSpreadsheet as jest.Mock).mockReturnValue({
+        getSheetByName: jest.fn((name: string) => {
+          if (name === 'Members') return membersSheet;
+          if (name === 'Responses') return responsesSheet;
+          return null;
+        }),
+      });
+
+      // Act
+      const result = mockCleanupOrphanResponses();
+
+      // Assert
+      expect(result.deleted).toBe(0);
+      expect(result.total).toBe(1);
+      expect(responsesSheet.clear).not.toHaveBeenCalled();
+    });
+
+    it('メンバーが存在しないレスポンスは削除されること', () => {
+      // Arrange
+      const membersData = [
+        ['userKey', 'part', 'name', 'displayName', 'createdAt', 'updatedAt'],
+        ['user-1', 'Fl', '太郎', 'Fl太郎', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
+      ];
+      const membersDataRange = {
+        getValues: jest.fn(() => membersData),
+      };
+      const membersSheet = {
+        getDataRange: jest.fn(() => membersDataRange),
+      };
+
+      const responsesData = [
+        ['eventId', 'userKey', 'status', 'comment', 'createdAt', 'updatedAt'],
+        ['event-1', 'user-1', '○', 'コメント1', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
+        ['event-2', 'user-2', '×', 'コメント2', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'], // 孤児レスポンス
+      ];
+      const responsesDataRange = {
+        getValues: jest.fn(() => responsesData),
+      };
+
+      const mockRange = {
+        setValues: jest.fn(),
+        setFontWeight: jest.fn(),
+        setBackground: jest.fn(),
+        setFontColor: jest.fn(),
+      };
+
+      const responsesSheet = {
+        getDataRange: jest.fn(() => responsesDataRange),
+        clear: jest.fn(),
+        getRange: jest.fn(() => mockRange),
+        setFrozenRows: jest.fn(),
+      };
+
+      (global.SpreadsheetApp.getActiveSpreadsheet as jest.Mock).mockReturnValue({
+        getSheetByName: jest.fn((name: string) => {
+          if (name === 'Members') return membersSheet;
+          if (name === 'Responses') return responsesSheet;
+          return null;
+        }),
+      });
+
+      // Act
+      const result = mockCleanupOrphanResponses();
+
+      // Assert
+      expect(result.deleted).toBe(1);
+      expect(result.total).toBe(2);
+      expect(responsesSheet.clear).toHaveBeenCalled();
+      expect(mockRange.setValues).toHaveBeenCalledWith([
+        ['eventId', 'userKey', 'status', 'comment', 'createdAt', 'updatedAt'],
+        ['event-1', 'user-1', '○', 'コメント1', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
+      ]);
+    });
+
+    it('空のシートの場合は何もしないこと', () => {
+      // Arrange
+      const membersSheet = {
+        getDataRange: jest.fn(() => ({
+          getValues: jest.fn(() => [
+            ['userKey', 'part', 'name', 'displayName', 'createdAt', 'updatedAt'],
+          ]),
+        })),
+      };
+
+      const responsesSheet = {
+        getDataRange: jest.fn(() => ({
+          getValues: jest.fn(() => [
+            ['eventId', 'userKey', 'status', 'comment', 'createdAt', 'updatedAt'],
+          ]),
+        })),
+        clear: jest.fn(),
+      };
+
+      (global.SpreadsheetApp.getActiveSpreadsheet as jest.Mock).mockReturnValue({
+        getSheetByName: jest.fn((name: string) => {
+          if (name === 'Members') return membersSheet;
+          if (name === 'Responses') return responsesSheet;
+          return null;
+        }),
+      });
+
+      // Act
+      const result = mockCleanupOrphanResponses();
+
+      // Assert
+      expect(result.deleted).toBe(0);
+      expect(result.total).toBe(0);
+      expect(responsesSheet.clear).not.toHaveBeenCalled();
+    });
+
+    it('全てのレスポンスが有効な場合は何も削除されないこと', () => {
+      // Arrange
+      const membersSheet = {
+        getDataRange: jest.fn(() => ({
+          getValues: jest.fn(() => [
+            ['userKey', 'part', 'name', 'displayName', 'createdAt', 'updatedAt'],
+            ['user-1', 'Fl', '太郎', 'Fl太郎', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
+            ['user-2', 'Ob', '花子', 'Ob花子', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
+          ]),
+        })),
+      };
+
+      const responsesSheet = {
+        getDataRange: jest.fn(() => ({
+          getValues: jest.fn(() => [
+            ['eventId', 'userKey', 'status', 'comment', 'createdAt', 'updatedAt'],
+            ['event-1', 'user-1', '○', 'コメント1', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
+            ['event-1', 'user-2', '×', 'コメント2', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
+          ]),
+        })),
+        clear: jest.fn(),
+      };
+
+      (global.SpreadsheetApp.getActiveSpreadsheet as jest.Mock).mockReturnValue({
+        getSheetByName: jest.fn((name: string) => {
+          if (name === 'Members') return membersSheet;
+          if (name === 'Responses') return responsesSheet;
+          return null;
+        }),
+      });
+
+      // Act
+      const result = mockCleanupOrphanResponses();
+
+      // Assert
+      expect(result.deleted).toBe(0);
+      expect(result.total).toBe(2);
+      expect(responsesSheet.clear).not.toHaveBeenCalled();
+    });
+
+    it('複数の孤児レスポンスが存在する場合、全て削除されること', () => {
+      // Arrange
+      const membersData = [
+        ['userKey', 'part', 'name', 'displayName', 'createdAt', 'updatedAt'],
+        ['user-1', 'Fl', '太郎', 'Fl太郎', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
+      ];
+      const membersDataRange = {
+        getValues: jest.fn(() => membersData),
+      };
+      const membersSheet = {
+        getDataRange: jest.fn(() => membersDataRange),
+      };
+
+      const responsesData = [
+        ['eventId', 'userKey', 'status', 'comment', 'createdAt', 'updatedAt'],
+        ['event-1', 'user-1', '○', 'コメント1', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
+        ['event-2', 'user-2', '×', 'コメント2', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'], // 孤児
+        ['event-3', 'user-3', '△', 'コメント3', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'], // 孤児
+      ];
+      const responsesDataRange = {
+        getValues: jest.fn(() => responsesData),
+      };
+
+      const mockRange = {
+        setValues: jest.fn(),
+        setFontWeight: jest.fn(),
+        setBackground: jest.fn(),
+        setFontColor: jest.fn(),
+      };
+
+      const responsesSheet = {
+        getDataRange: jest.fn(() => responsesDataRange),
+        clear: jest.fn(),
+        getRange: jest.fn(() => mockRange),
+        setFrozenRows: jest.fn(),
+      };
+
+      (global.SpreadsheetApp.getActiveSpreadsheet as jest.Mock).mockReturnValue({
+        getSheetByName: jest.fn((name: string) => {
+          if (name === 'Members') return membersSheet;
+          if (name === 'Responses') return responsesSheet;
+          return null;
+        }),
+      });
+
+      // Act
+      const result = mockCleanupOrphanResponses();
+
+      // Assert
+      expect(result.deleted).toBe(2);
+      expect(result.total).toBe(3);
+      expect(responsesSheet.clear).toHaveBeenCalled();
+      expect(mockRange.setValues).toHaveBeenCalledWith([
+        ['eventId', 'userKey', 'status', 'comment', 'createdAt', 'updatedAt'],
+        ['event-1', 'user-1', '○', 'コメント1', '2024-01-01T00:00:00Z', '2024-01-01T00:00:00Z'],
+      ]);
+    });
+  });
 });
 

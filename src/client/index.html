@@ -2644,6 +2644,10 @@
         if (partIndex === 0) {
           partHeader.style.borderLeft = '1px solid #DDDDDD';
         }
+        // 各パートの右側に罫線を追加（最後のパート以外）
+        if (partIndex < partKeys.length - 1) {
+          partHeader.style.borderRight = '1px solid #DDDDDD';
+        }
         headerRow1.appendChild(partHeader);
       });
       
@@ -2655,6 +2659,7 @@
       sortedMembers.forEach((member, index) => {
         const displayName = getMemberDisplayName(member);
         const name = typeof member === 'object' ? (member.name || '') : parseMemberName(displayName).name;
+        const part = typeof member === 'object' ? (member.part || '') : parseMemberName(displayName).part;
         
         const nameHeader = document.createElement('th');
         nameHeader.className = 'member-name-col';
@@ -2666,6 +2671,15 @@
         // 最初のメンバー列の左側に罫線を追加（○△×列との区切り、イベント列と同じ太さ）
         if (index === 0) {
           nameHeader.style.borderLeft = '1px solid #DDDDDD';
+        }
+        
+        // パートごとの縦線：各パートの最後のメンバーの右側に罫線を追加
+        const currentPartMembers = membersByPart[part] || [];
+        const isLastInPart = currentPartMembers.length > 0 && 
+          currentPartMembers[currentPartMembers.length - 1] === member;
+        const isLastPart = partKeys.indexOf(part) === partKeys.length - 1;
+        if (isLastInPart && !isLastPart) {
+          nameHeader.style.borderRight = '1px solid #DDDDDD';
         }
         
         // 名前をリンクスタイルで表示
@@ -2906,6 +2920,7 @@
         // メンバーごとのステータスセル（ソート済みメンバーリストを使用）
         sortedMembers.forEach((member, memberIndex) => {
           const displayName = getMemberDisplayName(member);
+          const part = typeof member === 'object' ? (member.part || '') : parseMemberName(displayName).part;
           const statusCell = document.createElement('td');
           statusCell.className = 'status-cell status-none';
           statusCell.dataset.eventId = event.id;
@@ -2926,6 +2941,15 @@
             statusCell.style.backgroundColor = '#e8f5e9';
             statusCell.style.borderLeft = '3px solid #667eea';
             statusCell.style.borderRight = '3px solid #667eea';
+          } else {
+            // パートごとの縦線：各パートの最後のメンバーの右側に罫線を追加
+            const currentPartMembers = membersByPart[part] || [];
+            const isLastInPart = currentPartMembers.length > 0 && 
+              currentPartMembers[currentPartMembers.length - 1] === member;
+            const isLastPart = partKeys.indexOf(part) === partKeys.length - 1;
+            if (isLastInPart && !isLastPart) {
+              statusCell.style.borderRight = '1px solid #DDDDDD';
+            }
           }
           
           // 既存の出欠情報を表示（サーバーから取得したデータ + gridData）

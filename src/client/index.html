@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8">
   <!-- 端末幅に応じて自然に表示させる -->
@@ -259,8 +260,13 @@
     }
 
     @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     /* エラー表示 */
@@ -312,7 +318,8 @@
       /* スクロールバーを目立たせる（ライトブルー） */
       scrollbar-width: thin;
       scrollbar-color: #5B9BD5 #f0f0f0;
-      display: none; /* スクロール可能な場合のみ表示 */
+      display: none;
+      /* スクロール可能な場合のみ表示 */
     }
 
     .attendance-grid-scrollbar-top.visible {
@@ -376,7 +383,7 @@
       left: 0;
       background: linear-gradient(to right, rgba(255, 255, 255, 0.95), transparent);
     }
-            
+
     .attendance-grid-wrapper::after {
       right: 0;
       background: linear-gradient(to left, rgba(255, 255, 255, 0.95), transparent);
@@ -389,7 +396,7 @@
     .attendance-grid-wrapper.scrollable-right::after {
       opacity: 1;
     }
-    
+
     /* スクロール可能な場合の上部のフェードアウト効果 */
     .attendance-grid-wrapper-top-fade {
       position: absolute;
@@ -407,7 +414,7 @@
     .attendance-grid-wrapper.scrollable-top .attendance-grid-wrapper-top-fade {
       opacity: 1;
     }
-    
+
     /* スクロール時に上部グラデーションを非表示 */
     .attendance-grid-wrapper.scrolled .attendance-grid-wrapper-top-fade {
       opacity: 0;
@@ -431,8 +438,16 @@
     }
 
     @keyframes fadeInOut {
-      0%, 100% { opacity: 0; }
-      10%, 90% { opacity: 1; }
+
+      0%,
+      100% {
+        opacity: 0;
+      }
+
+      10%,
+      90% {
+        opacity: 1;
+      }
     }
 
     .attendance-grid {
@@ -461,11 +476,12 @@
       width: 100px;
       overflow: hidden;
       height: auto;
-      min-height: 48px; /* 2行分の高さを確保 */
+      min-height: 48px;
+      /* 2行分の高さを確保 */
       vertical-align: middle;
       /* white-space: nowrapを削除して2行表示を有効化 */
     }
-    
+
     /* 名前列内のリンクのスタイル（2行表示） */
     .member-name-col a {
       display: -webkit-box;
@@ -558,7 +574,7 @@
       margin: -8px;
       border-radius: 8px;
       position: relative;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
       display: block;
       transition: all 0.2s ease;
       cursor: pointer;
@@ -582,7 +598,7 @@
     @media (hover: hover) and (pointer: fine) {
       .event-name-clickable:hover {
         background: rgba(25, 118, 210, 0.08);
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       }
 
       .event-name-clickable:hover::after {
@@ -593,7 +609,7 @@
     /* スマホ/タブレットではタップ時の反応 */
     .event-name-clickable:active {
       background: rgba(25, 118, 210, 0.1);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
       transform: scale(0.98);
     }
 
@@ -702,7 +718,7 @@
       min-width: 140px;
     }
 
-    .member-info-block + .member-info-block {
+    .member-info-block+.member-info-block {
       margin-left: 20px;
     }
 
@@ -740,7 +756,7 @@
         align-items: stretch;
       }
 
-      .member-info-block + .member-info-block {
+      .member-info-block+.member-info-block {
         margin-left: 0;
       }
 
@@ -904,10 +920,12 @@
       border-radius: 6px;
       color: white;
       font-weight: bold;
-      z-index: 10000; /* モーダル（z-index: 2000）より上に表示 */
+      z-index: 10000;
+      /* モーダル（z-index: 2000）より上に表示 */
       animation: slideIn 0.3s ease-out;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-      background: #2196F3; /* デフォルト背景色（info用） */
+      background: #2196F3;
+      /* デフォルト背景色（info用） */
     }
 
     .toast.success {
@@ -927,6 +945,7 @@
         transform: translateX(100%);
         opacity: 0;
       }
+
       to {
         transform: translateX(0);
         opacity: 1;
@@ -1055,8 +1074,13 @@
     }
 
     @keyframes spin {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
     }
 
     .sync-status {
@@ -1133,6 +1157,7 @@
         transform: translateY(-50px);
         opacity: 0;
       }
+
       to {
         transform: translateY(0);
         opacity: 1;
@@ -1418,100 +1443,112 @@
     /* レスポンシブデザインは削除 - PCレイアウト固定（1200px）で縮小拡大表示 */
   </style>
 </head>
+
 <body>
   <div id="scale-wrapper">
     <div id="app-root">
       <div class="page-shell">
         <div class="container">
-    <header>
-      <div class="header-top">
-        <h1>UnionBoard</h1>
-        <div class="header-actions">
-          <button class="admin-login-btn" onclick="showAdminLoginModal()" id="admin-login-btn" style="display: inline-block;">
-            🔐 管理者ログイン
-          </button>
-          <div class="header-action-group" style="display: none;">
-            <button class="sync-all-btn icon-action-btn" onclick="syncAllEvents()" id="sync-all-btn" title="同期">
-              <i class="fas fa-rotate"></i>
-            </button>
-            <button class="admin-logout-btn icon-action-btn" onclick="logoutAdmin()" id="admin-logout-btn" title="ログアウト">
-              <i class="fas fa-right-from-bracket"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-      <p>TMU 練習予定・出欠管理アプリ</p>
-    </header>
+          <header>
+            <div class="header-top">
+              <h1>UnionBoard</h1>
+              <div class="header-actions">
+                <button class="admin-login-btn" onclick="showAdminLoginModal()" id="admin-login-btn"
+                  style="display: inline-block;">
+                  🔐 管理者ログイン
+                </button>
+                <div class="header-action-group" style="display: none;">
+                  <button class="sync-all-btn icon-action-btn" onclick="syncAllEvents()" id="sync-all-btn" title="同期">
+                    <i class="fas fa-rotate"></i>
+                  </button>
+                  <button class="admin-logout-btn icon-action-btn" onclick="logoutAdmin()" id="admin-logout-btn"
+                    title="ログアウト">
+                    <i class="fas fa-right-from-bracket"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <p>TMU 練習予定・出欠管理アプリ</p>
+          </header>
 
-    <main>
-      <div id="loading" class="loading">
-        <div class="spinner"></div>
-        <p>データを読み込み中...</p>
-      </div>
+          <main>
+            <div id="loading" class="loading">
+              <div class="spinner"></div>
+              <p>データを読み込み中...</p>
+            </div>
 
-      <div id="error" class="error" style="display: none;"></div>
+            <div id="error" class="error" style="display: none;"></div>
 
-      <div id="events-container" style="display: none;">
-        <!-- 表形式表示 -->
-        <div id="grid-view" style="display: block;">
-          <!-- メインコンテンツ上部のボタンエリア -->
-          <div class="main-actions-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-            <!-- 左寄せエリア（設定・管理） -->
-            <div class="left-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <!-- メンバー登録ボタン（すべてのユーザー、プライマリーボタン） -->
-              <button class="member-register-btn primary-btn" onclick="showMemberRegisterModal()">メンバー登録</button>
-              <!-- カレンダーに追加ボタン（すべてのユーザー、セカンダリーボタン） -->
-              <button class="add-to-calendar-btn secondary-btn" onclick="showAddToCalendarModal()" id="add-to-calendar-btn" style="display: inline-flex; align-items: center; gap: 6px;">
-                <i class="fas fa-calendar-plus"></i>
-                <span>カレンダーに追加</span>
-              </button>
-              <!-- リロードボタン（すべてのユーザー、セカンダリーボタン） -->
-              <button class="reload-btn secondary-btn" onclick="reloadEvents()" id="reload-btn">
-                <i class="fas fa-rotate"></i>
-                <span>最新表示</span>
-              </button>
+            <div id="events-container" style="display: none;">
+              <!-- 表形式表示 -->
+              <div id="grid-view" style="display: block;">
+                <!-- メインコンテンツ上部のボタンエリア -->
+                <div class="main-actions-bar"
+                  style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                  <!-- 左寄せエリア（設定・管理） -->
+                  <div class="left-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <!-- メンバー登録ボタン（すべてのユーザー、プライマリーボタン） -->
+                    <button class="member-register-btn primary-btn" onclick="showMemberRegisterModal()">メンバー登録</button>
+                    <!-- カレンダーに追加ボタン（すべてのユーザー、セカンダリーボタン） -->
+                    <button class="add-to-calendar-btn secondary-btn" onclick="showAddToCalendarModal()"
+                      id="add-to-calendar-btn" style="display: inline-flex; align-items: center; gap: 6px;">
+                      <i class="fas fa-calendar-plus"></i>
+                      <span>カレンダーに追加</span>
+                    </button>
+                    <!-- リロードボタン（すべてのユーザー、セカンダリーボタン） -->
+                    <button class="reload-btn secondary-btn" onclick="reloadEvents()" id="reload-btn">
+                      <i class="fas fa-rotate"></i>
+                      <span>最新表示</span>
+                    </button>
+                  </div>
+                  <!-- 右寄せエリア（主要アクション） -->
+                  <div class="right-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <!-- 表示期間設定ボタン（管理者のみ、セカンダリーボタン） -->
+                    <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" class="secondary-btn"
+                      style="display: none;">表示期間を設定</button>
+                    <!-- イベント登録ボタン（管理者のみ、プライマリーボタン） -->
+                    <button class="admin-feature primary-btn create-event-btn" onclick="openCreateEventModal()"
+                      id="create-event-btn" style="display: none;">イベント登録</button>
+                  </div>
+                </div>
+                <!-- 凡例 -->
+                <div id="attendance-legend"
+                  style="padding: 10px 0; background: #e3f2fd; border-radius: 8px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; font-size: 0.9rem; margin-bottom: 16px; border: 1px solid #bbdefb;">
+                  <div style="display: flex; align-items: center; gap: 6px; margin-left: 16px;">
+                    <span
+                      style="display: inline-block; width: 24px; height: 24px; background-color: #c8e6c9; border-radius: 4px; text-align: center; line-height: 24px; font-weight: bold;">○</span>
+                    <span>出席</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span
+                      style="display: inline-block; width: 24px; height: 24px; background-color: #fff9c4; border-radius: 4px; text-align: center; line-height: 24px; font-weight: bold;">△</span>
+                    <span>遅刻/早退</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span
+                      style="display: inline-block; width: 24px; height: 24px; background-color: #ffcdd2; border-radius: 4px; text-align: center; line-height: 24px; font-weight: bold;">×</span>
+                    <span>欠席</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px;">
+                    <span
+                      style="display: inline-block; width: 24px; height: 24px; background-color: #f5f5f5; border-radius: 4px; text-align: center; line-height: 24px; color: #999;">-</span>
+                    <span>未定</span>
+                  </div>
+                </div>
+                <div class="table-responsive attendance-grid-wrapper">
+                  <div class="attendance-grid-wrapper-top-fade"></div>
+                  <div id="attendance-grid-scrollbar-top" class="attendance-grid-scrollbar-top"></div>
+                  <div id="attendance-grid" class="attendance-grid-container">
+                    <!-- 表形式のグリッドがここに動的に生成されます -->
+                  </div>
+                </div>
+              </div>
             </div>
-            <!-- 右寄せエリア（主要アクション） -->
-            <div class="right-actions" style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-              <!-- 表示期間設定ボタン（管理者のみ、セカンダリーボタン） -->
-              <button id="display-period-edit-btn" onclick="openDisplayPeriodModal()" class="secondary-btn" style="display: none;">表示期間を設定</button>
-              <!-- イベント登録ボタン（管理者のみ、プライマリーボタン） -->
-              <button class="admin-feature primary-btn create-event-btn" onclick="openCreateEventModal()" id="create-event-btn" style="display: none;">イベント登録</button>
-            </div>
-          </div>
-          <!-- 凡例 -->
-          <div id="attendance-legend" style="padding: 10px 0; background: #e3f2fd; border-radius: 8px; display: flex; gap: 20px; align-items: center; flex-wrap: wrap; font-size: 0.9rem; margin-bottom: 16px; border: 1px solid #bbdefb;">
-            <div style="display: flex; align-items: center; gap: 6px; margin-left: 16px;">
-              <span style="display: inline-block; width: 24px; height: 24px; background-color: #c8e6c9; border-radius: 4px; text-align: center; line-height: 24px; font-weight: bold;">○</span>
-              <span>出席</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="display: inline-block; width: 24px; height: 24px; background-color: #fff9c4; border-radius: 4px; text-align: center; line-height: 24px; font-weight: bold;">△</span>
-              <span>遅刻/早退</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="display: inline-block; width: 24px; height: 24px; background-color: #ffcdd2; border-radius: 4px; text-align: center; line-height: 24px; font-weight: bold;">×</span>
-              <span>欠席</span>
-            </div>
-            <div style="display: flex; align-items: center; gap: 6px;">
-              <span style="display: inline-block; width: 24px; height: 24px; background-color: #f5f5f5; border-radius: 4px; text-align: center; line-height: 24px; color: #999;">-</span>
-              <span>未定</span>
-            </div>
-          </div>
-          <div class="table-responsive attendance-grid-wrapper">
-            <div class="attendance-grid-wrapper-top-fade"></div>
-            <div id="attendance-grid-scrollbar-top" class="attendance-grid-scrollbar-top"></div>
-            <div id="attendance-grid" class="attendance-grid-container">
-              <!-- 表形式のグリッドがここに動的に生成されます -->
-            </div>
-          </div>
-        </div>
-      </div>
-    </main>
+          </main>
 
-    <footer>
-      <p>&copy; 2025 UnionBoard - Tokyo Music Union</p>
-    </footer>
+          <footer>
+            <p>&copy; 2025 UnionBoard - Tokyo Music Union</p>
+          </footer>
         </div>
       </div>
     </div>
@@ -1592,8 +1629,10 @@
         <h2 id="event-detail-title">イベント詳細</h2>
         <div style="display: flex; gap: 16px; align-items: center;">
           <div id="event-detail-admin-actions" style="display: none; gap: 12px;">
-            <button class="admin-btn edit" id="event-detail-edit-btn" style="padding: 6px 12px; font-size: 0.9rem;">編集</button>
-            <button class="admin-btn delete" id="event-detail-delete-btn" style="padding: 6px 12px; font-size: 0.9rem;">削除</button>
+            <button class="admin-btn edit" id="event-detail-edit-btn"
+              style="padding: 6px 12px; font-size: 0.9rem;">編集</button>
+            <button class="admin-btn delete" id="event-detail-delete-btn"
+              style="padding: 6px 12px; font-size: 0.9rem;">削除</button>
           </div>
           <button class="close-btn" onclick="closeEventDetailModal()">&times;</button>
         </div>
@@ -1622,7 +1661,8 @@
       <div class="modal-body">
         <div class="form-group" style="margin-top: 20px;">
           <label for="member-part">パート</label>
-          <select id="member-part" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+          <select id="member-part"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
             <option value="">選択してください</option>
             <option value="Fl">Fl (フルート)</option>
             <option value="Ob">Ob (オーボエ)</option>
@@ -1638,7 +1678,8 @@
         </div>
         <div class="form-group" style="margin-top: 20px;">
           <label for="member-name">名前</label>
-          <input type="text" id="member-name" placeholder="例: 山田" maxlength="50" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+          <input type="text" id="member-name" placeholder="例: 山田" maxlength="50"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
           <div style="font-size: 0.85rem; color: #f44336; margin-top: 6px; line-height: 1.4;">
             ⚠️ 名前は公開されます。フルネームの入力は控えてください。
           </div>
@@ -1659,7 +1700,8 @@
         <button class="close-btn" onclick="closeMemberEditModal()">&times;</button>
       </div>
       <div class="modal-body">
-        <div class="member-info-header" style="margin-top: 10px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
+        <div class="member-info-header"
+          style="margin-top: 10px; padding: 12px; background: #f8f9fa; border-radius: 6px;">
           <div class="member-info-block">
             <div style="font-size: 0.9rem; color: #666; margin-bottom: 4px;">パート</div>
             <div id="member-part-display" style="font-weight: bold; font-size: 1rem;">-</div>
@@ -1669,19 +1711,23 @@
             <div id="member-name-display" style="font-weight: bold; font-size: 1rem;">-</div>
           </div>
           <div class="member-info-actions">
-            <button type="button" onclick="openMemberInfoEditModal()" style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">編集</button>
-            <button type="button" onclick="deleteMemberFromModal()" style="padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">削除</button>
+            <button type="button" onclick="openMemberInfoEditModal()"
+              style="padding: 8px 16px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">編集</button>
+            <button type="button" onclick="deleteMemberFromModal()"
+              style="padding: 8px 16px; background: #f44336; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">削除</button>
           </div>
         </div>
         <div style="margin-top: 20px;">
           <label style="font-weight: bold; display: block; margin-bottom: 10px;">各日程の出欠を選択:</label>
-          <div id="event-status-list" style="max-height: 520px; min-height: 360px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; background-color: #ffffff;">
+          <div id="event-status-list"
+            style="max-height: 520px; min-height: 360px; overflow-y: auto; border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; background-color: #ffffff;">
             <!-- 各日程のステータス選択UIがここに動的に生成されます -->
           </div>
         </div>
         <div class="form-actions" style="margin-top: 20px; display: flex; gap: 10px;">
           <button type="button" class="form-btn cancel" onclick="closeMemberEditModal()" style="flex: 1;">閉じる</button>
-          <button type="button" class="form-btn primary" onclick="bulkUpdateResponsesForSelectedMember()" style="flex: 2;">保存</button>
+          <button type="button" class="form-btn primary" onclick="bulkUpdateResponsesForSelectedMember()"
+            style="flex: 2;">保存</button>
         </div>
       </div>
     </div>
@@ -1697,7 +1743,8 @@
       <div class="modal-body">
         <div class="form-group" style="margin-top: 20px;">
           <label for="member-info-part">パート</label>
-          <select id="member-info-part" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+          <select id="member-info-part"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
             <option value="">選択してください</option>
             <option value="Fl">Fl (フルート)</option>
             <option value="Ob">Ob (オーボエ)</option>
@@ -1713,13 +1760,15 @@
         </div>
         <div class="form-group" style="margin-top: 20px;">
           <label for="member-info-name">名前</label>
-          <input type="text" id="member-info-name" placeholder="例: 山田" maxlength="50" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
+          <input type="text" id="member-info-name" placeholder="例: 山田" maxlength="50"
+            style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; font-size: 1rem;">
           <div style="font-size: 0.85rem; color: #f44336; margin-top: 6px; line-height: 1.4;">
             ⚠️ 名前は公開されます。フルネームの入力は控えてください。
           </div>
         </div>
         <div class="form-actions" style="margin-top: 20px; display: flex; gap: 10px;">
-          <button type="button" class="form-btn cancel" onclick="closeMemberInfoEditModal()" style="flex: 1;">キャンセル</button>
+          <button type="button" class="form-btn cancel" onclick="closeMemberInfoEditModal()"
+            style="flex: 1;">キャンセル</button>
           <button type="button" class="form-btn primary" onclick="saveMemberInfo()" style="flex: 2;">保存</button>
         </div>
       </div>
@@ -1737,7 +1786,8 @@
         <p style="margin-bottom: 15px; line-height: 1.6;">
           表示期間内の全てのイベント情報をGoogleカレンダーと同期します。
         </p>
-        <div style="padding: 12px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; margin-bottom: 15px;">
+        <div
+          style="padding: 12px; background-color: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; margin-bottom: 15px;">
           <p style="margin: 0; color: #856404; font-size: 0.9rem; line-height: 1.5;">
             <strong>⚠️ 注意:</strong> イベント数が多い場合、処理に時間がかかることがあります。
           </p>
@@ -1786,7 +1836,8 @@
         <p>管理者トークンを入力してください</p>
         <div class="form-group" style="margin-top: 20px;">
           <label for="admin-token-input">管理者トークン</label>
-          <input type="password" id="admin-token-input" placeholder="管理者トークンを入力" maxlength="100" autocomplete="off" onkeypress="if(event.key === 'Enter') submitAdminLogin()">
+          <input type="password" id="admin-token-input" placeholder="管理者トークンを入力" maxlength="100" autocomplete="off"
+            onkeypress="if(event.key === 'Enter') submitAdminLogin()">
         </div>
         <div class="form-actions" style="margin-top: 20px;">
           <button type="button" class="form-btn cancel" onclick="closeAdminLoginModal()">キャンセル</button>
@@ -1807,17 +1858,20 @@
         <p>表示するイベントの期間を設定します。空欄にすると制限なし（全期間）になります。</p>
         <div class="form-group" style="margin-top: 20px;">
           <label for="display-period-start">開始日</label>
-          <input type="date" id="display-period-start" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <input type="date" id="display-period-start"
+            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
           <small style="color: #666; font-size: 0.85rem;">空欄の場合は制限なし</small>
         </div>
         <div class="form-group" style="margin-top: 20px;">
           <label for="display-period-end">終了日</label>
-          <input type="date" id="display-period-end" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+          <input type="date" id="display-period-end"
+            style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
           <small style="color: #666; font-size: 0.85rem;">空欄の場合は制限なし</small>
         </div>
         <div class="form-actions" style="margin-top: 20px;">
           <button type="button" class="form-btn cancel" onclick="closeDisplayPeriodModal()">キャンセル</button>
-          <button type="button" class="form-btn danger" onclick="openClearDisplayPeriodConfirm()" style="background: #f44336;">制限を解除</button>
+          <button type="button" class="form-btn danger" onclick="openClearDisplayPeriodConfirm()"
+            style="background: #f44336;">制限を解除</button>
           <button type="button" class="form-btn primary" onclick="saveDisplayPeriod()">保存</button>
         </div>
       </div>
@@ -1841,7 +1895,8 @@
       </div>
       <div class="form-actions" style="margin-top: 20px;">
         <button type="button" class="form-btn cancel" onclick="closeClearDisplayPeriodConfirm()">キャンセル</button>
-        <button type="button" class="form-btn danger confirm-clear-period-btn" onclick="confirmClearDisplayPeriod()">解除</button>
+        <button type="button" class="form-btn danger confirm-clear-period-btn"
+          onclick="confirmClearDisplayPeriod()">解除</button>
       </div>
     </div>
   </div>
@@ -1863,7 +1918,8 @@
       </div>
       <div class="form-actions" style="margin-top: 20px;">
         <button type="button" class="form-btn cancel" onclick="closeMemberDeleteConfirm()">キャンセル</button>
-        <button type="button" class="form-btn danger confirm-delete-member-btn" onclick="confirmDeleteMember()">削除</button>
+        <button type="button" class="form-btn danger confirm-delete-member-btn"
+          onclick="confirmDeleteMember()">削除</button>
       </div>
     </div>
   </div>
@@ -1887,8 +1943,8 @@
           </ul>
         </div>
         <div style="text-align: center; margin-top: 20px;">
-          <a id="calendar-add-link" href="#" target="_blank" 
-             style="display: inline-block; padding: 14px 28px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 1rem; transition: background 0.3s;">
+          <a id="calendar-add-link" href="#" target="_blank"
+            style="display: inline-block; padding: 14px 28px; background: #667eea; color: white; text-decoration: none; border-radius: 8px; font-weight: 500; font-size: 1rem; transition: background 0.3s;">
             📅 Googleカレンダーに追加
           </a>
         </div>
@@ -1921,7 +1977,7 @@
      * 構造: { [eventId: string]: Response[] }
      */
     window.allResponsesCache = undefined; // 初期値はundefined（キャッシュがない状態）
-    
+
     /**
      * キャッシュのタイムスタンプ（ミリ秒）
      * キャッシュが設定された時刻を記録
@@ -1941,7 +1997,7 @@
         // URLパラメータから管理者トークンを取得（?admin=TOKEN 形式）
         const urlParams = new URLSearchParams(window.location.search);
         const adminTokenFromUrl = urlParams.get('admin');
-        
+
         if (adminTokenFromUrl) {
           // URLパラメータでトークンが指定されている場合、自動的に設定
           localStorage.setItem('adminToken', adminTokenFromUrl);
@@ -1949,12 +2005,12 @@
           const newUrl = window.location.pathname + window.location.hash;
           window.history.replaceState({}, document.title, newUrl);
         }
-        
+
         google.script.run
           .withSuccessHandler((data) => {
             currentAuthMode = data.config.AUTH_MODE || 'anonymous';
             initializeUser();
-            
+
             // メンバー一覧をサーバーから取得してmemberListに反映
             if (data.members && Array.isArray(data.members)) {
               // サーバーから取得したメンバー情報をmemberListに反映（スプレッドシートで管理）
@@ -1967,12 +2023,12 @@
             } else {
               memberList = [];
             }
-            
+
             // イベントデータを直接使用（getInitDataで既に取得済み）
             if (data.events) {
               currentEvents = data.events;
             }
-            
+
             // 出欠データをグローバルキャッシュに保存
             if (data.responsesMap) {
               window.allResponsesCache = data.responsesMap;
@@ -1981,24 +2037,24 @@
             }
             // キャッシュのタイムスタンプを更新
             window.allResponsesCacheTimestamp = Date.now();
-            
+
             // 設定をキャッシュに保存（性能改善：期間設定モーダル用）
             currentConfig = data.config;
-            
+
             // 表示期間を更新
             updateDisplayPeriodInfo(data.config);
-            
+
             // ローディングを非表示（初期データ取得完了）
             hideLoading();
-            
+
             // 性能改善：renderEventsを先に実行（管理者ステータス確認を待たない）
             renderEvents(); // ← 即座に表示
-            
+
             // 管理者ステータスを並行して確認（UIは後で更新）
             checkAdminStatus().then(() => {
               // 管理者UIを更新
               updateAdminUI();
-              
+
               // URLパラメータでログインした場合、成功メッセージを表示
               if (adminTokenFromUrl) {
                 showToast('管理者ログインに成功しました', 'success');
@@ -2067,7 +2123,7 @@
     function checkAdminStatus() {
       return new Promise((resolve) => {
         const adminToken = localStorage.getItem('adminToken');
-        
+
         if (adminToken) {
           // 管理者トークンが設定されている場合、サーバー側で検証
           google.script.run
@@ -2102,12 +2158,12 @@
       const displayPeriodEditBtn = document.getElementById('display-period-edit-btn');
       const memberRegisterBtn = document.querySelector('.member-register-btn');
       const addToCalendarBtn = document.getElementById('add-to-calendar-btn');
-      
+
       const headerActionGroup = document.querySelector('.header-action-group');
-      
+
       // カレンダーに追加ボタンはすべてのユーザーに表示
       if (addToCalendarBtn) addToCalendarBtn.style.display = 'inline-flex';
-      
+
       if (isAdminUser) {
         // 管理者の場合：ログインボタンを非表示、ログアウトボタンと管理ボタンを表示
         if (adminLoginBtn) adminLoginBtn.style.display = 'none';
@@ -2132,7 +2188,7 @@
         const editBtn = document.querySelector('#event-' + event.id + ' .admin-btn.edit');
         const deleteBtn = document.querySelector('#event-' + event.id + ' .admin-btn.delete');
         const adminActions = document.querySelector('#event-' + event.id + ' .admin-actions');
-        
+
         if (isAdminUser) {
           if (syncBtn) syncBtn.style.display = 'inline-block';
           if (editBtn) editBtn.style.display = 'inline-block';
@@ -2178,7 +2234,7 @@
     function submitAdminLogin() {
       const tokenInput = document.getElementById('admin-token-input');
       const token = tokenInput.value.trim();
-      
+
       if (!token) {
         showToast('管理者トークンを入力してください', 'error');
         return;
@@ -2198,7 +2254,7 @@
             loginBtn.disabled = false;
             loginBtn.textContent = 'ログイン';
           }
-          
+
           if (result === true) {
             // トークンが正しい場合、localStorageに保存
             localStorage.setItem('adminToken', token);
@@ -2279,24 +2335,24 @@
 
       // キャッシュから設定値を取得（API呼び出しなし）
       const config = currentConfig || {};
-      
+
       const startInput = document.getElementById('display-period-start');
       const endInput = document.getElementById('display-period-end');
-      
+
       if (startInput && config.DISPLAY_START_DATE) {
         const startDate = new Date(config.DISPLAY_START_DATE);
         startInput.value = formatDateForInput(startDate);
       } else if (startInput) {
         startInput.value = '';
       }
-      
+
       if (endInput && config.DISPLAY_END_DATE) {
         const endDate = new Date(config.DISPLAY_END_DATE);
         endInput.value = formatDateForInput(endDate);
       } else if (endInput) {
         endInput.value = '';
       }
-      
+
       // 即座にモーダルを表示
       modal.style.display = 'block';
     }
@@ -2330,7 +2386,7 @@
       // new Date(utcString)は既にローカルタイムゾーン（JST）で解釈されるため、そのまま返す
       return new Date(utcString);
     }
-    
+
     /**
      * UTC日時文字列から日付部分（YYYY-MM-DD）を抽出（タイムゾーン変換なし）
      * @param {string} utcString - ISO 8601形式のUTC日時文字列（例: "2025-11-19T04:00:00.000Z"）
@@ -2348,7 +2404,7 @@
     function saveDisplayPeriod() {
       const startInput = document.getElementById('display-period-start');
       const endInput = document.getElementById('display-period-end');
-      
+
       if (!startInput || !endInput) {
         showToast('入力フィールドが見つかりません', 'error');
         return;
@@ -2391,14 +2447,14 @@
             saveBtn.disabled = false;
             saveBtn.textContent = '保存';
           }
-          
+
           if (result.success) {
             // キャッシュを更新（性能改善）
             if (currentConfig) {
               currentConfig.DISPLAY_START_DATE = startDateISO;
               currentConfig.DISPLAY_END_DATE = endDateISO;
             }
-            
+
             closeDisplayPeriodModal();
             showToast('表示期間を設定しました', 'success');
             // データを再読み込み
@@ -2450,14 +2506,14 @@
             clearBtn.disabled = false;
             clearBtn.textContent = '解除';
           }
-          
+
           if (result.success) {
             // キャッシュを更新（性能改善）
             if (currentConfig) {
               currentConfig.DISPLAY_START_DATE = '';
               currentConfig.DISPLAY_END_DATE = '';
             }
-            
+
             closeClearDisplayPeriodConfirm();
             showToast('表示期間の制限を解除しました', 'success');
             // データを再読み込み
@@ -2503,7 +2559,7 @@
       container.style.display = 'block';
 
       renderGrid();
-      
+
       // 管理者UIの表示/非表示を更新
       updateAdminUI();
     }
@@ -2516,7 +2572,7 @@
       if (memberList.length === 0) {
         loadMemberList();
       }
-      
+
       const gridContainer = document.getElementById('attendance-grid');
 
       if (currentEvents.length === 0) {
@@ -2526,10 +2582,10 @@
 
       // キャッシュからデータを取得（API呼び出しなし！）
       const responsesMap = window.allResponsesCache || {};
-      
+
       // allResponses形式に変換
       const allResponses = {}; // {eventId: {displayName: status}}
-      
+
       Object.keys(responsesMap).forEach(eventId => {
         allResponses[eventId] = {};
         responsesMap[eventId].forEach(response => {
@@ -2540,7 +2596,7 @@
           }
         });
       });
-      
+
       // テーブルを即座に描画（API呼び出しなし！）
       renderGridTable(allResponses);
     }
@@ -2569,10 +2625,10 @@
 
       // ヘッダー（2行構成）
       const thead = document.createElement('thead');
-      
+
       // 1行目：イベント、凡例、パート
       const headerRow1 = document.createElement('tr');
-      
+
       // 最初の列（イベント名）- 2行結合
       const dateHeader = document.createElement('th');
       dateHeader.rowSpan = 2;
@@ -2594,12 +2650,12 @@
       const sortedMembers = [...memberList].sort((a, b) => {
         const partA = typeof a === 'object' ? (a.part || '') : parseMemberName(getMemberDisplayName(a)).part;
         const partB = typeof b === 'object' ? (b.part || '') : parseMemberName(getMemberDisplayName(b)).part;
-        
+
         // パートの順序を定義（ユーフォニアムとチューバはバスパートに統合）
         const partOrder = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc', 'その他'];
         const indexA = partOrder.indexOf(partA);
         const indexB = partOrder.indexOf(partB);
-        
+
         // パート順でソート（見つからない場合は最後に）
         if (indexA !== -1 && indexB !== -1) {
           if (indexA !== indexB) {
@@ -2610,13 +2666,13 @@
         } else if (indexA !== -1 && indexB === -1) {
           return -1;
         }
-        
+
         // 同じパート内では名前でソート
         const nameA = typeof a === 'object' ? (a.name || '') : parseMemberName(getMemberDisplayName(a)).name;
         const nameB = typeof b === 'object' ? (b.name || '') : parseMemberName(getMemberDisplayName(b)).name;
         return nameA.localeCompare(nameB, 'ja');
       });
-      
+
       // パートごとにグループ化
       const membersByPart = {};
       sortedMembers.forEach(member => {
@@ -2627,7 +2683,7 @@
         }
         membersByPart[part].push(member);
       });
-      
+
       // 1行目：パートヘッダー（同じパートのメンバーを結合）
       const partKeys = Object.keys(membersByPart);
       partKeys.forEach((part, partIndex) => {
@@ -2650,17 +2706,17 @@
         }
         headerRow1.appendChild(partHeader);
       });
-      
+
       thead.appendChild(headerRow1);
-      
+
       // 2行目：名前（リンクスタイル）
       const headerRow2 = document.createElement('tr');
-      
+
       sortedMembers.forEach((member, index) => {
         const displayName = getMemberDisplayName(member);
         const name = typeof member === 'object' ? (member.name || '') : parseMemberName(displayName).name;
         const part = typeof member === 'object' ? (member.part || '') : parseMemberName(displayName).part;
-        
+
         const nameHeader = document.createElement('th');
         nameHeader.className = 'member-name-col';
         nameHeader.style.padding = '6px 8px';
@@ -2672,16 +2728,16 @@
         if (index === 0) {
           nameHeader.style.borderLeft = '1px solid #DDDDDD';
         }
-        
+
         // パートごとの縦線：各パートの最後のメンバーの右側に罫線を追加
         const currentPartMembers = membersByPart[part] || [];
-        const isLastInPart = currentPartMembers.length > 0 && 
+        const isLastInPart = currentPartMembers.length > 0 &&
           currentPartMembers[currentPartMembers.length - 1] === member;
         const isLastPart = partKeys.indexOf(part) === partKeys.length - 1;
         if (isLastInPart && !isLastPart) {
           nameHeader.style.borderRight = '1px solid #DDDDDD';
         }
-        
+
         // 名前をリンクスタイルで表示
         const nameLink = document.createElement('a');
         nameLink.href = '#';
@@ -2693,24 +2749,24 @@
         nameLink.style.fontWeight = selectedMember === displayName ? 'bold' : 'normal';
         nameLink.style.cursor = 'pointer';
         nameLink.style.transition = 'all 0.2s';
-        
+
         // 名前をそのまま表示（2行で表示される）
         nameLink.textContent = name || '';
         if (name && name.length > 20) {
           nameLink.title = name; // ツールチップで全文表示
         }
-        
+
         nameLink.onclick = (e) => {
           e.preventDefault();
           e.stopPropagation();
           selectMember(displayName);
         };
-        
+
         nameLink.onmouseenter = () => {
           nameLink.style.color = '#004499';
           nameLink.style.textDecoration = 'underline';
         };
-        
+
         nameLink.onmouseleave = () => {
           if (selectedMember === displayName) {
             nameLink.style.color = '#667eea';
@@ -2720,17 +2776,17 @@
             nameLink.style.fontWeight = 'normal';
           }
         };
-        
+
         // 選択されたメンバーのリンクをハイライト
         if (selectedMember === displayName) {
           nameLink.style.color = '#667eea';
           nameLink.style.fontWeight = 'bold';
         }
-        
+
         nameHeader.appendChild(nameLink);
         headerRow2.appendChild(nameHeader);
       });
-      
+
       thead.appendChild(headerRow2);
       table.appendChild(thead);
 
@@ -2738,27 +2794,27 @@
       const tbody = document.createElement('tbody');
       sortedEvents.forEach(event => {
         const row = document.createElement('tr');
-        
+
         // 日付/イベント名セル（イベント名、日時、場所を全て表示）
         const dateCell = document.createElement('td');
         dateCell.style.verticalAlign = 'top';
         dateCell.style.padding = '6px 8px';
-        
+
         // UTCをJSTに変換
         const startDate = utcToJST(event.start);
         const endDate = utcToJST(event.end);
-        
+
         // 日付フォーマット
-        const dayNames = ['日','月','火','水','木','金','土'];
+        const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
         const dateStr = startDate.getFullYear() + '年' + (startDate.getMonth() + 1) + '月' + startDate.getDate() + '日(' + dayNames[startDate.getDay()] + ')';
-        
+
         // イベント情報をHTMLで構築
         const eventInfo = document.createElement('div');
         eventInfo.className = 'event-name-clickable';
         eventInfo.style.display = 'flex';
         eventInfo.style.flexDirection = 'column';
         eventInfo.style.gap = '2px';
-        
+
         // 1行目：イベント名
         const titleRow = document.createElement('div');
         titleRow.style.fontSize = '0.85rem';
@@ -2767,14 +2823,14 @@
         titleRow.style.overflow = 'hidden';
         titleRow.style.textOverflow = 'ellipsis';
         titleRow.style.lineHeight = '1.2';
-        
+
         const eventTitle = event.title || '予定';
         titleRow.textContent = eventTitle;
         if (eventTitle.length > 25) {
           titleRow.title = eventTitle; // ツールチップで全文表示
         }
         eventInfo.appendChild(titleRow);
-        
+
         // 2行目：場所（未設定の場合は表示しない）
         if (event.location) {
           const locationRow = document.createElement('div');
@@ -2792,21 +2848,21 @@
           }
           eventInfo.appendChild(locationRow);
         }
-        
+
         // 3行目：日付・時刻（11/15(土) 13:00～17:00 または 終日）
         const dateTimeDiv = document.createElement('div');
         dateTimeDiv.style.fontSize = '0.8rem';
         dateTimeDiv.style.color = '#1976d2';
         dateTimeDiv.style.lineHeight = '1.2';
-        
+
         // 終日かどうかを判定（event.isAllDayフラグを使用）
         const isAllDay = event.isAllDay === true || event.isAllDay === 'TRUE' || event.isAllDay === 1 || event.isAllDay === '1';
-        
+
         // 開始日と終了日が異なる日付かどうかを判定（UTC文字列から直接日付部分を抽出）
         // 終日イベントの場合、endが翌日の00:00:00でも1日の終日として扱う
         let startDateOnlyStr = getDateFromUTC(event.start);
         let endDateOnlyStr = getDateFromUTC(event.end);
-        
+
         if (isAllDay) {
           // 終日イベントの場合、endが00:00:00であれば前日の日付として扱う（Googleカレンダー仕様）
           const endDateUTC = new Date(event.end);
@@ -2817,9 +2873,9 @@
             endDateOnlyStr = getDateFromUTC(adjustedEndDate.toISOString());
           }
         }
-        
+
         const isMultiDay = startDateOnlyStr !== endDateOnlyStr;
-        
+
         let dateStrShort;
         if (isMultiDay) {
           // 複数日の場合は開始日～終了日を表示
@@ -2832,7 +2888,7 @@
           // 単日の場合は開始日のみ
           dateStrShort = (startDate.getMonth() + 1) + '/' + startDate.getDate() + '(' + dayNames[startDate.getDay()] + ')';
         }
-        
+
         let timeDisplay;
         if (isAllDay) {
           timeDisplay = '終日';
@@ -2844,31 +2900,31 @@
         }
         dateTimeDiv.textContent = dateStrShort + ' ' + timeDisplay;
         eventInfo.appendChild(dateTimeDiv);
-        
+
         // 予定をクリック可能にして、詳細モーダルを表示
         eventInfo.onclick = (e) => {
           e.stopPropagation();
           showEventDetailModal(event.id);
         };
-        
+
         dateCell.appendChild(eventInfo);
         row.appendChild(dateCell);
 
         // ステータス凡例セル（3つのセル）- 各イベントの○/△/×の合計数を表示
         const statusCounts = { '○': 0, '△': 0, '×': 0 };
-        
+
         // このイベントの全メンバーのステータスを集計（ソート済みメンバーリストを使用）
         sortedMembers.forEach(member => {
           const displayName = getMemberDisplayName(member);
           const serverStatus = allResponses[event.id] && allResponses[event.id][displayName];
           const gridStatus = gridData[event.id] && gridData[event.id][displayName];
           const status = gridStatus || serverStatus;
-          
+
           if (status === '○' || status === '△' || status === '×') {
             statusCounts[status]++;
           }
         });
-        
+
         // ○/△/×の合計数を表示（数字のみ、罫線付き、幅を狭く）
         ['○', '△', '×'].forEach((status, index) => {
           const legendCell = document.createElement('td');
@@ -2884,7 +2940,7 @@
           legendCell.style.borderLeft = index === 0 ? '1px solid #e0e0e0' : 'none';
           // 最後のセルの右側に罫線を設定（メンバー列との区切り、イベント列と同じ太さ）
           legendCell.style.borderRight = index === 2 ? '1px solid #DDDDDD' : '1px solid #e0e0e0';
-          
+
           const count = statusCounts[status];
           if (count > 0) {
             // 数字のみを表示（記号は非表示）
@@ -2893,7 +2949,7 @@
             number.style.fontSize = '1.1rem';
             number.style.fontWeight = 'bold';
             number.style.lineHeight = '1.2';
-            
+
             // ステータスに応じた色を設定
             if (status === '○') {
               number.style.color = '#4caf50';
@@ -2902,7 +2958,7 @@
             } else if (status === '×') {
               number.style.color = '#f44336';
             }
-            
+
             legendCell.appendChild(number);
           } else {
             // カウントが0の場合は「-」を表示
@@ -2913,7 +2969,7 @@
             dash.style.lineHeight = '1.2';
             legendCell.appendChild(dash);
           }
-          
+
           row.appendChild(legendCell);
         });
 
@@ -2929,13 +2985,13 @@
           // statusCell.onclick = () => toggleStatus(event.id, displayName);
           statusCell.style.cursor = 'default';
           statusCell.style.verticalAlign = 'middle';
-          
+
           // 最初のメンバー列の左側に罫線を追加（○△×列との区切り、イベント列と同じ太さ）
           // 選択されたメンバーの場合はハイライト用の罫線が優先される
           if (memberIndex === 0 && selectedMember !== displayName) {
             statusCell.style.borderLeft = '1px solid #DDDDDD';
           }
-          
+
           // 選択されたメンバーの列をハイライト
           if (selectedMember === displayName) {
             statusCell.style.backgroundColor = '#e8f5e9';
@@ -2944,23 +3000,23 @@
           } else {
             // パートごとの縦線：各パートの最後のメンバーの右側に罫線を追加
             const currentPartMembers = membersByPart[part] || [];
-            const isLastInPart = currentPartMembers.length > 0 && 
+            const isLastInPart = currentPartMembers.length > 0 &&
               currentPartMembers[currentPartMembers.length - 1] === member;
             const isLastPart = partKeys.indexOf(part) === partKeys.length - 1;
             if (isLastInPart && !isLastPart) {
               statusCell.style.borderRight = '1px solid #DDDDDD';
             }
           }
-          
+
           // 既存の出欠情報を表示（サーバーから取得したデータ + gridData）
           const serverStatus = allResponses[event.id] && allResponses[event.id][displayName];
           const gridStatus = gridData[event.id] && gridData[event.id][displayName];
           const existingStatus = gridStatus !== undefined ? gridStatus : (serverStatus !== undefined ? serverStatus : null);
-          
+
           // データが登録されているかどうかを判定（undefined/null と '-' を区別）
           // serverStatusまたはgridStatusが存在する場合（'-'も含む）は登録済みとみなす
           const hasData = serverStatus !== undefined || gridStatus !== undefined;
-          
+
           if (hasData) {
             // データが登録されている場合
             statusCell.textContent = existingStatus || '-';
@@ -2982,7 +3038,7 @@
             statusCell.textContent = '-';
             statusCell.className = 'status-cell status-unregistered';
           }
-          
+
           row.appendChild(statusCell);
         });
 
@@ -2991,7 +3047,7 @@
 
       table.appendChild(tbody);
       gridContainer.appendChild(table);
-      
+
       // 上部スクロールバーにダミー要素を追加（スクロール可能にするため）
       const topScrollbar = document.getElementById('attendance-grid-scrollbar-top');
       if (topScrollbar) {
@@ -3000,7 +3056,7 @@
         dummyDiv.style.height = '1px';
         topScrollbar.appendChild(dummyDiv);
       }
-      
+
       // 横スクロール可能かどうかを検出して、視覚的なインジケーターを追加
       setTimeout(() => {
         updateScrollIndicators(gridContainer);
@@ -3012,7 +3068,7 @@
           }
         }
       }, 100);
-      
+
       // スクロール時にインジケーターを更新
       gridContainer.addEventListener('scroll', () => {
         updateScrollIndicators(gridContainer);
@@ -3021,7 +3077,7 @@
           topScrollbar.scrollLeft = gridContainer.scrollLeft;
         }
       });
-      
+
       // 上部スクロールバーのスクロール時にも同期
       if (topScrollbar) {
         topScrollbar.addEventListener('scroll', () => {
@@ -3029,7 +3085,7 @@
           updateScrollIndicators(gridContainer);
         });
       }
-      
+
       // リサイズ時にも更新
       let resizeTimer;
       const resizeHandler = () => {
@@ -3056,13 +3112,13 @@
       const scrollRight = container.scrollWidth - container.scrollLeft - container.clientWidth;
       const topScrollbar = document.getElementById('attendance-grid-scrollbar-top');
       const wrapper = container.closest('.attendance-grid-wrapper');
-      
+
       // クラスを更新（一旦全て削除）
       // グラデーションはwrapperに配置されているため、wrapperにクラスを追加
       if (wrapper) {
         wrapper.classList.remove('scrollable-left', 'scrollable-right', 'scrollable-top', 'scrolled');
       }
-      
+
       if (isScrollable) {
         // 上部スクロールバーを表示
         if (topScrollbar) {
@@ -3078,17 +3134,17 @@
             topScrollbar.scrollLeft = scrollLeft;
           }
         }
-        
+
         // 左側のグラデーション：左端にいない時のみ表示（スクロール可能で、かつ左端にいない）
         if (wrapper && scrollLeft > 5) {
           wrapper.classList.add('scrollable-left');
         }
-        
+
         // 右側のグラデーション：右端にいない時のみ表示（スクロール可能で、かつ右端にいない）
         if (wrapper && scrollRight > 5) {
           wrapper.classList.add('scrollable-right');
         }
-        
+
         // 上部のグラデーション：スクロール可能で、かつ上端にいない時のみ表示
         if (wrapper) {
           const scrollTop = container.scrollTop;
@@ -3098,7 +3154,7 @@
             wrapper.classList.add('scrollable-top');
           }
         }
-        
+
         // スクロール可能な場合、最初の表示時にヒントを表示
         if (!container.dataset.hintShown && scrollLeft < 5) {
           const existingHint = container.querySelector('.scroll-hint');
@@ -3109,7 +3165,7 @@
             container.style.position = 'relative';
             container.appendChild(hint);
             container.dataset.hintShown = 'true';
-            
+
             // 3秒後に削除
             setTimeout(() => {
               if (hint.parentNode) {
@@ -3166,16 +3222,16 @@
       if (!gridData[eventId]) {
         gridData[eventId] = {};
       }
-      
+
       const current = gridData[eventId][memberName] || null;
       const next = current === '○' ? '△' : current === '△' ? '×' : current === '×' ? null : '○';
-      
+
       if (next) {
         gridData[eventId][memberName] = next;
       } else {
         delete gridData[eventId][memberName];
       }
-      
+
       // UIを更新
       const cell = document.querySelector('td[data-event-id="' + eventId + '"][data-member-name="' + memberName + '"]');
       if (cell) {
@@ -3196,10 +3252,10 @@
       selectedMember = memberName;
       // グリッドを再描画せずに、モーダルを直接表示
       // renderGrid()を呼ぶと、グリッドが再描画されてモーダルが閉じられる可能性がある
-      
+
       // メンバー編集モーダルを表示
       showMemberEditModal(memberName);
-      
+
       // モーダル表示後にグリッドを再描画してハイライトを更新
       setTimeout(() => {
         renderGrid();
@@ -3237,16 +3293,16 @@
      */
     function showMemberEditModal(memberName) {
       const modal = document.getElementById('member-edit-modal');
-      
+
       if (!modal) {
         return;
       }
-      
+
       // メンバー情報を取得
       const member = memberList.find(m => getMemberDisplayName(m) === memberName);
       let currentPart = '';
       let currentName = '';
-      
+
       if (member && typeof member === 'object') {
         currentPart = member.part || '';
         currentName = member.name || '';
@@ -3256,7 +3312,7 @@
         currentPart = parsed.part || '';
         currentName = parsed.name || '';
       }
-      
+
       // パートと名前を表示
       const partDisplay = document.getElementById('member-part-display');
       const nameDisplay = document.getElementById('member-name-display');
@@ -3278,10 +3334,10 @@
       if (nameDisplay) {
         nameDisplay.textContent = currentName || '-';
       }
-      
+
       // 各日程のステータス選択UIを生成
       renderEventStatusList(memberName);
-      
+
       modal.style.display = 'block';
     }
 
@@ -3293,10 +3349,10 @@
       // ユーフォニアム（Eu）とチューバ（Tuba）はバスパート（Bass）に統合
       const parts = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc', 'その他'];
       const partsWithDot = ['Fl.', 'Ob.', 'Cl.', 'Sax.', 'Hr.', 'Tp', 'Tb.', 'Bass', 'Tuba', 'Perc.', 'その他'];
-      
+
       // 既存データの互換性：ユーフォニアムとチューバをバスパートに変換
-      if (displayName.startsWith('Eu') || displayName.startsWith('Eu.') || 
-          displayName.startsWith('Tuba') || displayName.startsWith('Tuba.')) {
+      if (displayName.startsWith('Eu') || displayName.startsWith('Eu.') ||
+        displayName.startsWith('Tuba') || displayName.startsWith('Tuba.')) {
         let name = displayName;
         if (displayName.startsWith('Eu.')) {
           name = 'Bass' + displayName.substring(3);
@@ -3312,7 +3368,7 @@
           name: name.substring(4) // 'Bass'を除いた部分
         };
       }
-      
+
       // まず`.`なしでチェック
       for (let i = 0; i < parts.length; i++) {
         const part = parts[i];
@@ -3348,7 +3404,7 @@
      */
     function renderEventStatusList(memberName) {
       const container = document.getElementById('event-status-list');
-      
+
       // キャッシュがない場合は読み込み表示
       // 無限ループ防止: ローディング中フラグをチェック
       // キャッシュの有効性をチェック:
@@ -3356,23 +3412,23 @@
       // 2. キャッシュが古い場合（5分以上経過） → API呼び出し（最新データを取得）
       // 3. 空のオブジェクト{}でも、キャッシュが新しい場合は使用（データが0件の場合）
       const CACHE_EXPIRE_MS = 5 * 60 * 1000; // 5分
-      const isCacheExpired = window.allResponsesCacheTimestamp && 
+      const isCacheExpired = window.allResponsesCacheTimestamp &&
         (Date.now() - window.allResponsesCacheTimestamp > CACHE_EXPIRE_MS);
-      
+
       if (window.allResponsesCache === undefined || window.allResponsesCache === null || isCacheExpired) {
         // 既にローディング中の場合は、再呼び出しを防止
         if (window.isLoadingEventsWithResponses) {
           return;
         }
-        
+
         window.isLoadingEventsWithResponses = true; // ローディング中フラグを設定
         container.innerHTML = '<div style="padding: 20px; text-align: center; color: #666; background-color: #f8f9fa; border-radius: 6px;">読み込み中...</div>';
-        
+
         // キャッシュがない場合は、バッチAPIで取得
         google.script.run
           .withSuccessHandler((result) => {
             window.isLoadingEventsWithResponses = false; // ローディング完了
-            
+
             if (result.success && result.responsesMap !== undefined) {
               // responsesMapが空のオブジェクト{}でも正常に処理（出欠データが0件の場合）
               // 空のオブジェクト{}を設定することで、次回以降はAPI呼び出しをスキップ
@@ -3394,7 +3450,7 @@
             container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">データの取得に失敗しました: ' + (error.message || '不明なエラー') + '</div>';
           })
           .getAllEventsWithResponses();
-        
+
         return;
       }
 
@@ -3406,14 +3462,14 @@
       // キャッシュされた出欠データを使用（API呼び出しなし！）
       const responsesMap = window.allResponsesCache;
       const eventStatusMap = {}; // {eventId: {status, comment}}
-      
+
       // 選択されたメンバーのuserKeyを取得
       const selectedMemberObj = memberList.find(m => getMemberDisplayName(m) === memberName);
       if (!selectedMemberObj) {
         container.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">メンバー情報が見つかりません</div>';
         return;
       }
-      
+
       // 各イベントの出欠情報をキャッシュから取得
       currentEvents.forEach(event => {
         if (responsesMap[event.id]) {
@@ -3423,7 +3479,7 @@
               status: memberResponse.status,
               comment: memberResponse.comment || ''
             };
-            
+
             // userKeyをmemberListに反映（初回のみ）
             if (!selectedMemberObj.userKey) {
               selectedMemberObj.userKey = memberResponse.userKey;
@@ -3431,7 +3487,7 @@
           }
         }
       });
-      
+
       // UIを即座に描画（API呼び出しなし！）
       renderEventStatusListUI(memberName, eventStatusMap);
     }
@@ -3478,17 +3534,17 @@
         dateLabelContainer.style.display = 'flex';
         dateLabelContainer.style.flexDirection = 'column';
         dateLabelContainer.style.gap = '2px';
-        
+
         // UTCをJSTに変換
         const startDate = utcToJST(event.start);
         const endDate = utcToJST(event.end);
-        const dayNames = ['日','月','火','水','木','金','土'];
+        const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
         const dateStr = (startDate.getMonth() + 1) + '/' + startDate.getDate() + '(' + dayNames[startDate.getDay()] + ')';
         const eventTitle = event.title || '（タイトルなし）';
-        
+
         // 終日かどうかを判定（event.isAllDayフラグを使用）
         const isAllDay = event.isAllDay === true || event.isAllDay === 'TRUE' || event.isAllDay === 1 || event.isAllDay === '1';
-        
+
         let timeDisplay;
         if (isAllDay) {
           timeDisplay = '終日';
@@ -3498,7 +3554,7 @@
           const endTimeStr = String(endDate.getHours()).padStart(2, '0') + ':' + String(endDate.getMinutes()).padStart(2, '0');
           timeDisplay = startTimeStr + '～' + endTimeStr;
         }
-        
+
         // 1行目：イベント名
         const firstLine = document.createElement('div');
         firstLine.style.fontWeight = 'bold';
@@ -3513,7 +3569,7 @@
           firstLine.style.cursor = 'help';
         }
         dateLabelContainer.appendChild(firstLine);
-        
+
         // 2行目：場所（未設定の場合は表示しない）
         if (event.location) {
           const secondLine = document.createElement('div');
@@ -3523,7 +3579,7 @@
           secondLine.textContent = '📍' + event.location;
           dateLabelContainer.appendChild(secondLine);
         }
-        
+
         // 3行目：日付・時刻
         const thirdLine = document.createElement('div');
         thirdLine.style.fontSize = '0.8rem';
@@ -3531,7 +3587,7 @@
         thirdLine.style.lineHeight = '1.2';
         thirdLine.textContent = dateStr + ' ' + timeDisplay;
         dateLabelContainer.appendChild(thirdLine);
-        
+
         topRow.appendChild(dateLabelContainer);
 
         // ステータス選択ボタン
@@ -3556,7 +3612,7 @@
         if (currentStatus === '-') {
           currentStatus = null;
         }
-        
+
         // gridDataに既存ステータスを初期化（モーダルを開いたとき）
         // これにより、変更がない場合は保存時にスキップされる
         if (!gridData[event.id]) {
@@ -3566,29 +3622,29 @@
           // gridDataにまだ値がない場合、既存値で初期化
           gridData[event.id][memberName] = existingStatus;
         }
-        
+
         statuses.forEach(status => {
           const btn = document.createElement('button');
           btn.type = 'button';
           btn.className = 'response-btn ' + (status.class === 'none' ? 'cancel' : status.class);
           btn.textContent = status.label;
           btn.dataset.status = status.value === null ? 'none' : status.value;
-          
+
           // 現在のステータスをハイライト
           // currentStatusがnull（'-'は既にnullに変換済み）の場合、「未定」ボタン（value: null）をactiveにする
           if ((status.value === null && currentStatus === null) || status.value === currentStatus) {
             btn.classList.add('active');
           }
-          
+
           btn.onclick = () => {
             // イベントIDを確実に取得（statusGroupのdatasetから）
             const targetEventId = statusGroup.dataset.eventId || event.id;
-            
+
             // 他のボタンのactiveクラスを削除
             statusGroup.querySelectorAll('.response-btn').forEach(b => b.classList.remove('active'));
             // クリックしたボタンにactiveクラスを追加
             btn.classList.add('active');
-            
+
             // gridDataを更新（確実に正しいイベントIDを使用）
             if (!gridData[targetEventId]) {
               gridData[targetEventId] = {};
@@ -3600,7 +3656,7 @@
               gridData[targetEventId][memberName] = status.value;
             }
           };
-          
+
           statusGroup.appendChild(btn);
         });
 
@@ -3632,12 +3688,12 @@
         commentInput.style.fontSize = '0.85rem';
         commentInput.style.minHeight = '40px';
         commentInput.style.resize = 'vertical';
-        
+
         // 既存のコメントを設定
         if (existingData && existingData.comment) {
           commentInput.value = existingData.comment;
         }
-        
+
         // クリアボタン
         const clearButton = document.createElement('button');
         clearButton.type = 'button';
@@ -3658,7 +3714,7 @@
         clearButton.style.borderRadius = '50%';
         clearButton.style.transition = 'all 0.2s';
         clearButton.title = 'コメントをクリア';
-        
+
         // クリアボタンのホバー効果
         clearButton.onmouseenter = () => {
           clearButton.style.background = '#f0f0f0';
@@ -3668,19 +3724,19 @@
           clearButton.style.background = 'transparent';
           clearButton.style.color = '#999';
         };
-        
+
         // クリアボタンのクリック処理
         clearButton.onclick = () => {
           commentInput.value = '';
           clearButton.style.display = 'none';
           commentInput.focus();
         };
-        
+
         // コメント入力時のクリアボタン表示制御
         commentInput.oninput = () => {
           clearButton.style.display = commentInput.value ? 'block' : 'none';
         };
-        
+
         commentInputWrapper.appendChild(commentInput);
         commentInputWrapper.appendChild(clearButton);
         commentRow.appendChild(commentInputWrapper);
@@ -3719,7 +3775,7 @@
       const adminActions = document.getElementById('event-detail-admin-actions');
       const editBtn = document.getElementById('event-detail-edit-btn');
       const deleteBtn = document.getElementById('event-detail-delete-btn');
-      
+
       if (isAdminUser) {
         if (adminActions) {
           adminActions.style.display = 'flex';
@@ -3754,7 +3810,7 @@
       const breakdownDiv = document.getElementById('event-detail-breakdown');
       const commentsDiv = document.getElementById('event-detail-comments');
       const titleDiv = document.getElementById('event-detail-title');
-      
+
       // 初期化
       if (infoDiv) infoDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #666;">読み込み中...</div>';
       if (breakdownDiv) breakdownDiv.innerHTML = '';
@@ -3764,16 +3820,16 @@
       // キャッシュからデータを取得（API呼び出しなし！）
       const event = currentEvents.find(e => e.id === eventId);
       const rawResponses = (window.allResponsesCache && window.allResponsesCache[eventId]) || [];
-      
+
       // メンバーが削除済みの場合は集計対象外にするため、メンバーキーのセットを作成
       const activeMemberKeys = new Set((memberList || []).map(member => member.userKey));
       const responses = rawResponses.filter(response => activeMemberKeys.has(response.userKey));
-      
+
       if (!event) {
         if (infoDiv) infoDiv.innerHTML = '<div style="padding: 20px; text-align: center; color: #f44336;">イベント情報の取得に失敗しました</div>';
         return;
       }
-      
+
       // 集計処理（クライアントサイドで実行）
       const tally = {
         attendCount: responses.filter(r => r.status === '○').length,
@@ -3781,12 +3837,12 @@
         absentCount: responses.filter(r => r.status === '×').length,
         undecidedCount: responses.filter(r => r.status === '-').length
       };
-      
+
       // タイトル設定
       if (titleDiv) {
         titleDiv.textContent = event.title || 'イベント詳細';
       }
-      
+
       // グローバル変数のmemberListを使用
 
       // イベント情報を表示
@@ -3794,15 +3850,15 @@
         // UTCをJSTに変換
         const startDate = utcToJST(event.start);
         const endDate = utcToJST(event.end);
-        
+
         // 終日かどうかを判定（event.isAllDayフラグを使用）
         const isAllDay = event.isAllDay === true || event.isAllDay === 'TRUE' || event.isAllDay === 1 || event.isAllDay === '1';
-        
+
         // 開始日と終了日が異なる日付かどうかを判定（UTC文字列から直接日付部分を抽出）
         // 終日イベントの場合、endが翌日の00:00:00でも1日の終日として扱う
         let startDateOnlyStr = getDateFromUTC(event.start);
         let endDateOnlyStr = getDateFromUTC(event.end);
-        
+
         if (isAllDay) {
           // 終日イベントの場合、endが00:00:00であれば前日の日付として扱う（Googleカレンダー仕様）
           const endDateUTC = new Date(event.end);
@@ -3813,10 +3869,10 @@
             endDateOnlyStr = getDateFromUTC(adjustedEndDate.toISOString());
           }
         }
-        
+
         const isMultiDay = startDateOnlyStr !== endDateOnlyStr;
-        
-        const dayNames = ['日','月','火','水','木','金','土'];
+
+        const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
         let dateStr;
         if (isMultiDay) {
           // 複数日の場合は開始日～終了日を表示
@@ -3829,7 +3885,7 @@
           // 単日の場合は開始日のみ
           dateStr = startDate.getFullYear() + '年' + (startDate.getMonth() + 1) + '月' + startDate.getDate() + '日(' + dayNames[startDate.getDay()] + ')';
         }
-        
+
         let timeDisplay;
         if (isAllDay) {
           timeDisplay = '終日';
@@ -3849,34 +3905,34 @@
           const cleanDesc = cleanDescription(event.description).replace(/\n/g, '<br>');
           descriptionHtml = '<div style="margin-top: 10px;"><strong>説明:</strong><br>' + cleanDesc + '</div>';
         }
-        infoDiv.innerHTML = 
+        infoDiv.innerHTML =
           '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">' +
-            '<h3 style="margin: 0 0 10px 0; font-size: 1.2rem;">' + (event.title || '予定') + '</h3>' +
-            '<div style="color: #666; font-size: 0.9rem; line-height: 1.8;">' +
-              '<div><strong>日付:</strong> ' + dateStr + '</div>' +
-              '<div><strong>時刻:</strong> ' + timeDisplay + '</div>' +
-              locationHtml +
-              descriptionHtml +
-            '</div>' +
+          '<h3 style="margin: 0 0 10px 0; font-size: 1.2rem;">' + (event.title || '予定') + '</h3>' +
+          '<div style="color: #666; font-size: 0.9rem; line-height: 1.8;">' +
+          '<div><strong>日付:</strong> ' + dateStr + '</div>' +
+          '<div><strong>時刻:</strong> ' + timeDisplay + '</div>' +
+          locationHtml +
+          descriptionHtml +
+          '</div>' +
           '</div>';
       }
 
       // 全体の集計（未選択も含む）
       const totalCounts = { '○': 0, '△': 0, '×': 0, '-': 0 };
-      
+
       // ステータスごとのパート内訳を集計（未選択も含む）
       const statusBreakdown = { '○': {}, '△': {}, '×': {}, '-': {} }; // {status: {part: [names]}}
-      
+
       responses.forEach(response => {
         if (response.status === '○' || response.status === '△' || response.status === '×' || response.status === '-') {
           totalCounts[response.status]++;
-          
+
           // userKeyからメンバー情報を取得
           let part = '';
           let name = '';
-          
+
           const member = memberList.find(m => m.userKey === response.userKey);
-          
+
           if (member && typeof member === 'object') {
             part = member.part || '';
             name = member.name || '';
@@ -3900,7 +3956,7 @@
           if (!statusBreakdown[response.status][partKey]) {
             statusBreakdown[response.status][partKey] = [];
           }
-          
+
           statusBreakdown[response.status][partKey].push(name);
         }
       });
@@ -3908,7 +3964,7 @@
       // パートごとの内訳を表示
       if (breakdownDiv) {
         const partOrder = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc', 'その他'];
-        
+
         function sortParts(parts) {
           return parts.sort((a, b) => {
             const indexA = partOrder.indexOf(a);
@@ -3924,7 +3980,7 @@
           breakdownDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">出欠回答がありません</div>';
         } else {
           let html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">';
-          
+
           // 全体の集計を表示（未選択も含む）
           html += '<h3 style="margin: 0 0 15px 0; font-size: 1.1rem;">全体の集計</h3>';
           html += '<div style="margin-bottom: 20px; padding: 12px; background: white; border-radius: 6px; display: flex; gap: 20px; justify-content: center;">';
@@ -3933,34 +3989,34 @@
           html += '<div style="text-align: center;"><span style="color: #f44336; font-weight: bold; font-size: 1.2rem;">×</span><br><span style="font-size: 0.9rem; color: #666;">' + totalCounts['×'] + '人</span></div>';
           html += '<div style="text-align: center;"><span style="color: #999; font-weight: bold; font-size: 1.2rem;">-</span><br><span style="font-size: 0.9rem; color: #666;">' + totalCounts['-'] + '人</span></div>';
           html += '</div>';
-          
+
           // 各ステータスごとの内訳を表示（未選択も含む）
           ['○', '△', '×', '-'].forEach(status => {
             const partData = statusBreakdown[status];
             const sortedParts = sortParts(Object.keys(partData));
             const statusColor = status === '○' ? '#4caf50' : status === '△' ? '#ff9800' : status === '×' ? '#f44336' : '#999';
             const statusLabel = status === '○' ? '出席' : status === '△' ? '遅刻/早退' : status === '×' ? '欠席' : '未定';
-            
+
             if (sortedParts.length === 0) {
               return; // このステータスの回答がない場合はスキップ
             }
-            
+
             html += '<div style="margin-bottom: 20px;">';
             html += '<h4 style="margin: 0 0 10px 0; font-size: 1rem; color: ' + statusColor + '; font-weight: bold;">' + status + ' (' + statusLabel + ') の内訳</h4>';
-            
+
             sortedParts.forEach(part => {
               const names = partData[part];
               if (names.length === 0) return;
-              
+
               html += '<div style="margin-bottom: 10px; padding: 10px; background: white; border-radius: 6px; border-left: 4px solid ' + statusColor + ';">';
               html += '<div style="font-weight: bold; margin-bottom: 5px; font-size: 0.95rem;">' + (part || 'その他') + ' (' + names.length + '人)</div>';
               html += '<div style="color: #666; font-size: 0.9rem;">' + names.join('、') + '</div>';
               html += '</div>';
             });
-            
+
             html += '</div>';
           });
-          
+
           html += '</div>';
           breakdownDiv.innerHTML = html;
         }
@@ -3973,14 +4029,14 @@
           commentsDiv.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">コメントはありません</div>';
         } else {
           let html = '<div style="background: #f8f9fa; padding: 15px; border-radius: 8px;"><h3 style="margin: 0 0 15px 0; font-size: 1.1rem;">コメント一覧</h3>';
-          
+
           comments.forEach(response => {
             // userKeyからメンバー情報を取得
             let part = '';
             let name = '';
-            
+
             const member = memberList.find(m => m.userKey === response.userKey);
-            
+
             if (member && typeof member === 'object') {
               part = member.part || '';
               name = member.name || '';
@@ -4014,7 +4070,7 @@
             html += '<div style="color: #333; font-size: 0.9rem; line-height: 1.5; white-space: pre-wrap;">' + commentHtml + '</div>';
             html += '</div>';
           });
-          
+
           html += '</div>';
           commentsDiv.innerHTML = html;
         }
@@ -4048,12 +4104,12 @@
       const oldDisplayName = selectedMember; // 変更前の表示名を保存
       const newPart = document.getElementById('edit-member-part').value.trim();
       const newName = document.getElementById('edit-member-name').value.trim();
-      
+
       if (!newPart) {
         showToast('パートを選択してください', 'error');
         return;
       }
-      
+
       if (!newName) {
         showToast('名前を入力してください', 'error');
         return;
@@ -4075,7 +4131,7 @@
           }
           return mPart === newPart && mName === newName;
         });
-        
+
         if (isDuplicate) {
           showToast('同じパートと名前の組み合わせが既に登録されています', 'error');
           return;
@@ -4090,7 +4146,7 @@
             showToast('エラー: userKeyが見つかりません', 'error');
             return;
           }
-          
+
           memberList[index] = {
             part: newPart,
             name: newName,
@@ -4098,7 +4154,7 @@
             userKey: existingUserKey // userKeyは変更しない
           };
           // スプレッドシートで管理するため、ローカルストレージには保存しない
-          
+
           // サーバーにも更新
           google.script.run
             .withSuccessHandler((result) => {
@@ -4108,7 +4164,7 @@
               // エラー処理は不要（グリッドは再描画される）
             })
             .updateMember(existingUserKey, newPart, newName, newDisplayName);
-          
+
           // gridDataも更新
           Object.keys(gridData).forEach(eventId => {
             if (gridData[eventId][oldDisplayName] !== undefined) {
@@ -4116,23 +4172,23 @@
               delete gridData[eventId][oldDisplayName];
             }
           });
-          
+
           selectedMember = newDisplayName;
         }
       }
 
       // 各日程の出欠を一括更新（各イベントごとのコメントを含む）
-      
+
       // 名前が変更された場合は、先にグリッドを再描画して名前変更を反映
       if (nameChanged) {
         renderGrid(); // 名前変更を反映
       }
-      
+
       // 更新するメンバー名を指定（名前が変更された場合は新しい名前）
       bulkUpdateResponsesForSelectedMember(nameChanged ? newDisplayName : null);
-      
+
       closeMemberEditModal();
-      
+
       if (nameChanged) {
         showToast('メンバー名と出欠を更新しました', 'success');
       }
@@ -4180,21 +4236,21 @@
         showToast('メンバー情報が見つかりません', 'error');
         return;
       }
-      
+
       const userKey = member.userKey;
-      
+
       // ボタンを無効化
       const deleteBtn = document.querySelector('.confirm-delete-member-btn');
       if (deleteBtn) {
         deleteBtn.disabled = true;
         deleteBtn.textContent = '削除中...';
       }
-      
+
       // メンバーリストから削除（スプレッドシートで管理するため、ローカルストレージには保存しない）
       const index = memberList.findIndex(m => getMemberDisplayName(m) === selectedMember);
       if (index !== -1) {
         memberList.splice(index, 1);
-        
+
         // サーバーからも削除
         google.script.run
           .withSuccessHandler((result) => {
@@ -4202,21 +4258,21 @@
               deleteBtn.disabled = false;
               deleteBtn.textContent = '削除';
             }
-            
+
             if (result.success) {
               // gridDataからも削除
               Object.keys(gridData).forEach(eventId => {
                 delete gridData[eventId][selectedMember];
               });
-              
+
               closeMemberDeleteConfirm();
               closeMemberEditModal();
-              
+
               // パネルも閉じる
               selectedMember = null;
               const editPanel = document.getElementById('member-edit-panel');
               if (editPanel) editPanel.style.display = 'none';
-              
+
               renderGrid(); // グリッドを再描画
               showToast('メンバーを削除しました', 'success');
             } else {
@@ -4256,7 +4312,7 @@
       const member = memberList.find(m => getMemberDisplayName(m) === selectedMember);
       let currentPart = '';
       let currentName = '';
-      
+
       if (member && typeof member === 'object') {
         currentPart = member.part || '';
         currentName = member.name || '';
@@ -4299,12 +4355,12 @@
       const oldDisplayName = selectedMember; // 変更前の表示名を保存
       const newPart = document.getElementById('member-info-part').value.trim();
       const newName = document.getElementById('member-info-name').value.trim();
-      
+
       if (!newPart) {
         showToast('パートを選択してください', 'error');
         return;
       }
-      
+
       if (!newName) {
         showToast('名前を入力してください', 'error');
         return;
@@ -4322,7 +4378,7 @@
 
       // サーバーに更新を送信する前に、現在のメンバー情報を取得（更新前の状態）
       let oldMember = memberList.find(m => getMemberDisplayName(m) === oldDisplayName);
-      
+
       // メンバーが見つからない場合、パートと名前から再構築を試みる
       if (!oldMember) {
         const parsed = parseMemberName(oldDisplayName);
@@ -4333,7 +4389,7 @@
           return mPart === parsed.part && mName === parsed.name;
         });
       }
-      
+
       if (!oldMember || !oldMember.userKey) {
         showToast('メンバー情報が見つかりません。ページを再読み込みしてください。', 'error');
         return;
@@ -4341,7 +4397,7 @@
 
       // oldMemberのuserKeyを保存（後で使用するため）
       const existingUserKey = oldMember.userKey;
-      
+
       // oldMemberのインデックスを取得（memberListを更新するため）
       const oldMemberIndex = memberList.findIndex(m => {
         if (typeof m === 'object' && m.userKey) {
@@ -4362,7 +4418,7 @@
           }
           return mPart === newPart && mName === newName;
         });
-        
+
         if (isDuplicate) {
           showToast('同じパートと名前の組み合わせが既に登録されています', 'error');
           return;
@@ -4376,7 +4432,7 @@
             displayName: newDisplayName,
             userKey: existingUserKey // userKeyは変更しない
           };
-          
+
           // gridDataも更新
           Object.keys(gridData).forEach(eventId => {
             if (gridData[eventId][oldDisplayName] !== undefined) {
@@ -4384,7 +4440,7 @@
               delete gridData[eventId][oldDisplayName];
             }
           });
-          
+
           selectedMember = newDisplayName;
         }
       } else {
@@ -4398,7 +4454,7 @@
           };
         }
       }
-      
+
       google.script.run
         .withSuccessHandler((result) => {
           // 保存ボタンを元に戻す
@@ -4406,11 +4462,11 @@
             saveBtn.disabled = false;
             saveBtn.textContent = '保存';
           }
-          
+
           if (result.success) {
             // 更新成功
             showToast('メンバー情報を更新しました', 'success');
-            
+
             // メンバー編集モーダルの表示を更新
             const partDisplay = document.getElementById('member-part-display');
             const nameDisplay = document.getElementById('member-name-display');
@@ -4432,12 +4488,12 @@
             if (nameDisplay) {
               nameDisplay.textContent = newName || '-';
             }
-            
+
             // 名前が変更された場合は、グリッドを再描画
             if (nameChanged) {
               renderGrid();
             }
-            
+
             // メンバー情報編集モーダルを閉じる
             closeMemberInfoEditModal();
           } else {
@@ -4460,7 +4516,7 @@
             saveBtn.disabled = false;
             saveBtn.textContent = '保存';
           }
-          
+
           showToast('メンバー更新に失敗しました', 'error');
           // エラー時はローカルに戻す（oldMemberIndexを使用）
           if (oldMemberIndex !== -1) {
@@ -4489,7 +4545,7 @@
         return crypto.randomUUID();
       }
       // フォールバック: crypto.randomUUID()が使えない場合
-      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
         const r = Math.random() * 16 | 0;
         const v = c === 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
@@ -4505,7 +4561,7 @@
       if (member && member.userKey) {
         return member.userKey;
       }
-      
+
       // memberListにない、またはuserKeyがない場合はエラー（登録されていないメンバー）
       // フォールバック: UUIDを生成（ただし、これは本来発生すべきではない）
       return generateUUID();
@@ -4516,7 +4572,7 @@
      */
     function bulkUpdateResponsesForSelectedMember(updatedMemberName = null) {
       const memberName = updatedMemberName || selectedMember;
-      
+
       if (!memberName) {
         showToast('メンバーが選択されていません', 'error');
         return;
@@ -4535,7 +4591,7 @@
 
       // 選択中のメンバーの全日程の出欠を更新（gridDataから取得）
       const updates = [];
-      
+
       currentEvents.forEach(event => {
         // イベントIDを確実に取得
         const eventId = event.id;
@@ -4543,20 +4599,20 @@
         // 各イベントごとのコメントを取得（確実に正しいイベントIDを使用）
         const commentInput = document.getElementById('comment-' + eventId + '-' + memberName);
         const comment = commentInput ? commentInput.value.trim() : '';
-        
+
         // 元のデータを取得（変更検知用）
         const existingResponses = window.allResponsesCache[eventId] || [];
         const existingResponse = existingResponses.find(r => r.userKey === memberUserKey);
         const originalStatus = existingResponse ? existingResponse.status : null;
         const originalComment = existingResponse ? (existingResponse.comment || '') : '';
-        
+
         // 現在のステータス（未定義の場合はnull）
         const currentStatus = status !== undefined ? status : null;
-        
+
         // 変更があったかチェック
         const statusChanged = currentStatus !== originalStatus;
         const commentChanged = comment !== originalComment;
-        
+
         // ステータスまたはコメントに変更があった場合のみ更新対象に含める
         if (statusChanged || commentChanged) {
           updates.push({
@@ -4593,7 +4649,7 @@
             messageDiv.style.marginTop = '10px';
             messageDiv.textContent = '更新するデータがありません。ステータスを変更するか、コメントを入力してください。';
             container.appendChild(messageDiv);
-            
+
             // 3秒後にメッセージを削除
             setTimeout(() => {
               if (messageDiv.parentNode) {
@@ -4614,11 +4670,11 @@
             saveBtn.disabled = false;
             saveBtn.textContent = originalText;
           }
-          
+
           if (result.failed === 0) {
             // 更新成功
             showToast(result.success + '件の出欠を更新しました', 'success');
-            
+
             // キャッシュを更新
             if (!window.allResponsesCache) {
               window.allResponsesCache = {};
@@ -4629,7 +4685,7 @@
               }
               const existingIndex = window.allResponsesCache[update.eventId]
                 .findIndex(r => r.userKey === update.memberUserKey);
-              
+
               if (existingIndex >= 0) {
                 window.allResponsesCache[update.eventId][existingIndex].status = update.status;
                 window.allResponsesCache[update.eventId][existingIndex].comment = update.comment || '';
@@ -4647,7 +4703,7 @@
             });
             // キャッシュのタイムスタンプを更新（最新データを反映したため）
             window.allResponsesCacheTimestamp = Date.now();
-            
+
             // 更新完了後、変更をクリア
             currentEvents.forEach(event => {
               if (gridData[event.id] && gridData[event.id][memberName]) {
@@ -4655,7 +4711,7 @@
               }
             });
             renderGrid(); // グリッドを再描画
-            
+
             // イベント詳細モーダルが開いている場合は再読み込み
             const eventDetailModal = document.getElementById('event-detail-modal');
             if (eventDetailModal && eventDetailModal.style.display !== 'none') {
@@ -4670,7 +4726,7 @@
                 }
               }
             }
-            
+
             // メンバー編集モーダルを閉じる
             closeMemberEditModal();
           } else {
@@ -4735,7 +4791,7 @@
       const index = memberList.indexOf(selectedMember);
       if (index !== -1) {
         memberList[index] = newName;
-        
+
         // gridDataも更新
         Object.keys(gridData).forEach(eventId => {
           if (gridData[eventId][selectedMember] !== undefined) {
@@ -4743,16 +4799,16 @@
             delete gridData[eventId][selectedMember];
           }
         });
-        
+
         selectedMember = newName;
         renderGrid();
-        
+
         // 保存ボタンを元に戻す
         if (saveBtn) {
           saveBtn.disabled = false;
           saveBtn.textContent = '保存';
         }
-        
+
         showToast('メンバー名を更新しました', 'success');
       } else {
         // 保存ボタンを元に戻す
@@ -4824,7 +4880,7 @@
       }
 
       const displayName = part + name;
-      
+
       // 重複チェック（パート+名前の組み合わせで一意性を確認）
       const isDuplicate = memberList.some(m => {
         const mPart = typeof m === 'object' ? (m.part || '') : '';
@@ -4853,7 +4909,7 @@
       };
       memberList.push(newMember);
       // スプレッドシートで管理するため、ローカルストレージには保存しない
-      
+
       // サーバーにも保存
       google.script.run
         .withSuccessHandler((result) => {
@@ -4861,7 +4917,7 @@
             registerBtn.disabled = false;
             registerBtn.textContent = '登録';
           }
-          
+
           if (result.success) {
             closeMemberRegisterModal();
             renderGrid();
@@ -4930,14 +4986,14 @@
       if (!description) {
         return '';
       }
-      
+
       // カレンダーイベントID (@google.com で終わる文字列) を除去
       let cleaned = description.replace(/[a-z0-9]+@google\.com/gi, '').trim();
-      
+
       // 連続する改行や空白を整理
       cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
       cleaned = cleaned.replace(/[ \t]+/g, ' ');
-      
+
       return cleaned.trim();
     }
 
@@ -5001,10 +5057,10 @@
       editingEventId = null;
       document.getElementById('modal-title').textContent = '新しいイベントを作成';
       document.getElementById('event-form').reset();
-      
+
       // デフォルト値を設定
       document.getElementById('event-title').value = '練習';
-      
+
       // デフォルト値を設定（今日の日付で13:00-17:00）
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -5012,15 +5068,15 @@
       startDate.setHours(13, 0, 0, 0);
       const endDate = new Date(today);
       endDate.setHours(17, 0, 0, 0);
-      
+
       document.getElementById('event-start').value = formatDateTimeLocal(startDate);
       document.getElementById('event-end').value = formatDateTimeLocal(endDate);
       document.getElementById('event-all-day').checked = false;
       toggleAllDay();
-      
+
       // 開始日時の変更イベントリスナーを設定
       setupStartDateChangeHandler();
-      
+
       document.getElementById('event-modal').style.display = 'block';
     }
 
@@ -5036,32 +5092,32 @@
 
       editingEventId = eventId;
       document.getElementById('modal-title').textContent = 'イベントを編集';
-      
+
       // フォームに値を設定
       document.getElementById('event-title').value = event.title;
-      
+
       // 日時をdatetime-local形式に変換
       const startDate = new Date(event.start);
       const endDate = new Date(event.end);
-      
+
       // サーバーから取得したisAllDayフラグを使用（フラグがない場合は時刻で判定）
-      const isAllDay = event.isAllDay !== undefined 
-        ? event.isAllDay 
-        : (startDate.getHours() === 0 && startDate.getMinutes() === 0 && 
-           endDate.getHours() === 23 && endDate.getMinutes() === 59);
-      
+      const isAllDay = event.isAllDay !== undefined
+        ? event.isAllDay
+        : (startDate.getHours() === 0 && startDate.getMinutes() === 0 &&
+          endDate.getHours() === 23 && endDate.getMinutes() === 59);
+
       document.getElementById('event-all-day').checked = isAllDay;
-      
+
       // 終日の場合と通常の場合で適切なフィールドに値を設定
       if (isAllDay) {
         // 終日の場合：日付フィールドに値を設定、日時フィールドはクリア
         document.getElementById('event-start-date').value = formatDate(startDate);
-        
+
         // 終了日から1日引いて表示（Googleカレンダー仕様: 終了日は翌日00:00:00）
         const displayEndDate = new Date(endDate);
         displayEndDate.setDate(displayEndDate.getDate() - 1);
         document.getElementById('event-end-date').value = formatDate(displayEndDate);
-        
+
         document.getElementById('event-start').value = '';
         document.getElementById('event-end').value = '';
       } else {
@@ -5071,16 +5127,16 @@
         document.getElementById('event-start-date').value = '';
         document.getElementById('event-end-date').value = '';
       }
-      
+
       document.getElementById('event-location').value = event.location || '';
       document.getElementById('event-description').value = cleanDescription(event.description || '');
-      
+
       // 終日切り替えを実行して表示を更新（既に適切な値が設定済み）
       toggleAllDay();
-      
+
       // 開始日時の変更イベントリスナーを設定
       setupStartDateChangeHandler();
-      
+
       document.getElementById('event-modal').style.display = 'block';
     }
 
@@ -5093,13 +5149,13 @@
       const startDateInput = document.getElementById('event-start-date');
       const endDateInput = document.getElementById('event-end-date');
       const allDayCheckbox = document.getElementById('event-all-day');
-      
+
       // 既存のイベントリスナーを削除（重複防止）
       const newStartInput = startInput.cloneNode(true);
       startInput.parentNode.replaceChild(newStartInput, startInput);
       const newStartDateInput = startDateInput.cloneNode(true);
       startDateInput.parentNode.replaceChild(newStartDateInput, startDateInput);
-      
+
       // 現在の値を初期値として保存
       if (newStartInput.value) {
         newStartInput.setAttribute('data-old-value', newStartInput.value);
@@ -5107,45 +5163,45 @@
       if (newStartDateInput.value) {
         newStartDateInput.setAttribute('data-old-value', newStartDateInput.value);
       }
-      
+
       // 通常モード（日時入力）の場合
-      newStartInput.addEventListener('change', function() {
+      newStartInput.addEventListener('change', function () {
         if (allDayCheckbox.checked) return; // 終日モードの場合は処理しない
-        
+
         const oldStartValue = this.getAttribute('data-old-value');
         const oldEndValue = endInput.value;
-        
+
         if (!oldStartValue || !oldEndValue) {
           // 初回設定時は差分を保存
           this.setAttribute('data-old-value', this.value);
           return;
         }
-        
+
         const oldStart = new Date(oldStartValue);
         const oldEnd = new Date(oldEndValue);
         const newStart = new Date(this.value);
-        
+
         // 開始日時と終了日時の差分を計算（ミリ秒）
         const diff = oldEnd.getTime() - oldStart.getTime();
-        
+
         // 新しい終了日時 = 新しい開始日時 + 差分
         const newEnd = new Date(newStart.getTime() + diff);
-        
+
         // 終了日時を更新
         endInput.value = formatDateTimeLocal(newEnd);
-        
+
         // 新しい開始日時を保存
         this.setAttribute('data-old-value', this.value);
       });
-      
+
       // 終日モード（日付入力）の場合
-      newStartDateInput.addEventListener('change', function() {
+      newStartDateInput.addEventListener('change', function () {
         if (!allDayCheckbox.checked) return; // 通常モードの場合は処理しない
-        
+
         const oldStartValue = this.getAttribute('data-old-value');
         const oldEndValue = endDateInput.value;
         const newStart = new Date(this.value);
-        
+
         // 差分を計算
         let diffDays = 0;
         if (oldStartValue && oldEndValue) {
@@ -5154,14 +5210,14 @@
           diffDays = Math.round((oldEnd.getTime() - oldStart.getTime()) / (1000 * 60 * 60 * 24));
         }
         // 初回設定時（差分がない場合）は同じ日に設定
-        
+
         // 新しい終了日 = 新しい開始日 + 差分日数
         const newEnd = new Date(newStart);
         newEnd.setDate(newEnd.getDate() + diffDays);
-        
+
         // 終了日を更新
         endDateInput.value = formatDate(newEnd);
-        
+
         // 新しい開始日を保存
         this.setAttribute('data-old-value', this.value);
       });
@@ -5198,7 +5254,7 @@
       const endDateTime = document.getElementById('event-end');
       const startDate = document.getElementById('event-start-date');
       const endDate = document.getElementById('event-end-date');
-      
+
       if (allDay) {
         // 終日モード：日付のみ表示
         startDateTime.style.display = 'none';
@@ -5209,7 +5265,7 @@
         endDate.required = true;
         startDateTime.required = false;
         endDateTime.required = false;
-        
+
         // 日付フィールドに値がない場合のみ、日時フィールドから変換
         if (!startDate.value && startDateTime.value) {
           const currentStart = new Date(startDateTime.value);
@@ -5229,7 +5285,7 @@
         endDateTime.required = true;
         startDate.required = false;
         endDate.required = false;
-        
+
         // 日時フィールドに値がない場合のみ、日付フィールドから変換
         // タイムゾーンを考慮した変換（YYYY-MM-DD形式を手動でパース）
         if (!startDateTime.value && startDate.value) {
@@ -5262,7 +5318,7 @@
     function toggleLocationHistory() {
       const historyDiv = document.getElementById('location-history');
       const isVisible = historyDiv.style.display !== 'none';
-      
+
       if (isVisible) {
         historyDiv.style.display = 'none';
       } else {
@@ -5277,13 +5333,13 @@
     function loadLocationHistory() {
       const historyList = document.getElementById('location-history-list');
       historyList.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">読み込み中...</div>';
-      
+
       // 全イベントから場所を取得（過去のイベントも含む）
       google.script.run
         .withSuccessHandler((allEvents) => {
           const locations = [];
           const locationSet = new Set();
-          
+
           // すべてのイベントから場所を抽出
           allEvents.forEach(event => {
             if (event.location && event.location.trim() && !locationSet.has(event.location.trim())) {
@@ -5294,24 +5350,24 @@
               });
             }
           });
-          
+
           // 更新日時でソート（新しい順）
           locations.sort((a, b) => {
             const dateA = new Date(a.updatedAt);
             const dateB = new Date(b.updatedAt);
             return dateB.getTime() - dateA.getTime();
           });
-          
+
           // 最新5件まで表示
           const recentLocations = locations.slice(0, 5);
-          
+
           historyList.innerHTML = '';
-          
+
           if (recentLocations.length === 0) {
             historyList.innerHTML = '<div style="padding: 15px; text-align: center; color: #999;">履歴がありません</div>';
             return;
           }
-          
+
           recentLocations.forEach(item => {
             const itemDiv = document.createElement('div');
             itemDiv.className = 'location-history-item';
@@ -5347,7 +5403,7 @@
         // Googleカレンダー仕様: 開始は00:00、終了は翌日の00:00
         const startDate = document.getElementById('event-start-date').value;
         const endDate = document.getElementById('event-end-date').value;
-        
+
         if (!startDate || !endDate) {
           showToast('開始日、終了日は必須です', 'error');
           return;
@@ -5355,19 +5411,19 @@
 
         const start = new Date(startDate);
         start.setHours(0, 0, 0, 0);
-        
+
         // 終了日は翌日の00:00:00に設定（Googleカレンダー仕様）
         const end = new Date(endDate);
         end.setDate(end.getDate() + 1); // 翌日
         end.setHours(0, 0, 0, 0);
-        
+
         startISO = start.toISOString();
         endISO = end.toISOString();
       } else {
         // 通常の場合：日時入力から取得
         const start = document.getElementById('event-start').value;
         const end = document.getElementById('event-end').value;
-        
+
         if (!title || !start || !end) {
           showToast('タイトル、開始日時、終了日時は必須です', 'error');
           return;
@@ -5401,7 +5457,7 @@
           .withSuccessHandler((result) => {
             saveBtn.disabled = false;
             saveBtn.textContent = '保存';
-            
+
             if (result.success) {
               showToast('イベントを更新しました', 'success');
               closeEventModal();
@@ -5425,11 +5481,11 @@
           .withSuccessHandler((result) => {
             saveBtn.disabled = false;
             saveBtn.textContent = '保存';
-            
+
             if (result.success && result.event) {
               // 作成されたイベントをcurrentEventsに追加（性能改善）
               currentEvents.push(result.event);
-              
+
               // 出欠データキャッシュに空の配列を追加（性能改善）
               if (!window.allResponsesCache) {
                 window.allResponsesCache = {};
@@ -5437,10 +5493,10 @@
               window.allResponsesCache[result.event.id] = [];
               // キャッシュのタイムスタンプを更新
               window.allResponsesCacheTimestamp = Date.now();
-              
+
               // 再描画（API呼び出しなし）
               renderEvents();
-              
+
               showToast('イベントを作成しました', 'success');
               closeEventModal();
             } else {
@@ -5467,7 +5523,7 @@
      */
     function openDeleteConfirm(eventId, eventTitle) {
       deletingEventId = eventId;
-      document.getElementById('delete-confirm-message').textContent = 
+      document.getElementById('delete-confirm-message').textContent =
         '「' + eventTitle + '」を削除しますか？この操作は取り消せません。';
       document.getElementById('delete-confirm').style.display = 'block';
     }
@@ -5497,22 +5553,22 @@
         .withSuccessHandler((result) => {
           deleteBtn.disabled = false;
           deleteBtn.textContent = '削除';
-          
+
           if (result.success) {
             // 削除されたイベントをcurrentEventsから除外（性能改善）
             const index = currentEvents.findIndex(e => e.id === deletingEventId);
             if (index !== -1) {
               currentEvents.splice(index, 1);
             }
-            
+
             // 出欠データキャッシュからも削除（性能改善）
             if (window.allResponsesCache && window.allResponsesCache[deletingEventId]) {
               delete window.allResponsesCache[deletingEventId];
             }
-            
+
             // 再描画（API呼び出しなし）
             renderEvents();
-            
+
             showToast('イベントを削除しました', 'success');
             closeDeleteConfirm();
           } else {
@@ -5543,7 +5599,7 @@
         .withSuccessHandler((result) => {
           syncBtn.disabled = false;
           hideFullscreenLoader();
-          
+
           if (result.success) {
             showToast('イベントを同期しました', 'success');
             // イベント一覧を再読み込み
@@ -5581,21 +5637,21 @@
       google.script.run
         .withSuccessHandler((result) => {
           hideFullscreenLoader();
-          
+
           if (result.success) {
             // localStorageもクリア
             // スプレッドシートで管理するため、ローカルストレージからは削除しない
-            
+
             // メンバーリストをリセット
             memberList = [];
             gridData = {};
             selectedMember = null;
-            
+
             showToast(
               '全データ削除完了:\nカレンダー: ' + result.calendarDeleted + '件\nEvents: ' + result.eventsDeleted + '件\nResponses: ' + result.responsesDeleted + '件\nAuditLog: ' + result.auditLogDeleted + '件',
               'success'
             );
-            
+
             // イベント一覧を再読み込み
             loadInitData().then(() => {
               renderEvents();
@@ -5623,17 +5679,17 @@
     function showAddToCalendarModal() {
       const modal = document.getElementById('add-to-calendar-modal');
       const addLink = document.getElementById('calendar-add-link');
-      
+
       if (!modal) {
         return;
       }
-      
+
       // モーダルを即座に表示
       modal.style.display = 'block';
-      
+
       // キャッシュからカレンダーIDを取得（API呼び出し不要）
       const calendarId = currentConfig && currentConfig.CALENDAR_ID ? currentConfig.CALENDAR_ID : '';
-      
+
       if (calendarId && addLink) {
         // URLエンコードしてカレンダーIDを安全に渡す
         const encodedCalendarId = encodeURIComponent(calendarId);
@@ -5701,7 +5757,7 @@
             icon.classList.remove('spinning');
           }
           hideFullscreenLoader();
-          
+
           if (result.success > 0 || result.failed === 0) {
             let message = '同期完了: 成功 ' + result.success + '件';
             if (result.failed > 0) {
@@ -5729,12 +5785,12 @@
     }
 
     // モーダル外をクリックで閉じる
-    window.onclick = function(event) {
+    window.onclick = function (event) {
       const eventModal = document.getElementById('event-modal');
       const confirmDialog = document.getElementById('delete-confirm');
       const adminLoginModal = document.getElementById('admin-login-modal');
       const memberEditModal = document.getElementById('member-edit-modal');
-      
+
       if (event.target === eventModal) {
         closeEventModal();
       }
@@ -5775,67 +5831,12 @@
       }
     }
   </script>
-  <script>
-    (function () {
-      const BASE_WIDTH = 1200;
-      let resizeTimeout = null;
 
-      function adjustLayoutScale() {
-        const wrapper = document.getElementById('scale-wrapper');
-        const root = document.getElementById('app-root');
-        if (!wrapper || !root) {
-          return;
-        }
-
-        // requestAnimationFrameを使用して、レンダリング後に計算
-        requestAnimationFrame(() => {
-          const viewportWidth = window.innerWidth;
-          if (viewportWidth < BASE_WIDTH) {
-            const scale = viewportWidth / BASE_WIDTH;
-            root.style.transform = `scale(${scale})`;
-            root.style.transformOrigin = 'top left';
-            // 次のフレームで高さを再計算（レイアウトが確定した後）
-            requestAnimationFrame(() => {
-              wrapper.style.height = `${root.offsetHeight * scale}px`;
-              wrapper.style.justifyContent = 'flex-start';
-            });
-          } else {
-            root.style.transform = '';
-            wrapper.style.height = '';
-            wrapper.style.justifyContent = 'center';
-          }
-        });
-      }
-
-      // リサイズ時のデバウンス処理
-      function debouncedAdjustLayoutScale() {
-        if (resizeTimeout) {
-          clearTimeout(resizeTimeout);
-        }
-        resizeTimeout = setTimeout(adjustLayoutScale, 100);
-      }
-
-      // 複数のタイミングで再計算（コンテンツのレンダリング完了を確実に待つ）
-      window.addEventListener('resize', debouncedAdjustLayoutScale);
-      window.addEventListener('load', () => {
-        // loadイベント後、少し遅延させて再計算（動的コンテンツのレンダリングを待つ）
-        setTimeout(adjustLayoutScale, 100);
-        // さらに遅延させて再計算（確実にレンダリング完了を待つ）
-        setTimeout(adjustLayoutScale, 500);
-      });
-      // DOMContentLoadedでも実行（早期の初期化）
-      if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', adjustLayoutScale);
-      } else {
-        // 既に読み込み済みの場合は即座に実行
-        adjustLayoutScale();
-      }
-    })();
-  </script>
   <!-- 全画面ローダー -->
   <div id="fullscreen-loader" class="fullscreen-loader">
     <div class="loader-spinner"></div>
     <div class="loader-text" id="loader-text">処理中...</div>
   </div>
 </body>
+
 </html>

@@ -455,6 +455,8 @@
       border-collapse: collapse;
       min-width: 800px;
       table-layout: fixed;
+      writing-mode: horizontal-tb !important;
+      text-orientation: mixed !important;
     }
 
     /* レスポンシブデザインのメディアクエリは削除済み - PCレイアウト固定（1200px） */
@@ -467,30 +469,66 @@
       border-bottom: 1px solid #f0f0f0;
       line-height: 1.4;
       vertical-align: middle;
+      writing-mode: horizontal-tb !important;
+      text-orientation: mixed !important;
     }
 
-    /* 名前列の幅固定（PC表示: 日本語5文字程度、2行表示） */
+    /* 名前列の幅固定（2文字分のスペース、2行表示） */
     .member-name-col {
-      min-width: 100px;
-      max-width: 100px;
-      width: 100px;
+      min-width: 45px !important;
+      max-width: 45px !important;
+      width: 45px !important;
       overflow: hidden;
-      height: auto;
-      min-height: 48px;
+      height: 46px;
+      min-height: 46px;
+      max-height: 46px;
       /* 2行分の高さを確保 */
       vertical-align: middle;
-      /* white-space: nowrapを削除して2行表示を有効化 */
+      white-space: normal !important;
+      writing-mode: horizontal-tb !important;
+      text-orientation: mixed !important;
+      padding: 2px 3px !important;
+      box-sizing: border-box !important;
     }
 
-    /* 名前列内のリンクのスタイル（2行表示） */
+    /* 名前列内のラッパーdivのスタイル（2行表示） */
+    .member-name-wrapper {
+      display: -webkit-box !important;
+      -webkit-box-orient: vertical !important;
+      -webkit-line-clamp: 2 !important;
+      line-clamp: 2 !important;
+      overflow: hidden !important;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      line-height: 1.3 !important;
+      height: 2.6em !important;
+      min-height: 2.6em !important;
+      max-height: 2.6em !important;
+      width: 100%;
+      white-space: normal !important;
+      writing-mode: horizontal-tb !important;
+      text-orientation: mixed !important;
+      text-align: center;
+      /* 2行表示を確実にする、1行に2文字が収まるように調整 */
+    }
+
+    /* 名前列内のリンクのスタイル */
     .member-name-col a {
-      display: -webkit-box;
-      -webkit-box-orient: vertical;
-      -webkit-line-clamp: 2;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      word-break: break-all;
-      line-height: 1.3;
+      display: inline;
+      word-break: break-word;
+      overflow-wrap: break-word;
+      white-space: normal !important;
+      writing-mode: horizontal-tb !important;
+      text-orientation: mixed !important;
+      font-size: 0.7rem !important;
+      line-height: 1.3 !important;
+    }
+    
+    /* より具体的なセレクタで横書きを強制 */
+    .member-name-col .member-name-wrapper a {
+      writing-mode: horizontal-tb !important;
+      text-orientation: mixed !important;
+      white-space: normal !important;
     }
 
     /* 出欠状況セルの固定幅（名前列の領域を確保） */
@@ -524,6 +562,8 @@
       border: none;
       border-bottom: 1px solid #DDDDDD;
       vertical-align: middle;
+      writing-mode: horizontal-tb !important;
+      text-orientation: mixed !important;
     }
 
     .attendance-grid th:first-child {
@@ -544,6 +584,20 @@
     /* 2行目のヘッダー行（メンバー名）のz-indexを明示的に低く設定 */
     .attendance-grid thead tr:nth-child(2) th {
       z-index: 9;
+      writing-mode: horizontal-tb !important;
+      text-orientation: mixed !important;
+    }
+
+    /* テーブルヘッダーの2行目を横書きに強制 */
+    .attendance-grid thead tr:nth-child(2) {
+      writing-mode: horizontal-tb !important;
+      text-orientation: mixed !important;
+    }
+
+    /* テーブルヘッダー全体を横書きに強制 */
+    .attendance-grid thead {
+      writing-mode: horizontal-tb !important;
+      text-orientation: mixed !important;
     }
 
     .attendance-grid tbody tr:nth-child(even) td:first-child {
@@ -2622,6 +2676,30 @@
       // テーブルを作成
       const table = document.createElement('table');
       table.className = 'attendance-grid';
+      // テーブル全体に横書きを強制
+      table.style.setProperty('writing-mode', 'horizontal-tb', 'important');
+      table.style.setProperty('text-orientation', 'mixed', 'important');
+
+      // colgroupで列幅を明示的に設定（table-layout: fixedで確実に適用されるように）
+      const colgroup = document.createElement('colgroup');
+      // イベント列
+      const colEvent = document.createElement('col');
+      colEvent.style.setProperty('width', '200px', 'important');
+      colgroup.appendChild(colEvent);
+      // 凡例列（3列分）
+      for (let i = 0; i < 3; i++) {
+        const colLegend = document.createElement('col');
+        colLegend.style.setProperty('width', '30px', 'important');
+        colgroup.appendChild(colLegend);
+      }
+      // メンバー列（各45px、2文字分のスペース）
+      const memberCount = memberList.length;
+      for (let i = 0; i < memberCount; i++) {
+        const colMember = document.createElement('col');
+        colMember.style.setProperty('width', '45px', 'important');
+        colgroup.appendChild(colMember);
+      }
+      table.appendChild(colgroup);
 
       // ヘッダー（2行構成）
       const thead = document.createElement('thead');
@@ -2711,6 +2789,9 @@
 
       // 2行目：名前（リンクスタイル）
       const headerRow2 = document.createElement('tr');
+      // 横書きを強制（setPropertyで!importantを設定）
+      headerRow2.style.setProperty('writing-mode', 'horizontal-tb', 'important');
+      headerRow2.style.setProperty('text-orientation', 'mixed', 'important');
 
       sortedMembers.forEach((member, index) => {
         const displayName = getMemberDisplayName(member);
@@ -2719,11 +2800,23 @@
 
         const nameHeader = document.createElement('th');
         nameHeader.className = 'member-name-col';
-        nameHeader.style.padding = '6px 8px';
+        nameHeader.style.padding = '2px 3px';
         nameHeader.style.lineHeight = '1.3';
-        // 幅はCSSで制御（PC: 100px, モバイル: 70px）
+        // 幅を直接設定（テーブルレイアウトで確実に適用されるように、2文字分のスペース）
+        nameHeader.style.setProperty('width', '45px', 'important');
+        nameHeader.style.setProperty('min-width', '45px', 'important');
+        nameHeader.style.setProperty('max-width', '45px', 'important');
+        nameHeader.style.setProperty('box-sizing', 'border-box', 'important');
         // z-indexを明示的に設定して、イベント列より低くする
         nameHeader.style.zIndex = '9';
+        // 横書きを強制（インラインスタイルで直接設定、!importantは使えないので直接設定）
+        nameHeader.style.writingMode = 'horizontal-tb';
+        nameHeader.style.textOrientation = 'mixed';
+        nameHeader.style.whiteSpace = 'normal';
+        // CSSの!importantを上書きするため、setPropertyを使用
+        nameHeader.style.setProperty('writing-mode', 'horizontal-tb', 'important');
+        nameHeader.style.setProperty('text-orientation', 'mixed', 'important');
+        nameHeader.style.setProperty('white-space', 'normal', 'important');
         // 最初のメンバー列の左側に罫線を追加（○△×列との区切り、イベント列と同じ太さ）
         if (index === 0) {
           nameHeader.style.borderLeft = '1px solid #DDDDDD';
@@ -2738,21 +2831,69 @@
           nameHeader.style.borderRight = '1px solid #DDDDDD';
         }
 
+        // th要素内にdivを追加して、そのdivに-webkit-line-clampを適用
+        const nameWrapper = document.createElement('div');
+        nameWrapper.className = 'member-name-wrapper';
+        nameWrapper.style.display = '-webkit-box';
+        nameWrapper.style.webkitBoxOrient = 'vertical';
+        nameWrapper.style.webkitLineClamp = '2';
+        nameWrapper.style.lineClamp = '2';
+        nameWrapper.style.overflow = 'hidden';
+        nameWrapper.style.wordBreak = 'break-word';
+        nameWrapper.style.overflowWrap = 'break-word';
+        nameWrapper.style.lineHeight = '1.3';
+        nameWrapper.style.height = '2.6em';
+        nameWrapper.style.minHeight = '2.6em';
+        nameWrapper.style.maxHeight = '2.6em';
+        // 幅を親要素の幅いっぱいに設定
+        nameWrapper.style.setProperty('width', '100%', 'important');
+        nameWrapper.style.setProperty('min-width', '100%', 'important');
+        nameWrapper.style.setProperty('max-width', '100%', 'important');
+        nameWrapper.style.setProperty('box-sizing', 'border-box', 'important');
+        nameWrapper.style.whiteSpace = 'normal';
+        nameWrapper.style.textAlign = 'center';
+        // 横書きを強制（setPropertyで!importantを設定）
+        nameWrapper.style.setProperty('writing-mode', 'horizontal-tb', 'important');
+        nameWrapper.style.setProperty('text-orientation', 'mixed', 'important');
+        nameWrapper.style.setProperty('white-space', 'normal', 'important');
+
         // 名前をリンクスタイルで表示
         const nameLink = document.createElement('a');
         nameLink.href = '#';
-        // 2行表示の設定はCSSで制御
-        nameHeader.style.textAlign = 'center';
         nameLink.style.color = selectedMember === displayName ? '#667eea' : '#0066cc';
         nameLink.style.textDecoration = selectedMember === displayName ? 'underline' : 'underline';
-        nameLink.style.fontSize = '0.85rem';
+        nameLink.style.fontSize = '0.7rem';
         nameLink.style.fontWeight = selectedMember === displayName ? 'bold' : 'normal';
         nameLink.style.cursor = 'pointer';
         nameLink.style.transition = 'all 0.2s';
+        // displayを設定してwriting-modeが確実に適用されるようにする
+        nameLink.style.display = 'block';
+        nameLink.style.width = '100%';
+        // 改行文字を反映するためにwhite-space: pre-lineを設定
+        nameLink.style.whiteSpace = 'pre-line';
+        // 横書きを強制（setPropertyで!importantを設定、複数回設定して確実に）
+        nameLink.style.setProperty('writing-mode', 'horizontal-tb', 'important');
+        nameLink.style.setProperty('text-orientation', 'mixed', 'important');
+        nameLink.style.setProperty('white-space', 'pre-line', 'important');
+        // さらに直接設定も追加（念のため）
+        nameLink.style.writingMode = 'horizontal-tb';
+        nameLink.style.textOrientation = 'mixed';
+        // 改行文字を反映するためにwhite-space: pre-lineを最後に設定
+        nameLink.style.whiteSpace = 'pre-line';
 
-        // 名前をそのまま表示（2行で表示される）
-        nameLink.textContent = name || '';
-        if (name && name.length > 20) {
+        // 名前を表示（少なくとも4文字表示、それ以上は...で省略）
+        const displayNameText = formatMemberNameForDisplay(name || '');
+        // 名前を表示する際に、少なくとも4文字が表示されるようにする
+        // 4文字未満の場合は、スペースを追加して4文字分の幅を確保
+        let finalDisplayText = displayNameText;
+        if (displayNameText.length < 4) {
+          // 4文字未満の場合は、そのまま表示（CSSで制御）
+          finalDisplayText = displayNameText;
+        }
+        // textContentを使って改行文字を反映（CSSでwhite-space: pre-lineを設定）
+        nameLink.textContent = finalDisplayText;
+        // 元の名前が表示テキストと異なる場合、または名前が4文字以上の場合、ツールチップで全文表示
+        if (name && (name !== finalDisplayText || name.length >= 4)) {
           nameLink.title = name; // ツールチップで全文表示
         }
 
@@ -2783,7 +2924,11 @@
           nameLink.style.fontWeight = 'bold';
         }
 
-        nameHeader.appendChild(nameLink);
+        // nameLinkをnameWrapperに追加
+        nameWrapper.appendChild(nameLink);
+        // nameWrapperをnameHeaderに追加
+        nameHeader.appendChild(nameWrapper);
+        // nameHeaderをheaderRow2に追加
         headerRow2.appendChild(nameHeader);
       });
 
@@ -3387,6 +3532,28 @@
         }
       }
       return { part: '', name: displayName };
+    }
+
+    /**
+     * メンバー名を表示用にフォーマット（6文字以下はそのまま、7文字以上は5文字+...で省略）
+     * @param {string} name - メンバー名
+     * @returns {string} フォーマットされた表示名
+     */
+    function formatMemberNameForDisplay(name) {
+      if (!name) {
+        return '';
+      }
+      
+      // 6文字以下の場合はそのまま表示（2行で自然に折り返される）
+      if (name.length <= 6) {
+        return name;
+      }
+      
+      // 7文字以上の場合は、5文字+...を表示
+      // 1行目に最初の2文字、2行目に3文字目、4文字目、5文字目+...を表示
+      const firstLine = name.substring(0, 2); // 最初の2文字
+      const secondLine = name.substring(2, 5) + '...'; // 3文字目、4文字目、5文字目+...
+      return firstLine + '\n' + secondLine;
     }
 
     /**

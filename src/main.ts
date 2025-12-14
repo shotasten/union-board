@@ -828,6 +828,30 @@ function scheduledSyncResponsesToCalendar(): void {
 }
 
 /**
+ * カレンダー更新トリガー用: カレンダー側の変更をアプリに同期
+ * - GASのカレンダー更新トリガー（onCalendarUpdate）から呼び出される
+ * - カレンダー → アプリ（新規イベント検知、イベント情報の変更反映）
+ * - アプリ → カレンダー（出欠状況の反映）
+ * - 表示期間のみに制限して効率化
+ */
+function onCalendarUpdate(): void {
+  try {
+    Logger.log('📅 [カレンダー更新トリガー] 同期開始');
+    
+    const result = syncAll(true); // limitToDisplayPeriod=true
+    
+    Logger.log(`✅ [カレンダー更新トリガー] 同期完了: ${result.success}件成功, ${result.failed}件失敗`);
+    
+    if (result.errors.length > 0) {
+      Logger.log(`⚠️ エラー詳細: ${result.errors.join('; ')}`);
+    }
+  } catch (error) {
+    Logger.log(`❌ [カレンダー更新トリガー] 同期エラー: ${(error as Error).message}`);
+    Logger.log((error as Error).stack);
+  }
+}
+
+/**
  * cron用: メンバーが存在しないレスポンスを定期的に掃除
  * - 深夜バッチなどの時間主導トリガーで実行
  */
@@ -842,7 +866,9 @@ function scheduledCleanupUnlinkedResponses(): void {
 }
 
 /**
- * Responsesシートの差分をカレンダーに同期
+ * Responsesシートの差分をカレンダーに同期（双方向）
+ * - アプリ側の出欠更新をカレンダーに反映
+ * - カレンダー側の変更（タイトル、日時、説明など）もアプリに反映
  * @param lastSyncTimestamp 前回同期時刻（ISO 8601形式）
  * @returns 同期結果
  */
@@ -903,9 +929,69 @@ function syncResponsesDiffToCalendar(
       return result;
     }
     
-    // 各イベントをカレンダーに同期
+    // カレンダーを取得
+    const calendarId = getOrCreateCalendar();
+    const calendar = CalendarApp.getCalendarById(calendarId);
+    
+    if (!calendar) {
+      const errorMsg = `カレンダーが見つかりません: ${calendarId}`;
+      Logger.log(`❌ ${errorMsg}`);
+      result.errors.push(errorMsg);
+      return result;
+    }
+    
+    // 各イベントを双方向同期
     for (const eventId of updatedEventIds) {
       try {
+        // イベント情報を取得
+        const event = getEventById(eventId);
+        if (!event) {
+          Logger.log(`⚠️ イベントが見つかりません: ${eventId}`);
+          result.failed++;
+          continue;
+        }
+        
+        // カレンダーイベントIDがある場合、カレンダー側の変更もチェック
+        if (event.calendarEventId) {
+          try {
+            const calendarEvent = calendar.getEventById(event.calendarEventId);
+            if (calendarEvent) {
+              const calendarUpdated = calendarEvent.getLastUpdated();
+              const eventLastSynced = event.lastSynced ? new Date(event.lastSynced) : new Date(0);
+              
+              // カレンダー側が新しい場合、アプリに反映
+              if (calendarUpdated.getTime() > eventLastSynced.getTime()) {
+                // 説明欄から出欠サマリーを除去してdescriptionとして保存
+                const calendarDescription = calendarEvent.getDescription() || '';
+                let userDescription = calendarDescription;
+                const attendanceIndex = userDescription.indexOf('【出欠状況】');
+                if (attendanceIndex >= 0) {
+                  userDescription = userDescription.substring(0, attendanceIndex).trim();
+                }
+                
+                // カレンダーイベントIDが含まれている場合は除去（@google.com で終わる文字列）
+                userDescription = userDescription.replace(/[a-z0-9]+@google\.com/gi, '').trim();
+                
+                // イベント情報を更新
+                updateEvent(event.id, {
+                  title: calendarEvent.getTitle(),
+                  start: calendarEvent.getStartTime().toISOString(),
+                  end: calendarEvent.getEndTime().toISOString(),
+                  location: calendarEvent.getLocation() || '',
+                  description: userDescription,
+                  lastSynced: calendarUpdated.toISOString()
+                }, true); // skipCalendarSync: true（カレンダー同期をスキップ）
+                
+                Logger.log(`✅ カレンダー→アプリ同期: ${eventId}`);
+              }
+            }
+          } catch (error) {
+            Logger.log(`⚠️ カレンダーイベント取得失敗: ${event.calendarEventId} - ${(error as Error).message}`);
+            // カレンダーイベントが見つからない場合でも、アプリ→カレンダー同期は続行
+          }
+        }
+        
+        // アプリ→カレンダーの出欠同期
         syncCalendarDescriptionForEvent(eventId);
         result.synced++;
       } catch (error) {

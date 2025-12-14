@@ -852,33 +852,6 @@ function onCalendarUpdate(): void {
 }
 
 /**
- * cron用: 1時間ごとの全体同期（双方向）
- * - カレンダー → アプリ（新規イベント検知、イベント情報の変更反映）
- * - アプリ → カレンダー（出欠状況の反映）
- * - 表示期間のみに制限して効率化
- * - 差分同期で漏れた変更も確実に反映
- * 
- * ⚠️ 非推奨: カレンダー更新トリガー（onCalendarUpdate）を使用することを推奨
- * このcron関数は、カレンダー更新トリガーが正しく動作しない場合のフォールバックとして残しています
- */
-function scheduledFullSync(): void {
-  try {
-    Logger.log('📅 [cron 1時間ごと] 全体同期開始');
-    
-    const result = syncAll(true); // limitToDisplayPeriod=true
-    
-    Logger.log(`✅ [cron 1時間ごと] 全体同期完了: ${result.success}件成功, ${result.failed}件失敗`);
-    
-    if (result.errors.length > 0) {
-      Logger.log(`⚠️ エラー詳細: ${result.errors.join('; ')}`);
-    }
-  } catch (error) {
-    Logger.log(`❌ [cron 1時間ごと] 全体同期エラー: ${(error as Error).message}`);
-    Logger.log((error as Error).stack);
-  }
-}
-
-/**
  * cron用: メンバーが存在しないレスポンスを定期的に掃除
  * - 深夜バッチなどの時間主導トリガーで実行
  */

@@ -828,11 +828,38 @@ function scheduledSyncResponsesToCalendar(): void {
 }
 
 /**
+ * カレンダー更新トリガー用: カレンダー側の変更をアプリに同期
+ * - GASのカレンダー更新トリガー（onCalendarUpdate）から呼び出される
+ * - カレンダー → アプリ（新規イベント検知、イベント情報の変更反映）
+ * - アプリ → カレンダー（出欠状況の反映）
+ * - 表示期間のみに制限して効率化
+ */
+function onCalendarUpdate(): void {
+  try {
+    Logger.log('📅 [カレンダー更新トリガー] 同期開始');
+    
+    const result = syncAll(true); // limitToDisplayPeriod=true
+    
+    Logger.log(`✅ [カレンダー更新トリガー] 同期完了: ${result.success}件成功, ${result.failed}件失敗`);
+    
+    if (result.errors.length > 0) {
+      Logger.log(`⚠️ エラー詳細: ${result.errors.join('; ')}`);
+    }
+  } catch (error) {
+    Logger.log(`❌ [カレンダー更新トリガー] 同期エラー: ${(error as Error).message}`);
+    Logger.log((error as Error).stack);
+  }
+}
+
+/**
  * cron用: 1時間ごとの全体同期（双方向）
  * - カレンダー → アプリ（新規イベント検知、イベント情報の変更反映）
  * - アプリ → カレンダー（出欠状況の反映）
  * - 表示期間のみに制限して効率化
  * - 差分同期で漏れた変更も確実に反映
+ * 
+ * ⚠️ 非推奨: カレンダー更新トリガー（onCalendarUpdate）を使用することを推奨
+ * このcron関数は、カレンダー更新トリガーが正しく動作しない場合のフォールバックとして残しています
  */
 function scheduledFullSync(): void {
   try {

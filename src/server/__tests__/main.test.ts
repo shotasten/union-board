@@ -12,7 +12,7 @@ let mockSyncAll: jest.Mock;
 let mockGetResponsesSheet: jest.Mock;
 let mockGetEventById: jest.Mock;
 let mockGetOrCreateCalendar: jest.Mock;
-let mockUpdateEvent: jest.Mock;
+let mockUpdateEventForMain: jest.Mock;
 let mockSyncCalendarDescriptionForEvent: jest.Mock;
 let mockLogger: jest.Mock;
 
@@ -109,7 +109,7 @@ describe('syncResponsesDiffToCalendar - 双方向同期', () => {
     mockGetResponsesSheet = jest.fn();
     mockGetEventById = jest.fn();
     mockGetOrCreateCalendar = jest.fn();
-    mockUpdateEvent = jest.fn();
+    mockUpdateEventForMain = jest.fn();
     mockSyncCalendarDescriptionForEvent = jest.fn();
     
     // カレンダーイベントのモック
@@ -136,7 +136,7 @@ describe('syncResponsesDiffToCalendar - 双方向同期', () => {
     (global as any).getResponsesSheet = mockGetResponsesSheet;
     (global as any).getEventById = mockGetEventById;
     (global as any).getOrCreateCalendar = mockGetOrCreateCalendar;
-    (global as any).updateEvent = mockUpdateEvent;
+    (global as any).updateEvent = mockUpdateEventForMain;
     (global as any).syncCalendarDescriptionForEvent = mockSyncCalendarDescriptionForEvent;
   });
   
@@ -211,7 +211,7 @@ describe('syncResponsesDiffToCalendar - 双方向同期', () => {
                     userDescription = userDescription.substring(0, attendanceIndex).trim();
                   }
                   
-                  mockUpdateEvent(event.id, {
+                  mockUpdateEventForMain(event.id, {
                     title: calendarEvent.getTitle(),
                     start: calendarEvent.getStartTime().toISOString(),
                     end: calendarEvent.getEndTime().toISOString(),
@@ -245,7 +245,7 @@ describe('syncResponsesDiffToCalendar - 双方向同期', () => {
     expect(result.synced).toBe(1);
     expect(result.failed).toBe(0);
     expect(mockGetEventById).toHaveBeenCalledWith('event-1');
-    expect(mockUpdateEvent).toHaveBeenCalledWith(
+    expect(mockUpdateEventForMain).toHaveBeenCalledWith(
       'event-1',
       expect.objectContaining({
         title: '練習（変更後）',
@@ -326,7 +326,7 @@ describe('syncResponsesDiffToCalendar - 双方向同期', () => {
                 
                 // アプリ側が新しい場合はスキップ
                 if (calendarUpdated.getTime() > eventLastSynced.getTime()) {
-                  mockUpdateEvent(event.id, {}, true);
+                  mockUpdateEventForMain(event.id, {}, true);
                   mockLogger(`✅ カレンダー→アプリ同期: ${eventId}`);
                 }
               }
@@ -350,7 +350,7 @@ describe('syncResponsesDiffToCalendar - 双方向同期', () => {
     
     // Assert
     expect(result.synced).toBe(1);
-    expect(mockUpdateEvent).not.toHaveBeenCalled(); // カレンダー→アプリ同期はスキップ
+    expect(mockUpdateEventForMain).not.toHaveBeenCalled(); // カレンダー→アプリ同期はスキップ
     expect(mockLogger).not.toHaveBeenCalledWith('✅ カレンダー→アプリ同期: event-1');
     expect(mockSyncCalendarDescriptionForEvent).toHaveBeenCalledWith('event-1');
   });

@@ -32,9 +32,10 @@ function isAllDayEvent(start: string, end: string): boolean {
   
   // 終日イベントの判定:
   // 1. 開始が00:00:00であること
-  // 2. 終了が00:00:00（複数日対応）または23:59:59（同じ日のみ）であること
+  // 2. 終了が00:00:00（異なる日のみ、複数日対応）または23:59:59（同じ日のみ）であること
+  // 注意: 同じ日の00:00:00～00:00:00はゼロ時間長のため終日イベントではない
   return (startHour === 0 && startMinute === 0 && startSecond === 0) &&
-         ((endHour === 0 && endMinute === 0 && endSecond === 0) ||
+         ((endHour === 0 && endMinute === 0 && endSecond === 0 && !isSameDay) ||
           (isSameDay && endHour === 23 && endMinute === 59));
 }
 
@@ -148,6 +149,20 @@ describe('calendar-helper.ts', () => {
       const start = '2026-01-02T00:00:00.000Z';
       // JST 2026-01-05 00:00:00 = UTC 2026-01-04 15:00:00
       const end = '2026-01-04T15:00:00.000Z';
+      
+      // Act
+      const result = isAllDayEvent(start, end);
+      
+      // Assert
+      expect(result).toBe(false);
+    });
+
+    it('ゼロ時間長のイベント（同じ日の00:00～00:00）は終日イベントと判定しないこと', () => {
+      // Arrange
+      // JST 2026-01-02 00:00:00 = UTC 2026-01-01 15:00:00
+      const start = '2026-01-01T15:00:00.000Z';
+      // JST 2026-01-02 00:00:00 = UTC 2026-01-01 15:00:00（同じ時刻）
+      const end = '2026-01-01T15:00:00.000Z';
       
       // Act
       const result = isAllDayEvent(start, end);

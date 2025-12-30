@@ -32,9 +32,10 @@ function isAllDayEvent(start: string, end: string): boolean {
   
   // 終日イベントの判定:
   // 1. 開始が00:00:00であること
-  // 2. 終了が00:00:00（複数日対応）または23:59:59（同じ日のみ）であること
+  // 2. 終了が00:00:00（異なる日のみ、複数日対応）または23:59:59（同じ日のみ）であること
+  // 注意: 同じ日の00:00:00～00:00:00はゼロ時間長のため終日イベントではない
   return (startHour === 0 && startMinute === 0 && startSecond === 0) &&
-         ((endHour === 0 && endMinute === 0 && endSecond === 0) ||
+         ((endHour === 0 && endMinute === 0 && endSecond === 0 && !isSameDay) ||
           (isSameDay && endHour === 23 && endMinute === 59));
 }
 

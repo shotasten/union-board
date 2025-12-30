@@ -1176,17 +1176,18 @@ function adminRemoveDuplicateCalendarEvents(userKey?: string, adminToken?: strin
       const start = event.getStartTime();
       const end = event.getEndTime();
       
-      // キーを生成（タイトル|日時|場所）
+      // キーを生成（タイトル|開始日時|終了日時|場所）
+      // pullFromCalendarと同じロジックで、開始と終了の両方を含める
       let dateKey: string;
       if (isAllDay) {
         // 終日イベント：日付のみ
         dateKey = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
       } else {
-        // 時間指定イベント：ISO形式
-        dateKey = start.toISOString();
+        // 時間指定イベント：ISO形式（開始と終了を含める）
+        dateKey = `${start.toISOString()}|${end.toISOString()}`;
       }
       
-      const key = `${event.getTitle()}|${dateKey}|${event.getLocation() || ''}|${isAllDay}`;
+      const key = `${event.getTitle()}|${dateKey}|${event.getLocation() || ''}`;
       
       if (!eventGroups.has(key)) {
         eventGroups.set(key, []);

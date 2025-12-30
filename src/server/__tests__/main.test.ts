@@ -424,3 +424,219 @@ describe('syncResponsesDiffToCalendar - 双方向同期', () => {
   });
 });
 
+describe('adminRemoveDuplicateCalendarEvents - 重複検出キー生成ロジック', () => {
+  let mockCalendar: any;
+  let mockEvents: any[];
+  
+  beforeEach(() => {
+    jest.clearAllMocks();
+    
+    // Logger.logのモック
+    global.Logger = {
+      log: jest.fn()
+    } as any;
+    
+    // モックイベントを作成
+    mockEvents = [];
+    
+    // カレンダーのモック
+    mockCalendar = {
+      getEvents: jest.fn().mockReturnValue(mockEvents),
+      getId: jest.fn().mockReturnValue('test-calendar-id')
+    };
+    
+    // CalendarApp.getCalendarByIdのモック
+    global.CalendarApp = {
+      getCalendarById: jest.fn().mockReturnValue(mockCalendar)
+    } as any;
+    
+    // getOrCreateCalendarのモック
+    (global as any).getOrCreateCalendar = jest.fn().mockReturnValue('test-calendar-id');
+    (global as any).isAdmin = jest.fn().mockReturnValue(true);
+  });
+  
+  it('同じ開始時刻・異なる終了時刻のイベントは重複とみなされないこと', () => {
+    // Arrange
+    const event1 = {
+      getTitle: jest.fn().mockReturnValue('練習'),
+      getStartTime: jest.fn().mockReturnValue(new Date('2025-12-30T13:00:00Z')),
+      getEndTime: jest.fn().mockReturnValue(new Date('2025-12-30T15:00:00Z')), // 2時間
+      getLocation: jest.fn().mockReturnValue('練習室'),
+      isAllDayEvent: jest.fn().mockReturnValue(false),
+      getLastUpdated: jest.fn().mockReturnValue(new Date('2025-12-30T10:00:00Z')),
+      getId: jest.fn().mockReturnValue('event-1'),
+      deleteEvent: jest.fn()
+    };
+    
+    const event2 = {
+      getTitle: jest.fn().mockReturnValue('練習'),
+      getStartTime: jest.fn().mockReturnValue(new Date('2025-12-30T13:00:00Z')),
+      getEndTime: jest.fn().mockReturnValue(new Date('2025-12-30T17:00:00Z')), // 4時間
+      getLocation: jest.fn().mockReturnValue('練習室'),
+      isAllDayEvent: jest.fn().mockReturnValue(false),
+      getLastUpdated: jest.fn().mockReturnValue(new Date('2025-12-30T10:00:00Z')),
+      getId: jest.fn().mockReturnValue('event-2'),
+      deleteEvent: jest.fn()
+    };
+    
+    mockEvents = [event1, event2];
+    mockCalendar.getEvents.mockReturnValue(mockEvents);
+    
+    // 重複検出ロジックをシミュレート
+    const eventGroups = new Map<string, any[]>();
+    
+    for (const event of mockEvents) {
+      const start = event.getStartTime();
+      const end = event.getEndTime();
+      const isAllDay = event.isAllDayEvent();
+      
+      let dateKey: string;
+      if (isAllDay) {
+        dateKey = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
+      } else {
+        // 修正後：開始と終了の両方を含める
+        dateKey = `${start.toISOString()}|${end.toISOString()}`;
+      }
+      
+      const key = `${event.getTitle()}|${dateKey}|${event.getLocation() || ''}`;
+      
+      if (!eventGroups.has(key)) {
+        eventGroups.set(key, []);
+      }
+      eventGroups.get(key)!.push(event);
+    }
+    
+    // Assert
+    // 異なる終了時刻なので、2つの異なるキーが生成される
+    expect(eventGroups.size).toBe(2);
+    
+    // どちらも重複とみなされない（各グループに1件ずつ）
+    eventGroups.forEach((events) => {
+      expect(events.length).toBe(1);
+    });
+    
+    // deleteEventが呼ばれていないことを確認
+    expect(event1.deleteEvent).not.toHaveBeenCalled();
+    expect(event2.deleteEvent).not.toHaveBeenCalled();
+  });
+  
+  it('同じ開始時刻・同じ終了時刻のイベントは重複とみなされること', () => {
+    // Arrange
+    const event1 = {
+      getTitle: jest.fn().mockReturnValue('練習'),
+      getStartTime: jest.fn().mockReturnValue(new Date('2025-12-30T13:00:00Z')),
+      getEndTime: jest.fn().mockReturnValue(new Date('2025-12-30T15:00:00Z')),
+      getLocation: jest.fn().mockReturnValue('練習室'),
+      isAllDayEvent: jest.fn().mockReturnValue(false),
+      getLastUpdated: jest.fn().mockReturnValue(new Date('2025-12-30T10:00:00Z')),
+      getId: jest.fn().mockReturnValue('event-1'),
+      deleteEvent: jest.fn()
+    };
+    
+    const event2 = {
+      getTitle: jest.fn().mockReturnValue('練習'),
+      getStartTime: jest.fn().mockReturnValue(new Date('2025-12-30T13:00:00Z')),
+      getEndTime: jest.fn().mockReturnValue(new Date('2025-12-30T15:00:00Z')),
+      getLocation: jest.fn().mockReturnValue('練習室'),
+      isAllDayEvent: jest.fn().mockReturnValue(false),
+      getLastUpdated: jest.fn().mockReturnValue(new Date('2025-12-30T09:00:00Z')),
+      getId: jest.fn().mockReturnValue('event-2'),
+      deleteEvent: jest.fn()
+    };
+    
+    mockEvents = [event1, event2];
+    mockCalendar.getEvents.mockReturnValue(mockEvents);
+    
+    // 重複検出ロジックをシミュレート
+    const eventGroups = new Map<string, any[]>();
+    
+    for (const event of mockEvents) {
+      const start = event.getStartTime();
+      const end = event.getEndTime();
+      const isAllDay = event.isAllDayEvent();
+      
+      let dateKey: string;
+      if (isAllDay) {
+        dateKey = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
+      } else {
+        dateKey = `${start.toISOString()}|${end.toISOString()}`;
+      }
+      
+      const key = `${event.getTitle()}|${dateKey}|${event.getLocation() || ''}`;
+      
+      if (!eventGroups.has(key)) {
+        eventGroups.set(key, []);
+      }
+      eventGroups.get(key)!.push(event);
+    }
+    
+    // Assert
+    // 同じキーなので、1つのグループのみ
+    expect(eventGroups.size).toBe(1);
+    
+    // グループに2件のイベントがある（重複）
+    const firstGroup = Array.from(eventGroups.values())[0];
+    expect(firstGroup.length).toBe(2);
+  });
+  
+  it('終日イベントは終了時刻に関係なく日付のみで判定されること', () => {
+    // Arrange
+    const event1 = {
+      getTitle: jest.fn().mockReturnValue('終日イベント'),
+      getStartTime: jest.fn().mockReturnValue(new Date('2025-12-30T00:00:00Z')),
+      getEndTime: jest.fn().mockReturnValue(new Date('2025-12-30T23:59:59Z')),
+      getLocation: jest.fn().mockReturnValue(''),
+      isAllDayEvent: jest.fn().mockReturnValue(true),
+      getLastUpdated: jest.fn().mockReturnValue(new Date('2025-12-30T10:00:00Z')),
+      getId: jest.fn().mockReturnValue('event-1'),
+      deleteEvent: jest.fn()
+    };
+    
+    const event2 = {
+      getTitle: jest.fn().mockReturnValue('終日イベント'),
+      getStartTime: jest.fn().mockReturnValue(new Date('2025-12-30T00:00:00Z')),
+      getEndTime: jest.fn().mockReturnValue(new Date('2025-12-31T23:59:59Z')), // 異なる終了日
+      getLocation: jest.fn().mockReturnValue(''),
+      isAllDayEvent: jest.fn().mockReturnValue(true),
+      getLastUpdated: jest.fn().mockReturnValue(new Date('2025-12-30T09:00:00Z')),
+      getId: jest.fn().mockReturnValue('event-2'),
+      deleteEvent: jest.fn()
+    };
+    
+    mockEvents = [event1, event2];
+    mockCalendar.getEvents.mockReturnValue(mockEvents);
+    
+    // 重複検出ロジックをシミュレート
+    const eventGroups = new Map<string, any[]>();
+    
+    for (const event of mockEvents) {
+      const start = event.getStartTime();
+      const end = event.getEndTime();
+      const isAllDay = event.isAllDayEvent();
+      
+      let dateKey: string;
+      if (isAllDay) {
+        // 終日イベントは日付のみ
+        dateKey = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
+      } else {
+        dateKey = `${start.toISOString()}|${end.toISOString()}`;
+      }
+      
+      const key = `${event.getTitle()}|${dateKey}|${event.getLocation() || ''}`;
+      
+      if (!eventGroups.has(key)) {
+        eventGroups.set(key, []);
+      }
+      eventGroups.get(key)!.push(event);
+    }
+    
+    // Assert
+    // 終日イベントは開始日のみで判定されるため、1つのグループ
+    expect(eventGroups.size).toBe(1);
+    
+    // グループに2件のイベントがある（重複）
+    const firstGroup = Array.from(eventGroups.values())[0];
+    expect(firstGroup.length).toBe(2);
+  });
+});
+

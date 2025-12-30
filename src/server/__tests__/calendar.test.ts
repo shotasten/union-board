@@ -14,15 +14,18 @@ function mockComputeHash(text: string): string {
     return '';
   }
   
+  // 実際の実装に合わせて「最終更新」行を除外
+  const normalizedText = text.replace(/\n最終更新: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\s*$/m, '');
+  
   // 簡易的なハッシュ計算（実際の実装を模倣）
   const mockHash = global.Utilities.computeDigest as jest.Mock;
-  const result = mockHash(text);
+  const result = mockHash(normalizedText);
   if (result && Array.isArray(result)) {
     return result.map((b: number) => ('0' + (b & 0xFF).toString(16)).slice(-2)).join('');
   }
   
   // フォールバック: テキストの長さをハッシュとして使用
-  return text.length.toString(16);
+  return normalizedText.length.toString(16);
 }
 
 function mockBuildDescriptionWithMemberMap(
@@ -223,6 +226,87 @@ describe('calendar.ts', () => {
       // Assert
       expect(result).toBe('');
     });
+
+    it('「最終更新」タイムスタンプが異なっても同じハッシュになること', () => {
+      // Arrange
+      const baseContent = '【出欠状況】\n○ 参加: 5人\n△ 遅早: 2人\n× 欠席: 1人\n- 未定: 0人\n合計: 8人';
+      const text1 = baseContent + '\n最終更新: 2024-01-01 12:00';
+      const text2 = baseContent + '\n最終更新: 2024-01-02 15:30';
+      const text3 = baseContent + '\n最終更新: 2024-12-30 23:59';
+      
+      // 同じハッシュ値を返すようにモック
+      (global.Utilities.computeDigest as jest.Mock).mockImplementation((text) => {
+        // タイムスタンプが除外されているため、すべて同じテキストが渡される
+        return [1, 2, 3, 4, 5];
+      });
+
+      // Act
+      const hash1 = mockComputeHash(text1);
+      const hash2 = mockComputeHash(text2);
+      const hash3 = mockComputeHash(text3);
+
+      // Assert
+      expect(hash1).toBe(hash2);
+      expect(hash2).toBe(hash3);
+      expect(hash1).toBe('0102030405');
+      
+      // computeDigestには「最終更新」行が除外されたテキストが渡されることを確認
+      expect(global.Utilities.computeDigest).toHaveBeenCalledTimes(3);
+      expect((global.Utilities.computeDigest as jest.Mock).mock.calls[0][0]).toBe(baseContent);
+      expect((global.Utilities.computeDigest as jest.Mock).mock.calls[1][0]).toBe(baseContent);
+      expect((global.Utilities.computeDigest as jest.Mock).mock.calls[2][0]).toBe(baseContent);
+    });
+
+    it('「最終更新」以外の内容が変わった場合はハッシュが変わること', () => {
+      // Arrange
+      const text1 = '【出欠状況】\n○ 参加: 5人\n\n最終更新: 2024-01-01 12:00';
+      const text2 = '【出欠状況】\n○ 参加: 6人\n\n最終更新: 2024-01-01 12:00';
+      
+      (global.Utilities.computeDigest as jest.Mock)
+        .mockReturnValueOnce([1, 2, 3, 4])
+        .mockReturnValueOnce([5, 6, 7, 8]);
+
+      // Act
+      const hash1 = mockComputeHash(text1);
+      const hash2 = mockComputeHash(text2);
+
+      // Assert
+      expect(hash1).not.toBe(hash2);
+      expect(hash1).toBe('01020304');
+      expect(hash2).toBe('05060708');
+    });
+
+    it('「最終更新」がない場合も正常に動作すること', () => {
+      // Arrange
+      const text = '【出欠状況】\n○ 参加: 5人\n△ 遅早: 2人';
+      (global.Utilities.computeDigest as jest.Mock).mockReturnValue([10, 20, 30]);
+
+      // Act
+      const result = mockComputeHash(text);
+
+      // Assert
+      expect(result).toBeTruthy();
+      expect(result).toBe('0a141e');
+      expect(global.Utilities.computeDigest).toHaveBeenCalledWith(text); // 「最終更新」がないのでそのまま渡される
+    });
+
+    it('途中に「最終更新」のような文字列があっても末尾の「最終更新」行だけ除外すること', () => {
+      // Arrange
+      const text = '【コメント】\n最終更新: という言葉が含まれています\n\n【出欠状況】\n○ 参加: 5人\n\n最終更新: 2024-01-01 12:00';
+      const expectedNormalized = '【コメント】\n最終更新: という言葉が含まれています\n\n【出欠状況】\n○ 参加: 5人\n';
+      
+      (global.Utilities.computeDigest as jest.Mock).mockReturnValue([1, 2, 3]);
+
+      // Act
+      const result = mockComputeHash(text);
+
+      // Assert
+      expect(result).toBeTruthy();
+      const actualCall = (global.Utilities.computeDigest as jest.Mock).mock.calls[0][0];
+      // 末尾の「最終更新」行が除外されていることを確認
+      expect(actualCall).toContain('最終更新: という言葉が含まれています'); // 途中の「最終更新」は残る
+      expect(actualCall).not.toContain('最終更新: 2024-01-01 12:00'); // 末尾の「最終更新」は除外
+    });
   });
 
   describe('buildDescriptionWithMemberMap', () => {
@@ -378,6 +462,187 @@ describe('calendar.ts', () => {
 
       // Assert
       expect(result).toContain('（コメント取得エラー）');
+    });
+  });
+
+  describe('syncCalendarDescriptionForEvent (期間外イベント同期防止)', () => {
+    let mockGetEventById: jest.Mock;
+    let mockGetOrCreateCalendar: jest.Mock;
+    let mockUpdateEventCalendarInfo: jest.Mock;
+
+    // syncCalendarDescriptionForEventのモック実装
+    function mockSyncCalendarDescriptionForEvent(eventId: string): { skipped: boolean; reason?: string } {
+      const event = mockGetEventById(eventId);
+      if (!event) {
+        return { skipped: true, reason: 'event_not_found' };
+      }
+
+      // 削除済みイベントはスキップ
+      if (event.status !== 'active') {
+        return { skipped: true, reason: 'status_not_active' };
+      }
+
+      // calendarEventIdが空の場合はスキップ
+      if (!event.calendarEventId) {
+        return { skipped: true, reason: 'calendar_event_id_empty' };
+      }
+
+      // 通常の同期処理
+      const calendarId = mockGetOrCreateCalendar();
+      const calendar = mockCalendar;
+      
+      if (!calendar) {
+        return { skipped: true, reason: 'calendar_not_found' };
+      }
+
+      const calendarEvent = calendar.getEventById(event.calendarEventId);
+      if (!calendarEvent) {
+        return { skipped: true, reason: 'calendar_event_not_found' };
+      }
+
+      const description = mockBuildDescription(eventId, event.description);
+      const notesHash = mockComputeHash(description);
+
+      // 説明文のハッシュが同じ場合は更新をスキップ
+      if (event.notesHash === notesHash) {
+        return { skipped: true, reason: 'hash_unchanged' };
+      }
+
+      calendarEvent.setDescription(description);
+      mockUpdateEventCalendarInfo(eventId, event.calendarEventId, notesHash);
+
+      return { skipped: false };
+    }
+
+    beforeEach(() => {
+      mockGetEventById = jest.fn();
+      mockGetOrCreateCalendar = jest.fn(() => 'mock-calendar-id');
+      mockUpdateEventCalendarInfo = jest.fn();
+    });
+
+    it('calendarEventIdが空の場合は同期をスキップすること', () => {
+      // Arrange
+      const eventId = 'event-1';
+      const event = {
+        id: eventId,
+        title: '練習',
+        start: '2024-11-29T04:00:00.000Z',
+        end: '2024-11-29T08:00:00.000Z',
+        status: 'active',
+        calendarEventId: '', // 空
+        notesHash: '',
+      };
+      mockGetEventById.mockReturnValue(event);
+
+      // Act
+      const result = mockSyncCalendarDescriptionForEvent(eventId);
+
+      // Assert
+      expect(result.skipped).toBe(true);
+      expect(result.reason).toBe('calendar_event_id_empty');
+      expect(mockGetOrCreateCalendar).not.toHaveBeenCalled();
+      expect(mockUpdateEventCalendarInfo).not.toHaveBeenCalled();
+    });
+
+    it('statusがdeletedの場合は同期をスキップすること', () => {
+      // Arrange
+      const eventId = 'event-1';
+      const event = {
+        id: eventId,
+        title: '削除済みイベント',
+        start: '2024-11-29T04:00:00.000Z',
+        end: '2024-11-29T08:00:00.000Z',
+        status: 'deleted', // 削除済み
+        calendarEventId: 'calendar-event-id',
+        notesHash: 'old-hash',
+      };
+      mockGetEventById.mockReturnValue(event);
+
+      // Act
+      const result = mockSyncCalendarDescriptionForEvent(eventId);
+
+      // Assert
+      expect(result.skipped).toBe(true);
+      expect(result.reason).toBe('status_not_active');
+      expect(mockGetOrCreateCalendar).not.toHaveBeenCalled();
+      expect(mockUpdateEventCalendarInfo).not.toHaveBeenCalled();
+    });
+
+    it('statusがactiveでcalendarEventIdがある場合は通常通り同期されること', () => {
+      // Arrange
+      const eventId = 'event-1';
+      const event = {
+        id: eventId,
+        title: '練習',
+        start: '2024-11-29T04:00:00.000Z',
+        end: '2024-11-29T08:00:00.000Z',
+        status: 'active',
+        calendarEventId: 'calendar-event-id',
+        notesHash: 'old-hash',
+        description: 'テスト説明',
+      };
+      mockGetEventById.mockReturnValue(event);
+      mockTallyResponsesForCalendar.mockReturnValue({
+        attendCount: 5,
+        maybeCount: 2,
+        absentCount: 1,
+        unselectedCount: 0,
+        totalCount: 8,
+      });
+      mockGetResponsesForCalendar.mockReturnValue([]);
+      
+      (global.Utilities.computeDigest as jest.Mock).mockReturnValue([1, 2, 3, 4]);
+
+      // Act
+      const result = mockSyncCalendarDescriptionForEvent(eventId);
+
+      // Assert
+      expect(result.skipped).toBe(false);
+      expect(mockGetOrCreateCalendar).toHaveBeenCalled();
+      expect(mockCalendarEvent.setDescription).toHaveBeenCalled();
+      expect(mockUpdateEventCalendarInfo).toHaveBeenCalledWith(
+        eventId,
+        'calendar-event-id',
+        expect.any(String)
+      );
+    });
+
+    it('notesHashが同じ場合は更新をスキップすること', () => {
+      // Arrange
+      const eventId = 'event-1';
+      const description = '【出欠状況】\n○ 参加: 5人\n\n最終更新: 2024-01-01 12:00';
+      const hash = '01020304';
+      
+      const event = {
+        id: eventId,
+        title: '練習',
+        start: '2024-11-29T04:00:00.000Z',
+        end: '2024-11-29T08:00:00.000Z',
+        status: 'active',
+        calendarEventId: 'calendar-event-id',
+        notesHash: hash, // 既存のハッシュ
+        description: 'テスト説明',
+      };
+      mockGetEventById.mockReturnValue(event);
+      mockTallyResponsesForCalendar.mockReturnValue({
+        attendCount: 5,
+        maybeCount: 0,
+        absentCount: 0,
+        unselectedCount: 0,
+        totalCount: 5,
+      });
+      mockGetResponsesForCalendar.mockReturnValue([]);
+      
+      (global.Utilities.computeDigest as jest.Mock).mockReturnValue([1, 2, 3, 4]);
+
+      // Act
+      const result = mockSyncCalendarDescriptionForEvent(eventId);
+
+      // Assert
+      expect(result.skipped).toBe(true);
+      expect(result.reason).toBe('hash_unchanged');
+      expect(mockCalendarEvent.setDescription).not.toHaveBeenCalled();
+      expect(mockUpdateEventCalendarInfo).not.toHaveBeenCalled();
     });
   });
 });

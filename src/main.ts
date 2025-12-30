@@ -1137,6 +1137,106 @@ function adminSetDisplayPeriod(
  * @param adminToken 管理者トークン（オプション、匿名モード時）
  * @returns 削除結果
  */
+/**
+ * 管理者用: 重複カレンダーイベントを削除
+ * @param userKey ユーザー識別子（オプション、管理者判定用）
+ * @param adminToken 管理者トークン（オプション、匿名モード時）
+ * @returns 削除結果
+ */
+function adminRemoveDuplicateCalendarEvents(userKey?: string, adminToken?: string): { success: boolean; removed?: number; error?: string } {
+  try {
+    // 管理者認証
+    if (userKey && !isAdmin(userKey, adminToken)) {
+      return {
+        success: false,
+        error: '管理者権限が必要です'
+      };
+    }
+    
+    const calendarId = getOrCreateCalendar();
+    const calendar = CalendarApp.getCalendarById(calendarId);
+    
+    if (!calendar) {
+      return {
+        success: false,
+        error: 'カレンダーが見つかりません'
+      };
+    }
+    
+    // 表示期間のイベントを取得
+    const now = new Date();
+    const startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000); // 90日前
+    const endDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1年後
+    
+    const allEvents = calendar.getEvents(startDate, endDate);
+    Logger.log(`🔍 [重複削除] ${allEvents.length}件のイベントを取得`);
+    
+    // タイトル・日時・場所でグループ化
+    const eventGroups = new Map<string, GoogleAppsScript.Calendar.CalendarEvent[]>();
+    
+    for (const event of allEvents) {
+      const isAllDay = event.isAllDayEvent();
+      const start = event.getStartTime();
+      const end = event.getEndTime();
+      
+      // キーを生成（タイトル|日時|場所）
+      let dateKey: string;
+      if (isAllDay) {
+        // 終日イベント：日付のみ
+        dateKey = `${start.getFullYear()}-${String(start.getMonth() + 1).padStart(2, '0')}-${String(start.getDate()).padStart(2, '0')}`;
+      } else {
+        // 時間指定イベント：ISO形式
+        dateKey = start.toISOString();
+      }
+      
+      const key = `${event.getTitle()}|${dateKey}|${event.getLocation() || ''}|${isAllDay}`;
+      
+      if (!eventGroups.has(key)) {
+        eventGroups.set(key, []);
+      }
+      eventGroups.get(key)!.push(event);
+    }
+    
+    // 重複を削除（最初の1件だけ残す）
+    let duplicatesRemoved = 0;
+    
+    eventGroups.forEach((events, key) => {
+      if (events.length > 1) {
+        Logger.log(`🔍 [重複検出] ${key.split('|')[0]} (${events.length}件)`);
+        
+        // 最新の更新日時を持つイベントを残す
+        events.sort((a, b) => b.getLastUpdated().getTime() - a.getLastUpdated().getTime());
+        
+        // 最初の1件以外を削除
+        for (let i = 1; i < events.length; i++) {
+          try {
+            const eventId = events[i].getId();
+            events[i].deleteEvent();
+            duplicatesRemoved++;
+            Logger.log(`  ✅ [削除] ${eventId}`);
+          } catch (deleteError) {
+            Logger.log(`  ⚠️ [削除失敗] ${(deleteError as Error).message}`);
+          }
+        }
+      }
+    });
+    
+    Logger.log(`✅ [重複削除完了] ${duplicatesRemoved}件の重複を削除しました`);
+    
+    return {
+      success: true,
+      removed: duplicatesRemoved
+    };
+  } catch (error) {
+    Logger.log(`❌ [重複削除エラー] ${(error as Error).message}`);
+    Logger.log((error as Error).stack);
+    return {
+      success: false,
+      error: (error as Error).message
+    };
+  }
+}
+
 function adminCleanupAllData(
   userKey?: string,
   adminToken?: string

@@ -969,9 +969,6 @@ function syncResponsesDiffToCalendar(
                   userDescription = userDescription.substring(0, attendanceIndex).trim();
                 }
                 
-                // カレンダーイベントIDが含まれている場合は除去（@google.com で終わる文字列）
-                userDescription = userDescription.replace(/[a-z0-9]+@google\.com/gi, '').trim();
-                
                 // イベント情報を更新
                 updateEvent(event.id, {
                   title: calendarEvent.getTitle(),

@@ -244,11 +244,15 @@ npm test
 
 詳細なドキュメントは `docs/` ディレクトリにあります。
 
+### ユーザー向け
 - **[仕様書](docs/SPECIFICATION.md)** - 機能仕様、技術仕様、データモデル、セキュリティの詳細
 - **[運用マニュアル](docs/OPERATION_MANUAL.md)** - 日常的な運用方法
 - **[セットアップ手順](docs/SETUP_GUIDE.md)** - 初回セットアップガイド（完全版）
 - **[定期同期設定ガイド](docs/CRON_SYNC_SETUP_GUIDE.md)** - cron設定手順
 - **[カレンダー公開設定ガイド](docs/CALENDAR_PUBLIC_SETUP.md)** - カレンダー公開設定手順
+
+### 開発者向け
+- **[AIエージェントガイドライン](AGENTS.md)** - AIによるコード生成・修正時のルール（テストファースト原則等）
 
 ## 🔒 セキュリティと機密情報の管理
 

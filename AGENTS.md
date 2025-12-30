@@ -224,8 +224,3 @@ AI: 「承知しました。実装を進めますが、AGENTS.mdのルールに�
 2. 異常系: ...」
 ```
 
----
-
-**最終更新**: 2025-12-31
-**プロジェクト**: Union Board (Tokyo Music Union Event Calendar)
-

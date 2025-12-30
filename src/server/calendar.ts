@@ -488,6 +488,7 @@ function upsertCalendarEvent(event: AttendanceEvent, forceCreate: boolean = fals
     // 終日イベントかどうかを判定（フラグが保存されている場合はそれを使用、未設定の場合は計算）
     let isAllDay: boolean;
     let startDateOnly: Date | null = null;
+    let endDateOnly: Date | null = null;
     if (event.isAllDay !== undefined) {
       // フラグが保存されている場合はそれを使用
       isAllDay = event.isAllDay;
@@ -495,7 +496,9 @@ function upsertCalendarEvent(event: AttendanceEvent, forceCreate: boolean = fals
       if (isAllDay) {
         const jstOffset = 9 * 60 * 60 * 1000;
         const jstStart = new Date(startDate.getTime() + jstOffset);
+        const jstEnd = new Date(endDate.getTime() + jstOffset);
         startDateOnly = new Date(Date.UTC(jstStart.getUTCFullYear(), jstStart.getUTCMonth(), jstStart.getUTCDate()));
+        endDateOnly = new Date(Date.UTC(jstEnd.getUTCFullYear(), jstEnd.getUTCMonth(), jstEnd.getUTCDate()));
       }
     } else {
       // フラグが未設定の場合は計算（既存データの互換性のため）
@@ -519,7 +522,9 @@ function upsertCalendarEvent(event: AttendanceEvent, forceCreate: boolean = fals
       if (isAllDay) {
         const jstOffset = 9 * 60 * 60 * 1000;
         const jstStart = new Date(startDate.getTime() + jstOffset);
+        const jstEnd = new Date(endDate.getTime() + jstOffset);
         startDateOnly = new Date(Date.UTC(jstStart.getUTCFullYear(), jstStart.getUTCMonth(), jstStart.getUTCDate()));
+        endDateOnly = new Date(Date.UTC(jstEnd.getUTCFullYear(), jstEnd.getUTCMonth(), jstEnd.getUTCDate()));
       }
     }
     
@@ -674,9 +679,10 @@ function upsertCalendarEvent(event: AttendanceEvent, forceCreate: boolean = fals
           calendarEvent.setTitle(event.title);
         }
         if (timeChanged) {
-          if (isAllDay && startDateOnly) {
-            // 終日イベントの場合は日付のみ設定
-            calendarEvent.setAllDayDate(startDateOnly);
+          if (isAllDay && startDateOnly && endDateOnly) {
+            // 終日イベントの場合は開始日と終了日を設定
+            // endDateOnlyは「最終日の翌日」を指すため、setAllDayDatesに直接渡す
+            calendarEvent.setAllDayDates(startDateOnly, endDateOnly);
           } else {
             calendarEvent.setTime(startDate, endDate);
           }
@@ -703,11 +709,13 @@ function upsertCalendarEvent(event: AttendanceEvent, forceCreate: boolean = fals
     try {
       let newCalendarEvent: GoogleAppsScript.Calendar.CalendarEvent;
       
-      if (isAllDay && startDateOnly) {
+      if (isAllDay && startDateOnly && endDateOnly) {
         // 終日イベントとして作成
+        // endDateOnlyは「最終日の翌日」を指すため、createAllDayEventに直接渡す
         newCalendarEvent = calendar.createAllDayEvent(
           event.title,
           startDateOnly,
+          endDateOnly,
           {
             location: event.location || '',
             description: description

@@ -1645,10 +1645,15 @@ function syncAll(limitToDisplayPeriod: boolean = false): { success: number, fail
   }
   
   // デフォルト期間を明示的に設定（pullFromCalendarと説明欄同期で同じ期間を使用するため）
-  if (!syncStartDate && !syncEndDate) {
+  // 各日付に対して独立してデフォルトを適用（pullFromCalendarと同じロジック）
+  if (!syncStartDate || !syncEndDate) {
     const now = new Date();
-    syncStartDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30日前
-    syncEndDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1年後
+    if (!syncStartDate) {
+      syncStartDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // 30日前
+    }
+    if (!syncEndDate) {
+      syncEndDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1年後
+    }
   }
   
   // カレンダー → アプリ同期

@@ -93,9 +93,13 @@ function computeHash(text: string): string {
       return '';
     }
     
+    // hash計算時は「最終更新」行を除外（タイムスタンプの変化で不要な更新を防ぐ）
+    // カレンダーの説明文には「最終更新」を含めるが、hashには含めない
+    const normalizedText = text.replace(/\n最終更新: \d{4}-\d{2}-\d{2} \d{2}:\d{2}\s*$/m, '');
+    
     const rawHash = Utilities.computeDigest(
       Utilities.DigestAlgorithm.SHA_256,
-      text,
+      normalizedText,
       Utilities.Charset.UTF_8
     );
     
@@ -148,6 +152,9 @@ function buildDescriptionWithMemberMap(
     });
     
     const totalCount = attendCount + maybeCount + absentCount + unselectedCount;
+    
+    const now = new Date();
+    const formattedDate = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm');
     
     let description = '';
     
@@ -263,6 +270,8 @@ function buildDescriptionWithMemberMap(
       description += '（コメントなし）\n';
     }
     
+    description += `\n最終更新: ${formattedDate}`;
+    
     return description;
   } catch (error) {
     Logger.log(`❌ エラー: 説明文生成失敗 (buildDescriptionWithMemberMap) - ${(error as Error).message}`);
@@ -281,6 +290,8 @@ function buildDescriptionWithMemberMap(
 function buildDescription(eventId: string, userDescription?: string, includePartBreakdown: boolean = false): string {
   try {
     const tally = tallyResponses(eventId);
+    const now = new Date();
+    const formattedDate = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm');
     
     let description = '';
     
@@ -440,6 +451,8 @@ function buildDescription(eventId: string, userDescription?: string, includePart
       Logger.log(`⚠️ スタックトレース: ${(error as Error).stack}`);
       description += '（コメント取得エラー）\n';
     }
+    
+    description += `\n最終更新: ${formattedDate}`;
     
     return description;
   } catch (error) {

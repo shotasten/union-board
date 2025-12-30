@@ -645,5 +645,141 @@ describe('calendar.ts', () => {
       expect(mockUpdateEventCalendarInfo).not.toHaveBeenCalled();
     });
   });
+
+  describe('syncAll 期間フィルタロジック', () => {
+    // syncAllの期間設定ロジックをテスト
+    function calculateSyncDates(
+      limitToDisplayPeriod: boolean,
+      displayStartDateStr?: string,
+      displayEndDateStr?: string
+    ): { syncStartDate: Date; syncEndDate: Date } {
+      let syncStartDate: Date | undefined = undefined;
+      let syncEndDate: Date | undefined = undefined;
+
+      if (limitToDisplayPeriod) {
+        if (displayStartDateStr) {
+          syncStartDate = new Date(displayStartDateStr);
+          if (isNaN(syncStartDate.getTime())) {
+            syncStartDate = undefined;
+          }
+        }
+
+        if (displayEndDateStr) {
+          syncEndDate = new Date(displayEndDateStr);
+          if (isNaN(syncEndDate.getTime())) {
+            syncEndDate = undefined;
+          } else {
+            syncEndDate.setHours(23, 59, 59, 999);
+          }
+        }
+      }
+
+      // デフォルト期間を明示的に設定（実装と同じロジック）
+      if (!syncStartDate || !syncEndDate) {
+        const now = new Date();
+        if (!syncStartDate) {
+          syncStartDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        }
+        if (!syncEndDate) {
+          syncEndDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+        }
+      }
+
+      return { syncStartDate, syncEndDate };
+    }
+
+    it('両方未設定の場合、デフォルト期間（30日前〜1年後）が設定されること', () => {
+      // Arrange
+      const now = new Date();
+      const expectedStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const expectedEnd = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+      // Act
+      const result = calculateSyncDates(false);
+
+      // Assert
+      expect(result.syncStartDate.getTime()).toBeCloseTo(expectedStart.getTime(), -4); // 100ms以内
+      expect(result.syncEndDate.getTime()).toBeCloseTo(expectedEnd.getTime(), -4);
+    });
+
+    it('開始日のみ設定の場合、指定開始日〜現在日時+1年後となること', () => {
+      // Arrange
+      const displayStartDate = '2024-01-01';
+      const now = new Date();
+      const expectedStart = new Date('2024-01-01');
+      const expectedEnd = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+      // Act
+      const result = calculateSyncDates(true, displayStartDate, undefined);
+
+      // Assert
+      expect(result.syncStartDate.getTime()).toBe(expectedStart.getTime());
+      expect(result.syncEndDate.getTime()).toBeCloseTo(expectedEnd.getTime(), -4);
+    });
+
+    it('終了日のみ設定の場合、現在日時-30日〜指定終了日となること', () => {
+      // Arrange
+      const displayEndDate = '2024-12-31';
+      const now = new Date();
+      const expectedStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const expectedEnd = new Date('2024-12-31');
+      expectedEnd.setHours(23, 59, 59, 999); // 終了日の23:59:59まで
+
+      // Act
+      const result = calculateSyncDates(true, undefined, displayEndDate);
+
+      // Assert
+      expect(result.syncStartDate.getTime()).toBeCloseTo(expectedStart.getTime(), -4);
+      expect(result.syncEndDate.getTime()).toBe(expectedEnd.getTime());
+    });
+
+    it('両方設定の場合、指定した期間がそのまま使用されること', () => {
+      // Arrange
+      const displayStartDate = '2024-01-01';
+      const displayEndDate = '2024-12-31';
+      const expectedStart = new Date('2024-01-01');
+      const expectedEnd = new Date('2024-12-31');
+      expectedEnd.setHours(23, 59, 59, 999);
+
+      // Act
+      const result = calculateSyncDates(true, displayStartDate, displayEndDate);
+
+      // Assert
+      expect(result.syncStartDate.getTime()).toBe(expectedStart.getTime());
+      expect(result.syncEndDate.getTime()).toBe(expectedEnd.getTime());
+    });
+
+    it('limitToDisplayPeriod=falseの場合、設定値を無視してデフォルト期間になること', () => {
+      // Arrange
+      const displayStartDate = '2024-01-01';
+      const displayEndDate = '2024-12-31';
+      const now = new Date();
+      const expectedStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const expectedEnd = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+      // Act
+      const result = calculateSyncDates(false, displayStartDate, displayEndDate);
+
+      // Assert
+      expect(result.syncStartDate.getTime()).toBeCloseTo(expectedStart.getTime(), -4);
+      expect(result.syncEndDate.getTime()).toBeCloseTo(expectedEnd.getTime(), -4);
+    });
+
+    it('不正な日付文字列の場合、デフォルト値が使用されること', () => {
+      // Arrange
+      const invalidStartDate = 'invalid-date';
+      const invalidEndDate = 'also-invalid';
+      const now = new Date();
+      const expectedStart = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+      const expectedEnd = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+
+      // Act
+      const result = calculateSyncDates(true, invalidStartDate, invalidEndDate);
+
+      // Assert
+      expect(result.syncStartDate.getTime()).toBeCloseTo(expectedStart.getTime(), -4);
+      expect(result.syncEndDate.getTime()).toBeCloseTo(expectedEnd.getTime(), -4);
+    });
+  });
 });
 

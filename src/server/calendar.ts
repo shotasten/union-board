@@ -149,9 +149,6 @@ function buildDescriptionWithMemberMap(
     
     const totalCount = attendCount + maybeCount + absentCount + unselectedCount;
     
-    const now = new Date();
-    const formattedDate = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm');
-    
     let description = '';
     
     // ユーザーが入力した説明があれば先頭に追加
@@ -266,8 +263,6 @@ function buildDescriptionWithMemberMap(
       description += '（コメントなし）\n';
     }
     
-    description += `\n最終更新: ${formattedDate}`;
-    
     return description;
   } catch (error) {
     Logger.log(`❌ エラー: 説明文生成失敗 (buildDescriptionWithMemberMap) - ${(error as Error).message}`);
@@ -286,8 +281,6 @@ function buildDescriptionWithMemberMap(
 function buildDescription(eventId: string, userDescription?: string, includePartBreakdown: boolean = false): string {
   try {
     const tally = tallyResponses(eventId);
-    const now = new Date();
-    const formattedDate = Utilities.formatDate(now, 'Asia/Tokyo', 'yyyy-MM-dd HH:mm');
     
     let description = '';
     
@@ -447,8 +440,6 @@ function buildDescription(eventId: string, userDescription?: string, includePart
       Logger.log(`⚠️ スタックトレース: ${(error as Error).stack}`);
       description += '（コメント取得エラー）\n';
     }
-    
-    description += `\n最終更新: ${formattedDate}`;
     
     return description;
   } catch (error) {

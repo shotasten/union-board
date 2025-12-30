@@ -427,7 +427,7 @@ Googleカレンダーのイベント説明欄には以下が自動で表示さ�
    - Googleカレンダーを開く
    - 左側のカレンダー一覧から該当カレンダーの「...」→「設定と共有」
    - 「カレンダーの統合」セクションで「カレンダーID」をコピー
-   - 例: `791d1152318995c48caec6efbfb3bd9cd96a767d37d3ba6b4e8d81f65369f16e@group.calendar.google.com`
+   - 例: `abc123example456def789ghi012jkl345mno678pqr901stu234vwx567yz@group.calendar.google.com`
 
 2. **ConfigシートのCALENDAR_IDに貼り付け**
    - スプレッドシートのConfigシートを開く

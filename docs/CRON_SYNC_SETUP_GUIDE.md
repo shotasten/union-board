@@ -68,7 +68,7 @@ Google カレンダーとアプリの双方向同期を自動化する cron ジ�
    - **実行するデプロイを選択**: `Head`
    - **イベントのソースを選択**: `カレンダーから`
    - **カレンダーの詳細を入力**: `カレンダー更新済み`
-   - **カレンダーのオーナーのメールアドレス**: ConfigシートのCALENDAR_IDの値（例: `791d115231899@group.calendar.google.com`）
+   - **カレンダーのオーナーのメールアドレス**: ConfigシートのCALENDAR_IDの値（例: `abc123example456def789ghi012jkl345mno678pqr901stu234vwx567yz@group.calendar.google.com`）
 4. **保存** をクリック
 
 > **推奨理由**: 
@@ -78,7 +78,7 @@ Google カレンダーとアプリの双方向同期を自動化する cron ジ�
 
 > **注意**: 
 > - カレンダーのオーナーのメールアドレスは、Configシートの`CALENDAR_ID`に設定されているカレンダーIDを入力してください
-> - 例: `791d115231899@group.calendar.google.com` のような形式
+> - 例: `abc123example456def789ghi012jkl345mno678pqr901stu234vwx567yz@group.calendar.google.com` のような形式
 > - カレンダーIDは`getCalendarIdForSharing()`関数で確認できます
 
 #### トリガー3: 5分ごとの高頻度同期（オプション、土日12:40-13:20用）
@@ -350,7 +350,7 @@ function checkLastSyncTime() {
 
 2. **設定方法**:
    - カレンダーのオーナーのメールアドレスは、ConfigシートのCALENDAR_IDの値を入力
-   - 例: `791d115231899@group.calendar.google.com`
+   - 例: `abc123example456def789ghi012jkl345mno678pqr901stu234vwx567yz@group.calendar.google.com`
    - `getCalendarIdForSharing()`関数で確認可能
 
 3. **制限事項**:

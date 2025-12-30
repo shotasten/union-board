@@ -137,7 +137,7 @@
 1. 「設定と共有」画面で下にスクロール
 2. **「カレンダーの統合」** セクションを探す
 3. **「カレンダーID」** が表示されています
-   - 例: `2a650d5f4de46c775a9132e3890a7860d6e13d8a5b8ff30633c34dd96ea7be78@group.calendar.google.com`
+   - 例: `abc123example456def789ghi012jkl345mno678pqr901stu234vwx567yz@group.calendar.google.com`
 4. このIDは**Configシートの `CALENDAR_ID` と同じ値**です
 5. アプリは既にこのIDを使用しています
 

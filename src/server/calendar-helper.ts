@@ -17,7 +17,7 @@ function isAllDayEvent(start: string, end: string): boolean {
   const jstStart = new Date(jstStartTime);
   const jstEnd = new Date(jstEndTime);
   
-  // 開始時刻が00:00:00、終了時刻が23:59:59（同じ日）または翌日の00:00:00の場合、終日イベントと判定
+  // 開始時刻が00:00:00、終了時刻が00:00:00（任意の日数後）または23:59:59（同じ日）の場合、終日イベントと判定
   const startHour = jstStart.getUTCHours();
   const startMinute = jstStart.getUTCMinutes();
   const startSecond = jstStart.getUTCSeconds();
@@ -25,15 +25,16 @@ function isAllDayEvent(start: string, end: string): boolean {
   const endMinute = jstEnd.getUTCMinutes();
   const endSecond = jstEnd.getUTCSeconds();
   
-  // 開始日と終了日が同じか、終了日が開始日の翌日で時刻が00:00:00の場合
+  // 開始日と終了日が同じかどうか
   const startDateOnly = new Date(Date.UTC(jstStart.getUTCFullYear(), jstStart.getUTCMonth(), jstStart.getUTCDate()));
   const endDateOnly = new Date(Date.UTC(jstEnd.getUTCFullYear(), jstEnd.getUTCMonth(), jstEnd.getUTCDate()));
   const isSameDay = startDateOnly.getTime() === endDateOnly.getTime();
-  const isNextDay = endDateOnly.getTime() - startDateOnly.getTime() === 24 * 60 * 60 * 1000;
   
-  // 終日イベントの判定: 開始が00:00:00で、終了が23:59:59（同じ日）または翌日00:00:00
+  // 終日イベントの判定:
+  // 1. 開始が00:00:00であること
+  // 2. 終了が00:00:00（複数日対応）または23:59:59（同じ日のみ）であること
   return (startHour === 0 && startMinute === 0 && startSecond === 0) &&
-         ((isSameDay && endHour === 23 && endMinute === 59) ||
-          (isNextDay && endHour === 0 && endMinute === 0 && endSecond === 0));
+         ((endHour === 0 && endMinute === 0 && endSecond === 0) ||
+          (isSameDay && endHour === 23 && endMinute === 59));
 }
 

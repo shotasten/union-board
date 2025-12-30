@@ -574,15 +574,17 @@ function deleteEvent(eventId: string): boolean {
 /**
  * 既存イベントのisAllDayフラグを一括設定
  * すべてのイベントに対して終日判定を行い、isAllDayフラグを設定します
+ * @param forceUpdate 既に設定されているフラグも強制的に再計算する（デフォルト: false）
  * @returns 処理結果（更新件数、エラー数など）
  */
-function batchUpdateIsAllDayFlags(): { 
+function batchUpdateIsAllDayFlags(forceUpdate: boolean = false): { 
   total: number; 
   updated: number; 
   skipped: number; 
   errors: string[];
 } {
   Logger.log('=== isAllDayフラグ一括設定開始 ===');
+  Logger.log(`強制更新モード: ${forceUpdate ? '有効' : '無効'}`);
   
   const result = {
     total: 0,
@@ -598,8 +600,8 @@ function batchUpdateIsAllDayFlags(): {
     
     for (const event of events) {
       try {
-        // 既にisAllDayフラグが設定されている場合はスキップ
-        if (event.isAllDay !== undefined) {
+        // 強制更新モードでない場合、既にisAllDayフラグが設定されている場合はスキップ
+        if (!forceUpdate && event.isAllDay !== undefined) {
           result.skipped++;
           continue;
         }
@@ -607,14 +609,20 @@ function batchUpdateIsAllDayFlags(): {
         // 終日イベント判定
         const isAllDay = isAllDayEvent(event.start, event.end);
         
-        // フラグを更新
-        const updateResult = updateEvent(event.id, { isAllDay: isAllDay });
-        
-        if (updateResult) {
-          result.updated++;
+        // 強制更新モードの場合、現在の値と異なる場合のみ更新
+        if (!forceUpdate || event.isAllDay !== isAllDay) {
+          // フラグを更新
+          const updateResult = updateEvent(event.id, { isAllDay: isAllDay });
+          
+          if (updateResult) {
+            result.updated++;
+            Logger.log(`✅ 更新成功: ${event.title} - isAllDay: ${event.isAllDay} → ${isAllDay}`);
+          } else {
+            result.errors.push(`更新失敗: ${event.id} - ${event.title}`);
+            Logger.log(`❌ 更新失敗: ${event.id} - ${event.title}`);
+          }
         } else {
-          result.errors.push(`更新失敗: ${event.id} - ${event.title}`);
-          Logger.log(`❌ 更新失敗: ${event.id} - ${event.title}`);
+          result.skipped++;
         }
       } catch (error) {
         result.errors.push(`エラー: ${event.id} - ${event.title} - ${(error as Error).message}`);

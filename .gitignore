@@ -4,6 +4,9 @@ node_modules/
 # Build output
 dist/
 
+# Test coverage
+coverage/
+
 # IDE
 .vscode/
 .idea/
@@ -25,3 +28,4 @@ Thumbs.db
 # Built HTML (contains sensitive URL)
 public/index.html
 
+filter-script.sh

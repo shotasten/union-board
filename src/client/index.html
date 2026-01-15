@@ -5953,30 +5953,74 @@
         .syncAllEvents(currentUserKey, localStorage.getItem('adminToken'), true);
     }
 
-    // モーダル外をクリックで閉じる
-    window.onclick = function (event) {
+    /**
+     * モーダル外（バックドロップ）クリック/タップで閉じる処理
+     * PC/スマホどちらでも安定して動作するように、クリック／タッチイベントの両方に対応
+     */
+    function setupModalBackdropClose(modalElement, closeFunction) {
+      if (!modalElement || !closeFunction) {
+        return;
+      }
+
+      function handleBackdropClick(event) {
+        // モーダルが表示されていない場合は何もしない
+        if (window.getComputedStyle(modalElement).display === 'none') {
+          return;
+        }
+
+        const content = modalElement.querySelector('.modal-content');
+        if (!content) {
+          return;
+        }
+
+        // クリック/タップされた要素が.modal-contentの外側（バックドロップ部分）であることを確認
+        if (!content.contains(event.target)) {
+          closeFunction();
+          event.preventDefault();
+          event.stopPropagation();
+        }
+      }
+
+      // クリックイベント
+      modalElement.addEventListener('click', handleBackdropClick);
+
+      // タッチイベント（スマホ対応）
+      modalElement.addEventListener('touchend', handleBackdropClick, { passive: true });
+    }
+
+    // 各モーダルにバックドロップクリック/タップで閉じる機能を設定
+    // DOMContentLoaded後に実行されるように、既存のコードの最後に配置
+    function initializeModalBackdropClose() {
       const eventModal = document.getElementById('event-modal');
       const confirmDialog = document.getElementById('delete-confirm');
       const adminLoginModal = document.getElementById('admin-login-modal');
       const memberEditModal = document.getElementById('member-edit-modal');
-
-      if (event.target === eventModal) {
-        closeEventModal();
-      }
-      if (event.target === confirmDialog) {
-        closeDeleteConfirm();
-      }
-      if (event.target === adminLoginModal) {
-        closeAdminLoginModal();
-      }
-      if (event.target === memberEditModal) {
-        closeMemberEditModal();
-      }
       const eventDetailModal = document.getElementById('event-detail-modal');
-      if (event.target === eventDetailModal) {
-        closeEventDetailModal();
+
+      if (eventModal) {
+        setupModalBackdropClose(eventModal, closeEventModal);
       }
-    };
+      if (confirmDialog) {
+        setupModalBackdropClose(confirmDialog, closeDeleteConfirm);
+      }
+      if (adminLoginModal) {
+        setupModalBackdropClose(adminLoginModal, closeAdminLoginModal);
+      }
+      if (memberEditModal) {
+        setupModalBackdropClose(memberEditModal, closeMemberEditModal);
+      }
+      if (eventDetailModal) {
+        setupModalBackdropClose(eventDetailModal, closeEventDetailModal);
+      }
+    }
+
+    // ページ読み込み完了後に初期化
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', initializeModalBackdropClose);
+    } else {
+      // 既に読み込み完了している場合は即座に実行
+      initializeModalBackdropClose();
+    }
 
     /**
      * 全画面ローダーを表示

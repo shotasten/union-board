@@ -1,7 +1,7 @@
 /// <reference path="../../types/models.ts" />
 
 /**
- * 終日イベント判定ヘルパー関数（テスト対象）
+ * 終日イベント判定ヘルパー関数
  * @param start 開始日時（ISO 8601形式）
  * @param end 終了日時（ISO 8601形式）
  * @returns 終日イベントの場合true

@@ -240,7 +240,7 @@ Deno.serve(async (req: Request) => {
     p_token: adminToken,
   });
   if (!tokenOk) {
-    return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+    return new Response(JSON.stringify({ success: 0, failed: 0, errors: ['Unauthorized'] }), {
       status: 401,
       headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
     });
@@ -248,8 +248,8 @@ Deno.serve(async (req: Request) => {
 
   if (!CALENDAR_ID) {
     return new Response(
-      JSON.stringify({ success: false, error: 'GOOGLE_CALENDAR_ID not configured' }),
-      { status: 500, headers: { 'Content-Type': 'application/json' } },
+      JSON.stringify({ success: 0, failed: 0, errors: ['GOOGLE_CALENDAR_ID not configured'] }),
+      { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } },
     );
   }
 

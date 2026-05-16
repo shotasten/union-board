@@ -6244,7 +6244,8 @@
               renderEvents();
             });
           } else {
-            showToast('同期失敗: ' + result.errors.join(', '), 'error');
+            const errMsg = result.error || (result.errors && result.errors.join(', ')) || '同期に失敗しました';
+            showToast('同期失敗: ' + errMsg, 'error');
           }
         })
         .withFailureHandler((error) => {

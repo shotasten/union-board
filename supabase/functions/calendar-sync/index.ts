@@ -234,23 +234,20 @@ Deno.serve(async (req: Request) => {
 
   const { spaceId, adminToken, action = 'syncAll', eventId } = body;
 
+  const corsHeaders = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
+  const ok = (body: unknown) => new Response(JSON.stringify(body), { headers: corsHeaders });
+
   // Verify admin token
   const { data: tokenOk } = await db.rpc('check_admin_token', {
     p_space_id: spaceId,
     p_token: adminToken,
   });
   if (!tokenOk) {
-    return new Response(JSON.stringify({ success: 0, failed: 0, errors: ['Unauthorized'] }), {
-      status: 401,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-    });
+    return ok({ success: 0, failed: 0, errors: ['Unauthorized: token mismatch'] });
   }
 
   if (!CALENDAR_ID) {
-    return new Response(
-      JSON.stringify({ success: 0, failed: 0, errors: ['GOOGLE_CALENDAR_ID not configured'] }),
-      { status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } },
-    );
+    return ok({ success: 0, failed: 0, errors: ['GOOGLE_CALENDAR_ID not configured'] });
   }
 
   let query = db.from('events').select('*').eq('space_id', spaceId);
@@ -263,14 +260,9 @@ Deno.serve(async (req: Request) => {
 
   const { data, error } = await query;
   if (error) {
-    return new Response(JSON.stringify({ success: 0, failed: 0, errors: [error.message] }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    });
+    return ok({ success: 0, failed: 0, errors: [error.message] });
   }
 
   const result = await syncEvents(spaceId, (data ?? []) as DbEvent[]);
-  return new Response(JSON.stringify(result), {
-    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
-  });
+  return ok(result);
 });

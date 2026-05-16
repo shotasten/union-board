@@ -259,12 +259,33 @@ Deno.serve(async (req: Request) => {
     query = query.neq('status', 'deleted');
   }
 
-  const { data, error } = await query;
-  if (error) {
-    return ok({ success: 0, failed: 0, errors: [error.message] });
+  const [{ data, error }, { data: responses, error: rErr }] = await Promise.all([
+    query,
+    db.from('responses').select('event_id,status').eq('space_id', spaceId),
+  ]);
+  if (error) return ok({ success: 0, failed: 0, errors: [error.message] });
+  if (rErr) return ok({ success: 0, failed: 0, errors: [rErr.message] });
+
+  // Build attendance summary per event
+  const attendanceMap: Record<string, { attend: number; maybe: number; absent: number }> = {};
+  for (const r of (responses ?? []) as { event_id: string; status: string }[]) {
+    if (!attendanceMap[r.event_id]) attendanceMap[r.event_id] = { attend: 0, maybe: 0, absent: 0 };
+    if (r.status === 'attend') attendanceMap[r.event_id].attend++;
+    else if (r.status === 'maybe') attendanceMap[r.event_id].maybe++;
+    else if (r.status === 'absent') attendanceMap[r.event_id].absent++;
   }
 
-  const result = await syncEvents(spaceId, (data ?? []) as DbEvent[]);
+  // Append attendance to event description
+  const eventsWithAttendance = ((data ?? []) as DbEvent[]).map((ev) => {
+    const a = attendanceMap[ev.id];
+    const summary = a ? `○: ${a.attend}人 / △: ${a.maybe}人 / ×: ${a.absent}人` : null;
+    return {
+      ...ev,
+      description: [ev.description, summary].filter(Boolean).join('\n\n'),
+    };
+  });
+
+  const result = await syncEvents(spaceId, eventsWithAttendance);
   return ok(result);
   } catch (e) {
     return ok({ success: 0, failed: 0, errors: [`Unhandled error: ${(e as Error).message}`] });

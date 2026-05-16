@@ -3190,34 +3190,21 @@
         // 終日かどうかを判定（event.isAllDayフラグを使用）
         const isAllDay = event.isAllDay === true || event.isAllDay === 'TRUE' || event.isAllDay === 1 || event.isAllDay === '1';
 
-        // 開始日と終了日が異なる日付かどうかを判定（UTC文字列から直接日付部分を抽出）
-        // 終日イベントの場合、endが翌日の00:00:00でも1日の終日として扱う
-        let startDateOnlyStr = getDateFromUTC(event.start);
-        let endDateOnlyStr = getDateFromUTC(event.end);
-
-        if (isAllDay) {
-          // 終日イベントの場合、endが00:00:00であれば前日の日付として扱う（Googleカレンダー仕様）
-          const endDateUTC = new Date(event.end);
-          if (endDateUTC.getUTCHours() === 0 && endDateUTC.getUTCMinutes() === 0 && endDateUTC.getUTCSeconds() === 0) {
-            // 終了日から1日引いて表示
-            const adjustedEndDate = new Date(endDateUTC);
-            adjustedEndDate.setDate(adjustedEndDate.getDate() - 1);
-            endDateOnlyStr = getDateFromUTC(adjustedEndDate.toISOString());
-          }
-        }
-
-        const isMultiDay = startDateOnlyStr !== endDateOnlyStr;
+        // ローカル日付で開始・終了を比較（UTC文字列だとJST保存時にズレる）
+        // 終日イベントのendはGoogleカレンダー仕様で翌日00:00なので1日引く
+        const displayEndDate = isAllDay
+          ? new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() - 1)
+          : endDate;
+        const isMultiDay = startDate.getFullYear() !== displayEndDate.getFullYear() ||
+          startDate.getMonth() !== displayEndDate.getMonth() ||
+          startDate.getDate() !== displayEndDate.getDate();
 
         let dateStrShort;
         if (isMultiDay) {
-          // 複数日の場合は開始日～終了日を表示
           const startDateDisplayStr = (startDate.getMonth() + 1) + '/' + startDate.getDate() + '(' + dayNames[startDate.getDay()] + ')';
-          // 終日イベントの場合は調整済みの終了日を使用
-          const displayEndDate = isAllDay ? new Date(endDateOnlyStr) : endDate;
           const endDateDisplayStr = (displayEndDate.getMonth() + 1) + '/' + displayEndDate.getDate() + '(' + dayNames[displayEndDate.getDay()] + ')';
           dateStrShort = startDateDisplayStr + '～' + endDateDisplayStr;
         } else {
-          // 単日の場合は開始日のみ
           dateStrShort = (startDate.getMonth() + 1) + '/' + startDate.getDate() + '(' + dayNames[startDate.getDay()] + ')';
         }
 
@@ -4229,35 +4216,22 @@
         // 終日かどうかを判定（event.isAllDayフラグを使用）
         const isAllDay = event.isAllDay === true || event.isAllDay === 'TRUE' || event.isAllDay === 1 || event.isAllDay === '1';
 
-        // 開始日と終了日が異なる日付かどうかを判定（UTC文字列から直接日付部分を抽出）
-        // 終日イベントの場合、endが翌日の00:00:00でも1日の終日として扱う
-        let startDateOnlyStr = getDateFromUTC(event.start);
-        let endDateOnlyStr = getDateFromUTC(event.end);
-
-        if (isAllDay) {
-          // 終日イベントの場合、endが00:00:00であれば前日の日付として扱う（Googleカレンダー仕様）
-          const endDateUTC = new Date(event.end);
-          if (endDateUTC.getUTCHours() === 0 && endDateUTC.getUTCMinutes() === 0 && endDateUTC.getUTCSeconds() === 0) {
-            // 終了日から1日引いて表示
-            const adjustedEndDate = new Date(endDateUTC);
-            adjustedEndDate.setDate(adjustedEndDate.getDate() - 1);
-            endDateOnlyStr = getDateFromUTC(adjustedEndDate.toISOString());
-          }
-        }
-
-        const isMultiDay = startDateOnlyStr !== endDateOnlyStr;
+        // ローカル日付で開始・終了を比較（UTC文字列だとJST保存時にズレる）
+        // 終日イベントのendはGoogleカレンダー仕様で翌日00:00なので1日引く
+        const displayEndDate = isAllDay
+          ? new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() - 1)
+          : endDate;
+        const isMultiDay = startDate.getFullYear() !== displayEndDate.getFullYear() ||
+          startDate.getMonth() !== displayEndDate.getMonth() ||
+          startDate.getDate() !== displayEndDate.getDate();
 
         const dayNames = ['日', '月', '火', '水', '木', '金', '土'];
         let dateStr;
         if (isMultiDay) {
-          // 複数日の場合は開始日～終了日を表示
           const startDateDisplayStr = startDate.getFullYear() + '年' + (startDate.getMonth() + 1) + '月' + startDate.getDate() + '日(' + dayNames[startDate.getDay()] + ')';
-          // 終日イベントの場合は調整済みの終了日を使用
-          const displayEndDate = isAllDay ? new Date(endDateOnlyStr) : endDate;
           const endDateDisplayStr = displayEndDate.getFullYear() + '年' + (displayEndDate.getMonth() + 1) + '月' + displayEndDate.getDate() + '日(' + dayNames[displayEndDate.getDay()] + ')';
           dateStr = startDateDisplayStr + '～' + endDateDisplayStr;
         } else {
-          // 単日の場合は開始日のみ
           dateStr = startDate.getFullYear() + '年' + (startDate.getMonth() + 1) + '月' + startDate.getDate() + '日(' + dayNames[startDate.getDay()] + ')';
         }
 

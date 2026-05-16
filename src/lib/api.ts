@@ -179,6 +179,12 @@ export const api = {
     return (data as DbMember[]).map(toMember);
   },
 
+  async getAllEventsForLocationHistory(): Promise<AttendanceEvent[]> {
+    const { data, error } = await supabase.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: false });
+    if (error) return [];
+    return (data as DbEvent[]).map(toEvent);
+  },
+
   // ------------------------------------------------------------------
   // Admin auth check (RPC)
   // ------------------------------------------------------------------

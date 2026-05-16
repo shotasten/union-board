@@ -244,7 +244,7 @@ Deno.serve(async (req: Request) => {
     p_token: adminToken,
   });
   if (!tokenOk) {
-    return ok({ success: 0, failed: 0, errors: ['Unauthorized: token mismatch'] });
+    return ok({ success: 0, failed: 0, errors: ['Unauthorized'] });
   }
 
   if (!CALENDAR_ID) {

@@ -1,4 +1,4 @@
-import { supabase, SPACE_ID } from './supabase';
+import { supabase, SPACE_ID, FUNCTIONS_URL } from './supabase';
 import type {
   AttendanceEvent,
   AttendanceResponse,
@@ -348,14 +348,26 @@ export const api = {
   },
 
   // ------------------------------------------------------------------
-  // Calendar sync (stub - Edge Function required, implemented later)
+  // Calendar sync (Edge Function)
   // ------------------------------------------------------------------
 
-  async syncEvent(_eventId: string, _userKey: string, _adminToken: string): Promise<{ success: boolean; error?: string }> {
-    return { success: false, error: 'カレンダー同期はまだ実装されていません' };
+  async syncEvent(eventId: string, _userKey: string, adminToken: string): Promise<{ success: boolean; error?: string }> {
+    const res = await fetch(`${FUNCTIONS_URL}/calendar-sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'sync_event', space_id: SPACE_ID, admin_token: adminToken, event_id: eventId }),
+    });
+    const data = await res.json();
+    return data as { success: boolean; error?: string };
   },
 
-  async syncAllEvents(_userKey: string, _adminToken: string, _limit: boolean): Promise<{ success: number; failed: number; errors: string[] }> {
-    return { success: 0, failed: 0, errors: ['カレンダー同期はまだ実装されていません'] };
+  async syncAllEvents(_userKey: string, adminToken: string, limit: boolean): Promise<{ success: number; failed: number; errors: string[] }> {
+    const res = await fetch(`${FUNCTIONS_URL}/calendar-sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'sync_all', space_id: SPACE_ID, admin_token: adminToken, limit }),
+    });
+    const data = await res.json();
+    return data as { success: number; failed: number; errors: string[] };
   },
 };

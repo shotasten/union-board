@@ -214,6 +214,9 @@ async function syncEvents(
   return { success, failed, errors };
 }
 
+const corsHeaders = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
+const ok = (payload: unknown) => new Response(JSON.stringify(payload), { headers: corsHeaders });
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -225,6 +228,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  try {
   const body = (await req.json()) as {
     spaceId: string;
     adminToken: string;
@@ -233,9 +237,6 @@ Deno.serve(async (req: Request) => {
   };
 
   const { spaceId, adminToken, action = 'syncAll', eventId } = body;
-
-  const corsHeaders = { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' };
-  const ok = (body: unknown) => new Response(JSON.stringify(body), { headers: corsHeaders });
 
   // Verify admin token
   const { data: tokenOk } = await db.rpc('check_admin_token', {
@@ -265,4 +266,7 @@ Deno.serve(async (req: Request) => {
 
   const result = await syncEvents(spaceId, (data ?? []) as DbEvent[]);
   return ok(result);
+  } catch (e) {
+    return ok({ success: 0, failed: 0, errors: [`Unhandled error: ${(e as Error).message}`] });
+  }
 });

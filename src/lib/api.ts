@@ -1,4 +1,4 @@
-import { supabase, SPACE_ID, FUNCTIONS_URL } from './supabase';
+import { supabase, SPACE_ID } from './supabase';
 import type {
   AttendanceEvent,
   AttendanceResponse,
@@ -352,22 +352,18 @@ export const api = {
   // ------------------------------------------------------------------
 
   async syncEvent(eventId: string, _userKey: string, adminToken: string): Promise<{ success: boolean; error?: string }> {
-    const res = await fetch(`${FUNCTIONS_URL}/calendar-sync`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'syncOne', spaceId: SPACE_ID, adminToken, eventId }),
+    const { data, error } = await supabase.functions.invoke('calendar-sync', {
+      body: { action: 'syncOne', spaceId: SPACE_ID, adminToken, eventId },
     });
-    const data = await res.json();
+    if (error) return { success: false, error: error.message };
     return data as { success: boolean; error?: string };
   },
 
   async syncAllEvents(_userKey: string, adminToken: string, limit: boolean): Promise<{ success: number; failed: number; errors: string[] }> {
-    const res = await fetch(`${FUNCTIONS_URL}/calendar-sync`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'syncAll', spaceId: SPACE_ID, adminToken, limit }),
+    const { data, error } = await supabase.functions.invoke('calendar-sync', {
+      body: { action: 'syncAll', spaceId: SPACE_ID, adminToken, limit },
     });
-    const data = await res.json();
+    if (error) return { success: 0, failed: 1, errors: [error.message] };
     return data as { success: number; failed: number; errors: string[] };
   },
 };

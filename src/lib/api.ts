@@ -355,7 +355,7 @@ export const api = {
     const res = await fetch(`${FUNCTIONS_URL}/calendar-sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'sync_event', space_id: SPACE_ID, admin_token: adminToken, event_id: eventId }),
+      body: JSON.stringify({ action: 'syncOne', spaceId: SPACE_ID, adminToken, eventId }),
     });
     const data = await res.json();
     return data as { success: boolean; error?: string };
@@ -365,7 +365,7 @@ export const api = {
     const res = await fetch(`${FUNCTIONS_URL}/calendar-sync`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'sync_all', space_id: SPACE_ID, admin_token: adminToken, limit }),
+      body: JSON.stringify({ action: 'syncAll', spaceId: SPACE_ID, adminToken, limit }),
     });
     const data = await res.json();
     return data as { success: number; failed: number; errors: string[] };

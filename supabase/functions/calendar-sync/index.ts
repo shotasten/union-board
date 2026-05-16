@@ -227,11 +227,24 @@ Deno.serve(async (req: Request) => {
 
   const body = (await req.json()) as {
     spaceId: string;
+    adminToken: string;
     action?: string;
     eventId?: string;
   };
 
-  const { spaceId, action = 'syncAll', eventId } = body;
+  const { spaceId, adminToken, action = 'syncAll', eventId } = body;
+
+  // Verify admin token
+  const { data: tokenOk } = await db.rpc('check_admin_token', {
+    p_space_id: spaceId,
+    p_token: adminToken,
+  });
+  if (!tokenOk) {
+    return new Response(JSON.stringify({ success: false, error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' },
+    });
+  }
 
   if (!CALENDAR_ID) {
     return new Response(

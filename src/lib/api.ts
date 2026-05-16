@@ -27,6 +27,38 @@ const FRONTEND_TO_DB: Record<string, string> = {
   '-': 'unselected',
 };
 
+// --- Display period filter (matches GAS getEvents() logic) ---
+
+function filterByDisplayPeriod(events: AttendanceEvent[], config: Config): AttendanceEvent[] {
+  const now = new Date();
+  let startDate: Date | null = null;
+  let endDate: Date | null = null;
+  const c = config as unknown as Record<string, string>;
+
+  if (c['SHOW_ONLY_FUTURE_EVENTS'] === 'true') {
+    startDate = now;
+  } else {
+    const s = c['DISPLAY_START_DATE'];
+    if (s) startDate = new Date(s);
+  }
+
+  const e = c['DISPLAY_END_DATE'];
+  if (e) {
+    endDate = new Date(e);
+    endDate.setHours(23, 59, 59, 999);
+  }
+
+  if (!startDate && !endDate) return events;
+
+  return events.filter((ev) => {
+    const evStart = new Date(ev.start);
+    const evEnd = new Date(ev.end);
+    if (startDate && evEnd < startDate) return false;
+    if (endDate && evStart > endDate) return false;
+    return true;
+  });
+}
+
 // --- Converters ---
 
 function toEvent(row: DbEvent): AttendanceEvent {
@@ -101,10 +133,15 @@ export const api = {
       (config as unknown as Record<string, string>)[key] = value;
     });
 
+    const events = filterByDisplayPeriod(
+      (eventsResult.data as DbEvent[] | null)?.map(toEvent) ?? [],
+      config,
+    );
+
     return {
       config,
       members: (membersResult.data as DbMember[] | null)?.map(toMember) ?? [],
-      events: (eventsResult.data as DbEvent[] | null)?.map(toEvent) ?? [],
+      events,
       responsesMap: toResponsesMap((responsesResult.data as DbResponse[] | null) ?? []),
     };
   },
@@ -115,15 +152,23 @@ export const api = {
     responsesMap: Record<string, AttendanceResponse[]>;
     error?: string;
   }> {
-    const [eventsResult, responsesResult] = await Promise.all([
+    const [configResult, eventsResult, responsesResult] = await Promise.all([
+      supabase.from('config').select('key,value').eq('space_id', SPACE_ID),
       supabase.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: true }),
       supabase.from('responses').select('*').eq('space_id', SPACE_ID),
     ]);
     if (eventsResult.error) return { success: false, events: [], responsesMap: {}, error: eventsResult.error.message };
     if (responsesResult.error) return { success: false, events: [], responsesMap: {}, error: responsesResult.error.message };
+
+    const config: Config = { AUTH_MODE: 'anonymous' };
+    (configResult.data as DbConfig[] | null)?.forEach(({ key, value }) => {
+      (config as unknown as Record<string, string>)[key] = value;
+    });
+
+    const events = filterByDisplayPeriod((eventsResult.data as DbEvent[]).map(toEvent), config);
     return {
       success: true,
-      events: (eventsResult.data as DbEvent[]).map(toEvent),
+      events,
       responsesMap: toResponsesMap((responsesResult.data as DbResponse[]) ?? []),
     };
   },

@@ -259,31 +259,76 @@ Deno.serve(async (req: Request) => {
     query = query.neq('status', 'deleted');
   }
 
-  const [{ data, error }, { data: responses, error: rErr }] = await Promise.all([
+  const [{ data, error }, { data: responses, error: rErr }, { data: members, error: mErr }] = await Promise.all([
     query,
-    db.from('responses').select('event_id,status').eq('space_id', spaceId),
+    db.from('responses').select('event_id,user_key,status,comment').eq('space_id', spaceId),
+    db.from('members').select('user_key,name,display_name').eq('space_id', spaceId),
   ]);
   if (error) return ok({ success: 0, failed: 0, errors: [error.message] });
   if (rErr) return ok({ success: 0, failed: 0, errors: [rErr.message] });
+  if (mErr) return ok({ success: 0, failed: 0, errors: [mErr.message] });
 
-  // Build attendance summary per event
-  const attendanceMap: Record<string, { attend: number; maybe: number; absent: number }> = {};
-  for (const r of (responses ?? []) as { event_id: string; status: string }[]) {
-    if (!attendanceMap[r.event_id]) attendanceMap[r.event_id] = { attend: 0, maybe: 0, absent: 0 };
-    if (r.status === 'attend') attendanceMap[r.event_id].attend++;
-    else if (r.status === 'maybe') attendanceMap[r.event_id].maybe++;
-    else if (r.status === 'absent') attendanceMap[r.event_id].absent++;
+  type ResponseRow = { event_id: string; user_key: string; status: string; comment: string | null };
+  type MemberRow = { user_key: string; name: string; display_name: string };
+
+  const memberMap = new Map<string, MemberRow>();
+  for (const m of (members ?? []) as MemberRow[]) memberMap.set(m.user_key, m);
+
+  // Group responses by event
+  const responsesMap = new Map<string, ResponseRow[]>();
+  for (const r of (responses ?? []) as ResponseRow[]) {
+    if (!responsesMap.has(r.event_id)) responsesMap.set(r.event_id, []);
+    responsesMap.get(r.event_id)!.push(r);
   }
 
-  // Append attendance to event description
-  const eventsWithAttendance = ((data ?? []) as DbEvent[]).map((ev) => {
-    const a = attendanceMap[ev.id];
-    const summary = a ? `○: ${a.attend}人 / △: ${a.maybe}人 / ×: ${a.absent}人` : null;
-    return {
-      ...ev,
-      description: [ev.description, summary].filter(Boolean).join('\n\n'),
-    };
-  });
+  const statusLabel: Record<string, string> = { attend: '○', maybe: '△', absent: '×', unselected: '-' };
+
+  function buildDescription(ev: DbEvent): string {
+    const eventResponses = responsesMap.get(ev.id) ?? [];
+    let attend = 0, maybe = 0, absent = 0, unselected = 0;
+    for (const r of eventResponses) {
+      if (!memberMap.has(r.user_key)) continue;
+      if (r.status === 'attend') attend++;
+      else if (r.status === 'maybe') maybe++;
+      else if (r.status === 'absent') absent++;
+      else unselected++;
+    }
+    const total = attend + maybe + absent + unselected;
+
+    let desc = '';
+    if (ev.description?.trim()) desc += ev.description.trim() + '\n\n';
+
+    desc += '【出欠状況】\n';
+    desc += `○ 参加: ${attend}人\n`;
+    desc += `△ 遅早: ${maybe}人\n`;
+    desc += `× 欠席: ${absent}人\n`;
+    desc += `- 未定: ${unselected}人\n`;
+    desc += `合計: ${total}人\n\n`;
+
+    const comments = eventResponses.filter(r => r.comment?.trim() && memberMap.has(r.user_key));
+    desc += '【コメント】\n';
+    if (comments.length > 0) {
+      for (const r of comments) {
+        const m = memberMap.get(r.user_key)!;
+        const name = m.display_name || m.name;
+        desc += `${statusLabel[r.status] ?? '-'} ${name}: ${r.comment}\n`;
+      }
+    } else {
+      desc += '（コメントなし）\n';
+    }
+
+    const now = new Date();
+    const jst = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+    const formatted = jst.toISOString().slice(0, 16).replace('T', ' ');
+    desc += `\n最終更新: ${formatted}`;
+
+    return desc;
+  }
+
+  const eventsWithAttendance = ((data ?? []) as DbEvent[]).map((ev) => ({
+    ...ev,
+    description: buildDescription(ev),
+  }));
 
   const result = await syncEvents(spaceId, eventsWithAttendance);
   return ok(result);

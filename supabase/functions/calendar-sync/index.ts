@@ -259,6 +259,7 @@ Deno.serve(async (req: Request) => {
   const { spaceId, action = 'syncAll', eventId, eventIds, limit } = body;
 
   if (!CALENDAR_ID) {
+    console.error('[calendar-sync] GOOGLE_CALENDAR_ID is not set');
     return ok({ success: 0, failed: 0, errors: ['GOOGLE_CALENDAR_ID not configured'] });
   }
 
@@ -274,7 +275,8 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } },
     );
-    const { data: adminOk } = await userDb.rpc('is_space_admin', { p_space_id: spaceId });
+    const { data: adminOk, error: adminErr } = await userDb.rpc('is_space_admin', { p_space_id: spaceId });
+    console.log('[calendar-sync] admin check:', adminOk, 'error:', adminErr?.message ?? null);
     if (!adminOk) {
       return ok({ success: 0, failed: 0, errors: ['Unauthorized'] });
     }
@@ -488,6 +490,7 @@ Deno.serve(async (req: Request) => {
   const result = await syncEvents(spaceId, eventsWithAttendance);
   return ok(result);
   } catch (e) {
+    console.error('[calendar-sync] unhandled error:', (e as Error).message, (e as Error).stack);
     return ok({ success: 0, failed: 0, errors: [`Unhandled error: ${(e as Error).message}`] });
   }
 });

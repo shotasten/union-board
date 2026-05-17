@@ -4,7 +4,7 @@
 
 -- 1. Create the space (copy this UUID and set it as VITE_SPACE_ID)
 insert into spaces (id, name)
-values (gen_random_uuid(), 'まるカレ')
+values (gen_random_uuid(), 'UnionBoard')
 returning id, name;
 
 -- 2. After running the above, set the admin token (replace <space_id> and <token>):

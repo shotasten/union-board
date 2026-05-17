@@ -673,7 +673,7 @@ export function useAppState() {
     if (!adminToken) return
 
     closeModal('syncConfirmation')
-    showFullscreenLoader('表示期間内のイベントを同期中...')
+    showFullscreenLoader('全イベントをカレンダーに同期中...')
 
     try {
       const result = await api.syncAllEvents('', adminToken, true)

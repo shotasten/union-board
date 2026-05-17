@@ -187,18 +187,6 @@ export const api = {
   },
 
   // ------------------------------------------------------------------
-  // Admin auth check (RPC)
-  // ------------------------------------------------------------------
-
-  async checkAdminStatus(_userKey: string, adminToken: string): Promise<boolean> {
-    const { data } = await supabase.rpc('check_admin_token', {
-      p_space_id: SPACE_ID,
-      p_token: adminToken,
-    });
-    return data === true;
-  },
-
-  // ------------------------------------------------------------------
   // Response upsert (direct anon key)
   // ------------------------------------------------------------------
 
@@ -257,12 +245,9 @@ export const api = {
 
   async adminCreateEvent(
     eventData: EventInput,
-    _userKey: string,
-    adminToken: string,
   ): Promise<{ success: boolean; event?: AttendanceEvent; error?: string }> {
     const { data, error } = await supabase.rpc('admin_create_event', {
       p_space_id:    SPACE_ID,
-      p_token:       adminToken,
       p_title:       eventData.title,
       p_start_at:    eventData.start,
       p_end_at:      eventData.end,
@@ -279,12 +264,9 @@ export const api = {
   async adminUpdateEvent(
     eventId: string,
     updates: Partial<EventInput>,
-    _userKey: string,
-    adminToken: string,
   ): Promise<{ success: boolean; error?: string }> {
     const { data, error } = await supabase.rpc('admin_update_event', {
       p_space_id:    SPACE_ID,
-      p_token:       adminToken,
       p_event_id:    eventId,
       p_title:       updates.title ?? null,
       p_start_at:    updates.start ?? null,
@@ -297,10 +279,9 @@ export const api = {
     return data as { success: boolean; error?: string };
   },
 
-  async adminDeleteEvent(eventId: string, _userKey: string, adminToken: string): Promise<{ success: boolean; error?: string }> {
+  async adminDeleteEvent(eventId: string): Promise<{ success: boolean; error?: string }> {
     const { data, error } = await supabase.rpc('admin_delete_event', {
       p_space_id: SPACE_ID,
-      p_token:    adminToken,
       p_event_id: eventId,
     });
     if (error) return { success: false, error: error.message };
@@ -311,10 +292,9 @@ export const api = {
   // Admin: Config (RPC)
   // ------------------------------------------------------------------
 
-  async adminSetDisplayPeriod(startDate: string, endDate: string, _userKey: string, adminToken: string): Promise<{ success: boolean; error?: string }> {
+  async adminSetDisplayPeriod(startDate: string, endDate: string): Promise<{ success: boolean; error?: string }> {
     const { data, error } = await supabase.rpc('admin_set_display_period', {
       p_space_id:   SPACE_ID,
-      p_token:      adminToken,
       p_start_date: startDate,
       p_end_date:   endDate,
     });
@@ -322,10 +302,9 @@ export const api = {
     return data as { success: boolean; error?: string };
   },
 
-  async adminSetShowAllEvents(flag: boolean, _userKey: string, adminToken: string): Promise<{ success: boolean; error?: string }> {
+  async adminSetShowAllEvents(flag: boolean): Promise<{ success: boolean; error?: string }> {
     const { data, error } = await supabase.rpc('admin_set_show_all_events', {
       p_space_id: SPACE_ID,
-      p_token:    adminToken,
       p_flag:     flag,
     });
     if (error) return { success: false, error: error.message };
@@ -336,19 +315,17 @@ export const api = {
   // Admin: Cleanup (RPC)
   // ------------------------------------------------------------------
 
-  async adminCleanupAllData(_userKey: string, adminToken: string): Promise<{ success: boolean; calendarDeleted?: number; eventsDeleted?: number; responsesDeleted?: number; auditLogDeleted?: number; errors?: string[] }> {
+  async adminCleanupAllData(): Promise<{ success: boolean; calendarDeleted?: number; eventsDeleted?: number; responsesDeleted?: number; auditLogDeleted?: number; errors?: string[] }> {
     const { data, error } = await supabase.rpc('admin_cleanup_all', {
       p_space_id: SPACE_ID,
-      p_token:    adminToken,
     });
     if (error) return { success: false, errors: [error.message] };
     return data as { success: boolean; eventsDeleted: number; responsesDeleted: number };
   },
 
-  async adminCleanupMembersAndResponses(_userKey: string, adminToken: string): Promise<{ success: boolean; membersDeleted?: number; responsesDeleted?: number; errors?: string[] }> {
+  async adminCleanupMembersAndResponses(): Promise<{ success: boolean; membersDeleted?: number; responsesDeleted?: number; errors?: string[] }> {
     const { data, error } = await supabase.rpc('admin_cleanup_members_responses', {
       p_space_id: SPACE_ID,
-      p_token:    adminToken,
     });
     if (error) return { success: false, errors: [error.message] };
     return data as { success: boolean; membersDeleted: number; responsesDeleted: number };
@@ -358,17 +335,17 @@ export const api = {
   // Calendar sync (Edge Function)
   // ------------------------------------------------------------------
 
-  async syncEvent(eventId: string, _userKey: string, adminToken: string): Promise<{ success: boolean; error?: string }> {
+  async syncEvent(eventId: string): Promise<{ success: boolean; error?: string }> {
     const { data, error } = await supabase.functions.invoke('calendar-sync', {
-      body: { action: 'syncOne', spaceId: SPACE_ID, adminToken, eventId },
+      body: { action: 'syncOne', spaceId: SPACE_ID, eventId },
     });
     if (error) return { success: false, error: error.message };
     return data as { success: boolean; error?: string };
   },
 
-  async syncAllEvents(_userKey: string, adminToken: string, limit: boolean): Promise<{ success: number; failed: number; errors: string[] }> {
+  async syncAllEvents(limit: boolean): Promise<{ success: number; failed: number; errors: string[] }> {
     const { data, error } = await supabase.functions.invoke('calendar-sync', {
-      body: { action: 'syncAll', spaceId: SPACE_ID, adminToken, limit },
+      body: { action: 'syncAll', spaceId: SPACE_ID, limit },
     });
     if (error) return { success: 0, failed: 1, errors: [error.message] };
     return data as { success: number; failed: number; errors: string[] };

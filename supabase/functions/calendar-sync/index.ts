@@ -14,8 +14,10 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
+
 const db = createClient(
-  Deno.env.get('SUPABASE_URL')!,
+  SUPABASE_URL,
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 );
 
@@ -238,27 +240,32 @@ Deno.serve(async (req: Request) => {
   try {
   const body = (await req.json()) as {
     spaceId: string;
-    adminToken: string;
     action?: string;
     eventId?: string;
     eventIds?: string[];
     limit?: boolean;
   };
 
-  const { spaceId, adminToken, action = 'syncAll', eventId, eventIds, limit } = body;
+  const { spaceId, action = 'syncAll', eventId, eventIds, limit } = body;
 
   if (!CALENDAR_ID) {
     return ok({ success: 0, failed: 0, errors: ['GOOGLE_CALENDAR_ID not configured'] });
   }
 
   // syncAttendance は一般ユーザーからも呼ばれるため認証不要（出欠サマリー書き込みのみ）
-  // それ以外の操作（作成・更新・削除）は管理者トークンを検証
+  // それ以外の操作（作成・更新・削除）は Supabase Auth JWT で管理者検証
   if (action !== 'syncAttendance') {
-    const { data: tokenOk } = await db.rpc('check_admin_token', {
-      p_space_id: spaceId,
-      p_token: adminToken,
-    });
-    if (!tokenOk) {
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return ok({ success: 0, failed: 0, errors: ['Unauthorized'] });
+    }
+    const userDb = createClient(
+      SUPABASE_URL,
+      Deno.env.get('SUPABASE_ANON_KEY')!,
+      { global: { headers: { Authorization: authHeader } } },
+    );
+    const { data: adminOk } = await userDb.rpc('is_space_admin', { p_space_id: spaceId });
+    if (!adminOk) {
       return ok({ success: 0, failed: 0, errors: ['Unauthorized'] });
     }
   }

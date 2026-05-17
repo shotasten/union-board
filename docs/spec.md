@@ -12,7 +12,7 @@
 
 | レイヤー | 採用技術 |
 |---|---|
-| フロントエンド | Vanilla TypeScript + Vite |
+| フロントエンド | React + TypeScript + Vite |
 | ホスティング | Cloudflare Pages |
 | データベース | Supabase (PostgreSQL) |
 | 認証 | Supabase anon key（匿名）+ 管理者トークン（RPC 検証） |
@@ -23,20 +23,26 @@
 ## アーキテクチャ
 
 ```
-ブラウザ (index.html + src/main.ts)
-  │  anon key で直接 Supabase に読み書き
-  ├─ supabase.from('events' | 'responses' | 'members')
+ブラウザ (React SPA / src/main.tsx)
   │
-  │  管理者操作は RPC で管理者トークンを検証
-  ├─ supabase.rpc('admin_create_event' | 'admin_update_event' | ...)
-  │
-  │  カレンダー同期は fire-and-forget
-  └─ supabase.functions.invoke('calendar-sync')
+  ├─ src/App.tsx              ルートコンポーネント
+  ├─ src/hooks/useAppState.ts 全状態管理（楽観的更新）
+  ├─ src/components/          UI コンポーネント群
+  │    ├─ AttendanceGrid.tsx  出欠グリッド
+  │    ├─ Header.tsx
+  │    └─ modals/             各種モーダル（15 種）
+  └─ src/lib/api.ts           Supabase 呼び出し層
+       │  anon key で直接 Supabase に読み書き
+       ├─ supabase.from('events' | 'responses' | 'members')
        │
-       └─ Google Calendar API
+       │  管理者操作は RPC で管理者トークンを検証
+       ├─ supabase.rpc('admin_create_event' | 'admin_update_event' | ...)
+       │
+       │  カレンダー同期は fire-and-forget
+       └─ supabase.functions.invoke('calendar-sync')
+            │
+            └─ Google Calendar API
 ```
-
-GAS 時代の `google.script.run.*` 呼び出しは `src/main.ts` の Proxy が `api.*` に透過変換する。
 
 ---
 

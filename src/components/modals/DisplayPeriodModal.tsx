@@ -6,7 +6,7 @@ interface Props {
   open: boolean
   config: Config | null
   onClose: () => void
-  onSave: (startDateISO: string, endDateISO: string, showOnlyFuture: boolean) => Promise<boolean>
+  onSave: (startDateISO: string, endDateISO: string, showAll: boolean) => Promise<boolean>
   onClearConfirm: () => void
 }
 
@@ -29,7 +29,7 @@ export function DisplayPeriodModal({ open, config, onClose, onSave, onClearConfi
       } else {
         setEndDate('')
       }
-      setShowAll(c['SHOW_ONLY_FUTURE_EVENTS'] === 'false')
+      setShowAll(c['SHOW_ALL_EVENTS'] === 'true')
     } else if (open) {
       setStartDate('')
       setEndDate('')
@@ -64,7 +64,7 @@ export function DisplayPeriodModal({ open, config, onClose, onSave, onClearConfi
     }
 
     setLoading(true)
-    await onSave(startISO, endISO, !showAll)
+    await onSave(startISO, endISO, showAll)
     setLoading(false)
   }
 

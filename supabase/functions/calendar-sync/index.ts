@@ -417,7 +417,7 @@ Deno.serve(async (req: Request) => {
     const cfg: Record<string, string> = {};
     for (const row of (configData ?? []) as { key: string; value: string }[]) cfg[row.key] = row.value;
 
-    const showAll = cfg['SHOW_ONLY_FUTURE_EVENTS'] === 'false';
+    const showAll = cfg['SHOW_ALL_EVENTS'] === 'true';
     const displayStart = cfg['DISPLAY_START_DATE'];
     const displayEnd = cfg['DISPLAY_END_DATE'];
 

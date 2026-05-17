@@ -41,7 +41,7 @@ export interface Config {
   CALENDAR_SHARING_ENABLED?: string;
   DISPLAY_START_DATE?: string;
   DISPLAY_END_DATE?: string;
-  SHOW_ONLY_FUTURE_EVENTS?: string;
+  SHOW_ALL_EVENTS?: string;
 }
 
 export interface InitData {

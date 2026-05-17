@@ -571,7 +571,7 @@ export function useAppState() {
   const handleSaveDisplayPeriod = useCallback(async (
     startDateISO: string,
     endDateISO: string,
-    showOnlyFuture: boolean
+    showAll: boolean
   ): Promise<boolean> => {
     const adminToken = localStorage.getItem('adminToken')
     if (!adminToken) return false
@@ -579,7 +579,7 @@ export function useAppState() {
     try {
       const [periodResult, flagResult] = await Promise.all([
         api.adminSetDisplayPeriod(startDateISO, endDateISO, '', adminToken),
-        api.adminSetShowOnlyFutureEvents(showOnlyFuture, '', adminToken),
+        api.adminSetShowAllEvents(showAll, '', adminToken),
       ])
 
       if (periodResult.success && flagResult.success) {
@@ -587,7 +587,7 @@ export function useAppState() {
           ...prev,
           DISPLAY_START_DATE: startDateISO,
           DISPLAY_END_DATE: endDateISO,
-          SHOW_ONLY_FUTURE_EVENTS: showOnlyFuture ? 'true' : 'false',
+          SHOW_ALL_EVENTS: showAll ? 'true' : 'false',
         } : prev)
         closeModal('displayPeriod')
         showToast('表示期間を設定しました', 'success')
@@ -610,7 +610,7 @@ export function useAppState() {
     try {
       const [periodResult, flagResult] = await Promise.all([
         api.adminSetDisplayPeriod('', '', '', adminToken),
-        api.adminSetShowOnlyFutureEvents(true, '', adminToken),
+        api.adminSetShowAllEvents(false, '', adminToken),
       ])
 
       if (periodResult.success && flagResult.success) {
@@ -618,7 +618,7 @@ export function useAppState() {
           ...prev,
           DISPLAY_START_DATE: '',
           DISPLAY_END_DATE: '',
-          SHOW_ONLY_FUTURE_EVENTS: 'true',
+          SHOW_ALL_EVENTS: 'false',
         } : prev)
         closeModal('clearDisplayPeriodConfirm')
         showToast('表示期間の制限を解除しました', 'success')

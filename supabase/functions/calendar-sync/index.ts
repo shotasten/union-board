@@ -21,7 +21,7 @@ const db = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!,
 );
 
-const CALENDAR_ID = Deno.env.get('GOOGLE_CALENDAR_ID')!;
+const CALENDAR_ID = (Deno.env.get('GOOGLE_CALENDAR_ID') ?? '').trim();
 
 // --- Google Auth (service account JWT) ---
 

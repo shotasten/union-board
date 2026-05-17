@@ -77,4 +77,4 @@ deploy-prd:
 
 1. GitHub リポジトリの **Actions > Deploy to Supabase** を開く
 2. **Run workflow** をクリック
-3. デプロイしたいブランチ名を入力して実行
+3. Branch を選択し、environment に `dev` を選択して実行

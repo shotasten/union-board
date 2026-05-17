@@ -3,16 +3,16 @@
 ## アーキテクチャ概要
 
 ```
-[ユーザー] → index.html (google.script.run 互換レイヤー)
-                 ↓ (src/main.ts のProxyで変換)
-           api.ts (Supabase SDK)
-                 ↓
-           Supabase DB (events / responses / members)
-                 ↓ (Edge Function: fire-and-forget)
-           Google Calendar API
+ブラウザ (React SPA)
+  │
+  └─ src/lib/api.ts (Supabase SDK)
+       │
+       ├─ Supabase DB (events / responses / members)
+       │
+       └─ Supabase Edge Function: calendar-sync (fire-and-forget)
+            │
+            └─ Google Calendar API
 ```
-
-`index.html` は GAS 時代のコードを流用。`src/main.ts` が `google.script.run.*` を `api.*` に透過的に変換するProxyを実装している。
 
 ---
 
@@ -32,15 +32,17 @@
 | イベント更新 | `syncOne`（PUT） | 全フィールドをカレンダーに上書き |
 | イベント削除 | `syncOne`（DELETE） | カレンダーから削除 |
 | 出欠回答 | `syncAttendance`（PATCH） | description のみ更新 |
+| メンバー情報更新 | `syncAttendance`（PATCH） | 対象イベントの description を更新 |
+| メンバー削除 | `syncAttendance`（PATCH） | 対象イベントの description を更新 |
 
-すべて **fire-and-forget**（ユーザーはDB保存完了時点でレスポンスを受け取る）。
+すべて **fire-and-forget**（ユーザーは DB 保存完了時点でレスポンスを受け取る）。
 
 ---
 
 ## syncAttendance の処理
 
 ```
-1. DB から対象イベントの events.description（adminメモ）を取得
+1. DB から対象イベントの events.description（admin メモ）を取得
 2. DB から responses + members を取得して出欠サマリーを生成
    【出欠状況】
    ○ 参加: N人
@@ -49,10 +51,14 @@
    - 未定: N人
    合計: N人
 
+   【パート別内訳】
+   ○ (参加) の内訳
+   Fl (1人): 山田
+
    【コメント】
    ○ 田中: コメント内容
    最終更新: yyyy-MM-dd HH:mm
-3. adminメモ + 出欠サマリー を結合
+3. admin メモ + 出欠サマリーを結合
 4. Google Calendar API PATCH で description フィールドのみ更新
 ```
 
@@ -63,33 +69,18 @@
 
 ## Edge Function アクション一覧
 
-| action | 実装状況 | 内容 |
-|---|---|---|
-| `syncOne` | ✅ 実装済み | 1件同期（全フィールドPUT/POST/DELETE） |
-| `syncAll` | ✅ 実装済み | 全件同期（全フィールドPUT） |
-| `syncAttendance` | ❌ 未実装 | description のみ PATCH（出欠回答用） |
+| action | 内容 |
+|---|---|
+| `syncOne` | 1件同期（イベント CRUD に対応。full PUT / POST / DELETE） |
+| `syncAll` | 表示期間内の全件同期（full PUT） |
+| `syncAttendance` | description のみ PATCH（出欠回答・メンバー変更用） |
 
 ---
 
-## TODO リスト
+## Edge Function 認証
 
-### 優先度: 高
-
-1. **Edge Function に `syncAttendance` アクション追加**
-   - 対象 eventId（複数可）を受け取る
-   - DB から events.description（adminメモ）+ responses + members を取得
-   - 出欠サマリーを生成して description を組み立て
-   - Google Calendar API PATCH で description のみ更新
-
-2. **出欠回答後に `syncAttendance` を fire-and-forget で呼ぶ**
-   - `userSubmitResponsesBatch` で DB 保存成功後
-   - バッチ内のユニーク eventId を収集して Edge Function を非同期呼び出し
-   - ユーザーは DB 保存完了時点でレスポンスを受け取る
-
-3. **イベント作成/更新/削除後に `syncOne` を fire-and-forget で呼ぶ**
-   - `adminCreateEvent` 成功後 → `syncEvent(result.event.id)` を非同期呼び出し
-   - `adminUpdateEvent` 成功後 → `syncEvent(eventId)` を非同期呼び出し
-   - `adminDeleteEvent` 成功後 → `syncEvent(eventId)` を非同期呼び出し（削除処理は既存実装で対応）
+- `syncAttendance` は認証不要（description PATCH のみで破壊的操作がないため）。
+- `syncOne` / `syncAll` は呼び出し時に Authorization ヘッダーで Supabase Auth JWT を送り、DB 側の `is_space_admin` 関数で管理者かどうかを検証する。
 
 ---
 
@@ -98,4 +89,3 @@
 - Google Calendar API: 100万リクエスト/日（個人利用は余裕）
 - 出欠回答時: バッチ内ユニーク eventId 数だけ PATCH（通常数件）
 - イベント CRUD 時: 1件につき1コール
-- GAS の cron（数十分遅延）と比べ、すべてリアルタイム反映

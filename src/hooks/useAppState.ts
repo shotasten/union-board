@@ -170,17 +170,21 @@ export function useAppState() {
 
   // ===== Load initial data =====
   const loadInitData = useCallback(async () => {
+    console.log('[loadInitData] start')
     setIsLoading(true)
     setError(null)
 
     try {
+      console.log('[loadInitData] calling api.getInitData()')
       const data = await api.getInitData()
+      console.log('[loadInitData] api.getInitData() resolved', data)
       setConfig(data.config)
       setMembers(data.members)
       setEvents(data.events)
       setResponsesMap(data.responsesMap)
       setIsLoading(false)
     } catch (e) {
+      console.error('[loadInitData] error:', e)
       setIsLoading(false)
       setError('データの取得に失敗しました。ブラウザのコンソールを確認してください。')
     }

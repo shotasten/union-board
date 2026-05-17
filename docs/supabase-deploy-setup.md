@@ -68,7 +68,7 @@ deploy-prd:
 
 | Variable 名 | 取得場所 |
 |---|---|
-| `SUPABASE_PROJECT_REF` | Supabase ダッシュボード > プロジェクト > Settings > General > Reference ID |
+| `SUPABASE_PROJECT_REF` | Supabase ダッシュボードのプロジェクト URL `https://supabase.com/dashboard/project/{ref}` の `{ref}` 部分（20文字の英数字。Settings の UUID とは別物） |
 | `GOOGLE_CALENDAR_ID` | Google Calendar の設定 > カレンダーの統合 > カレンダー ID |
 
 ---

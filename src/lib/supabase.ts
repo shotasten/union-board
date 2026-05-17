@@ -12,8 +12,14 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Public read-only queries: skips auth initialization so data loads immediately
 // even if auth.initialize() is slow or stuck in the background.
+// Uses a separate storageKey to avoid "Multiple GoTrueClient instances" conflicts.
 export const supabasePublic = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+    storageKey: 'union-board-public-anon',
+  },
 });
 
 export const SPACE_ID = import.meta.env.VITE_SPACE_ID as string;

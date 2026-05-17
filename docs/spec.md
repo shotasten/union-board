@@ -4,7 +4,7 @@
 
 吹奏楽団などのサークル向けの出欠管理 Web アプリ。
 
-ユーザー登録なし。メンバーはリストから自分の名前を選び、各イベントに参加 / 遅早 / 欠席 / 未定を回答する。回答のたびに Google Calendar の説明欄が自動更新される。管理者はイベントの作成・編集・削除と表示期間の設定ができる。
+ユーザー登録なし。メンバーはリストから自分の名前を選び、各イベントに参加 / 遅早 / 欠席 / 未定を回答する。回答のたびに Google Calendar の説明欄が自動更新される。管理者は Google アカウントでログインし、イベントの作成・編集・削除と表示期間の設定ができる。
 
 ---
 
@@ -15,7 +15,7 @@
 | フロントエンド | React + TypeScript + Vite |
 | ホスティング | Cloudflare Pages |
 | データベース | Supabase (PostgreSQL) |
-| 認証 | Supabase anon key（匿名）+ 管理者トークン（RPC 検証） |
+| 認証 | 一般ユーザー: 匿名（anon key）/ 管理者: Google OAuth + Supabase Auth |
 | カレンダー連携 | Supabase Edge Function + Google Calendar API |
 
 ---
@@ -27,15 +27,16 @@
   │
   ├─ src/App.tsx              ルートコンポーネント
   ├─ src/hooks/useAppState.ts 全状態管理（楽観的更新）
+  ├─ src/hooks/useAdmin.ts    管理者認証状態管理
   ├─ src/components/          UI コンポーネント群
   │    ├─ AttendanceGrid.tsx  出欠グリッド
   │    ├─ Header.tsx
-  │    └─ modals/             各種モーダル（15 種）
+  │    └─ modals/             各種モーダル
   └─ src/lib/api.ts           Supabase 呼び出し層
        │  anon key で直接 Supabase に読み書き
        ├─ supabase.from('events' | 'responses' | 'members')
        │
-       │  管理者操作は RPC で管理者トークンを検証
+       │  管理者操作は RPC で Supabase Auth セッションを検証
        ├─ supabase.rpc('admin_create_event' | 'admin_update_event' | ...)
        │
        │  カレンダー同期は fire-and-forget
@@ -55,6 +56,17 @@
 |---|---|---|
 | id | uuid PK | |
 | name | text | 表示名 |
+| created_at | timestamptz | |
+
+### space_admins
+管理者ユーザーの一覧。Google OAuth でサインインしたユーザーの Supabase Auth UID を登録する。
+
+| カラム | 型 | 説明 |
+|---|---|---|
+| space_id | uuid FK | |
+| user_id | uuid | Supabase Auth の uid |
+| role | text | `owner` / `admin` |
+| created_at | timestamptz | |
 
 ### events
 
@@ -70,15 +82,21 @@
 | description | text | 管理者メモ |
 | calendar_event_id | text | Google Calendar イベント ID |
 | status | text | `active` / `archived` / `deleted` |
+| created_at | timestamptz | |
+| updated_at | timestamptz | |
 
 ### responses
 
 | カラム | 型 | 説明 |
 |---|---|---|
+| id | uuid PK | |
+| space_id | uuid FK | |
 | event_id | uuid FK | |
 | user_key | text | members.user_key |
 | status | text | `attend` / `maybe` / `absent` / `unselected` |
 | comment | text | 自由コメント |
+| created_at | timestamptz | |
+| updated_at | timestamptz | |
 
 event_id + user_key で unique。
 
@@ -86,19 +104,30 @@ event_id + user_key で unique。
 
 | カラム | 型 | 説明 |
 |---|---|---|
+| id | uuid PK | |
+| space_id | uuid FK | |
 | user_key | text | フロントで生成した UUID |
 | part | text | パート名（Fl / Cl / ... / その他） |
 | name | text | 氏名 |
 | display_name | text | part + name を結合した表示名 |
+| created_at | timestamptz | |
+| updated_at | timestamptz | |
 
 ### config
 
 | key | 説明 |
 |---|---|
-| ADMIN_TOKEN | 管理者操作の認証トークン |
-| SHOW_ONLY_FUTURE_EVENTS | `true` のとき過去イベントを非表示 |
-| DISPLAY_START_DATE | 表示開始日（SHOW_ONLY_FUTURE_EVENTS が false のとき有効） |
+| SHOW_ALL_EVENTS | `true` のとき全件表示。`false` のとき現在より前のイベントを非表示 |
+| DISPLAY_START_DATE | 表示開始日（SHOW_ALL_EVENTS が true のとき有効） |
 | DISPLAY_END_DATE | 表示終了日 |
+
+### members_archive / responses_archive
+新年度リセット時にアーカイブされたデータを保存するテーブル。`admin_cleanup_members_responses` RPC によって退避される。
+
+| カラム | 型 | 説明 |
+|---|---|---|
+| （元テーブルと同カラム） | | |
+| archived_at | date | アーカイブ日 |
 
 ---
 
@@ -106,7 +135,7 @@ event_id + user_key で unique。
 
 一般ユーザーは Supabase anon key で直接 DB に読み書きする。responses の upsert と members の CRUD が可能。RLS で space_id が一致するデータのみ触れる。
 
-管理者トークン（config の `ADMIN_TOKEN`）は localStorage に保存する。イベント CRUD や設定変更は RPC 経由で実行し、DB 側でトークンを検証する。
+管理者は Google OAuth（`supabase.auth.signInWithOAuth`）でサインインする。認証後のセッション JWT は Supabase が管理し、`supabase.auth.getSession()` で取得する。イベント CRUD や設定変更は RPC 経由で実行し、DB 側の `is_space_admin` 関数でセッションの UID を `space_admins` テーブルと照合して認可する。
 
 ---
 
@@ -137,6 +166,7 @@ event_id + user_key で unique。
 | イベント削除 | syncOne | カレンダーイベントを DELETE |
 | 出欠回答 | syncAttendance | description のみ PATCH |
 | メンバー情報更新 | syncAttendance | 対象イベントの description を PATCH |
+| メンバー削除 | syncAttendance | 対象イベントの description を PATCH |
 
 ### カレンダー description の構成
 
@@ -163,15 +193,15 @@ Cl (1人): 佐藤
 
 ### Edge Function 認証
 - `syncAttendance` は認証不要（description PATCH のみで破壊的操作がないため）。
-- それ以外（syncOne / syncAll）は管理者トークンを検証。
+- それ以外（syncOne / syncAll）は Supabase Auth JWT で管理者かどうかを検証する。
 
 ---
 
 ## 表示期間フィルター
 
-`SHOW_ONLY_FUTURE_EVENTS = true` のとき、終了日時が現在より前のイベントを非表示にする。
+`SHOW_ALL_EVENTS = false`（デフォルト）のとき、終了日時が現在より前のイベントを非表示にする。
 
-`false` の場合は `DISPLAY_START_DATE` / `DISPLAY_END_DATE` で期間を絞れる。どちらも未設定なら全件表示。
+`true` の場合は `DISPLAY_START_DATE` / `DISPLAY_END_DATE` で期間を絞れる。どちらも未設定なら全件表示。
 
 ---
 

@@ -627,7 +627,7 @@ export function useAppState() {
   // ===== Sync all events =====
   const handleSyncAllEvents = useCallback(async (): Promise<void> => {
     closeModal('syncConfirmation')
-    showFullscreenLoader('全イベントをカレンダーに同期中...')
+    showFullscreenLoader('表示期間内のイベントを同期中...')
 
     try {
       const result = await api.syncAllEvents(true)

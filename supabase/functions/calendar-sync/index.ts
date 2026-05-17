@@ -256,8 +256,9 @@ Deno.serve(async (req: Request) => {
   }
 
   type ResponseRow = { event_id: string; user_key: string; status: string; comment: string | null };
-  type MemberRow = { user_key: string; name: string; display_name: string };
+  type MemberRow = { user_key: string; name: string; display_name: string; part: string };
   const statusLabel: Record<string, string> = { attend: '○', maybe: '△', absent: '×', unselected: '-' };
+  const partOrder = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc', 'その他'];
 
   function buildDescription(ev: DbEvent, eventResponses: ResponseRow[], memberMap: Map<string, MemberRow>): string {
     let attend = 0, maybe = 0, absent = 0, unselected = 0;
@@ -279,6 +280,35 @@ Deno.serve(async (req: Request) => {
     desc += `× 欠席: ${absent}人\n`;
     desc += `- 未定: ${unselected}人\n`;
     desc += `合計: ${total}人\n\n`;
+
+    const statusGroups: Array<{ key: string; label: string }> = [
+      { key: 'attend', label: '○ (参加) の内訳' },
+      { key: 'maybe', label: '△ (遅早) の内訳' },
+      { key: 'absent', label: '× (欠席) の内訳' },
+      { key: 'unselected', label: '- (未定) の内訳' },
+    ];
+    desc += '【パート別内訳】\n';
+    for (const { key, label } of statusGroups) {
+      const rows = eventResponses.filter(r => r.status === key && memberMap.has(r.user_key));
+      if (rows.length === 0) continue;
+      desc += `${label}\n`;
+      const byPart = new Map<string, string[]>();
+      for (const r of rows) {
+        const m = memberMap.get(r.user_key)!;
+        const part = m.part || 'その他';
+        if (!byPart.has(part)) byPart.set(part, []);
+        byPart.get(part)!.push(m.display_name || m.name);
+      }
+      const sortedParts = [...byPart.keys()].sort((a, b) => {
+        const ai = partOrder.indexOf(a), bi = partOrder.indexOf(b);
+        return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+      });
+      for (const part of sortedParts) {
+        const names = byPart.get(part)!;
+        desc += `${part} (${names.length}人): ${names.join('、')}\n`;
+      }
+      desc += '\n';
+    }
 
     const comments = eventResponses.filter(r => r.comment?.trim() && memberMap.has(r.user_key));
     desc += '【コメント】\n';
@@ -308,7 +338,7 @@ Deno.serve(async (req: Request) => {
     const [{ data: evData, error: evErr }, { data: responses, error: rErr }, { data: members, error: mErr }] = await Promise.all([
       db.from('events').select('*').eq('space_id', spaceId).in('id', targetIds),
       db.from('responses').select('event_id,user_key,status,comment').eq('space_id', spaceId).in('event_id', targetIds),
-      db.from('members').select('user_key,name,display_name').eq('space_id', spaceId),
+      db.from('members').select('user_key,name,display_name,part').eq('space_id', spaceId),
     ]);
     if (evErr) return ok({ success: 0, failed: 0, errors: [evErr.message] });
     if (rErr) return ok({ success: 0, failed: 0, errors: [rErr.message] });
@@ -356,7 +386,7 @@ Deno.serve(async (req: Request) => {
   const [{ data, error }, { data: responses, error: rErr }, { data: members, error: mErr }] = await Promise.all([
     query,
     db.from('responses').select('event_id,user_key,status,comment').eq('space_id', spaceId),
-    db.from('members').select('user_key,name,display_name').eq('space_id', spaceId),
+    db.from('members').select('user_key,name,display_name,part').eq('space_id', spaceId),
   ]);
   if (error) return ok({ success: 0, failed: 0, errors: [error.message] });
   if (rErr) return ok({ success: 0, failed: 0, errors: [rErr.message] });

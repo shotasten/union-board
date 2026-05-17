@@ -19,7 +19,6 @@
 
 - [セットアップ手順](docs/setup.md)
 - [仕様書](docs/spec.md)
-- [カレンダー同期設計](docs/sync-design.md)
 - [Supabase デプロイセットアップ](docs/supabase-deploy-setup.md)
 
 ---

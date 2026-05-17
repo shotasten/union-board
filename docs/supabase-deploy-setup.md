@@ -1,10 +1,26 @@
 # Supabase デプロイセットアップ
 
-`main` ブランチにマージされると、GitHub Actions が自動でマイグレーションと Edge Functions のデプロイを実行します。
+## デプロイの運用
+
+| トリガー | 対象環境 | 備考 |
+|---|---|---|
+| `main` マージ | prd | 本番へ自動デプロイ |
+| `main` マージ | dev | 開発フェーズ中のみ（TODO 解消後に削除） |
+| Actions 手動実行（dispatch） | dev | ブランチを指定して任意タイミングでデプロイ |
+
+`shotasten` 以外のアクターによるプッシュはすべてスキップされます（`github.actor == 'shotasten'`）。
+
+---
+
+## GitHub Environments の作成
+
+リポジトリの **Settings > Environments** で `dev` と `prd` の 2 つを作成してください。
+
+---
 
 ## 必要な GitHub Secrets
 
-リポジトリの **Settings > Secrets and variables > Actions** で以下を登録してください。
+各 Environment に同じ名前で登録します。
 
 | Secret 名 | 取得場所 |
 |---|---|
@@ -14,17 +30,26 @@
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | GCP コンソール > IAM > サービスアカウント > キー で生成した JSON 全体を貼り付け |
 | `GOOGLE_CALENDAR_ID` | Google Calendar の設定 > カレンダーの統合 > カレンダー ID |
 
-## デプロイの流れ
+`dev` / `prd` それぞれで別プロジェクトを指すように `SUPABASE_PROJECT_REF` などを使い分けてください。
 
-1. `main` へのプッシュをトリガーに起動
-2. `shotasten` 以外のアクターによるプッシュはスキップ（条件: `github.actor == 'shotasten'`）
-3. Supabase CLI でプロジェクトにリンク
-4. `supabase db push` でマイグレーションを本番 DB に適用
-5. Edge Function のシークレット（Google Calendar 認証情報）を更新
-6. `supabase functions deploy` で全 Edge Functions をデプロイ
+---
 
-## 注意事項
+## dev への手動デプロイ手順
 
-- マイグレーションは **冪等** に書いてください（`CREATE TABLE IF NOT EXISTS` など）。一度適用済みのファイルは再実行されませんが、誤って重複実行されても安全な形が望ましいです。
-- `GOOGLE_SERVICE_ACCOUNT_JSON` はカレンダーへの書き込み権限を持つサービスアカウントのキーです。不要になったら GCP コンソールで無効化してください。
-- Edge Function のシークレットは `supabase secrets set` で上書きされるため、GitHub Secrets を変更すれば次のデプロイで反映されます。
+1. GitHub リポジトリの **Actions > Deploy to Supabase** を開く
+2. **Run workflow** をクリック
+3. デプロイしたいブランチ名を入力して実行
+
+---
+
+## 開発フェーズ終了後の TODO
+
+`deploy-dev` ジョブの `if` 条件から `push` トリガーを削除し、dispatch のみで動くようにする。
+
+```yaml
+# 変更前（現状）
+if: github.actor == 'shotasten'
+
+# 変更後
+if: github.actor == 'shotasten' && github.event_name == 'workflow_dispatch'
+```

@@ -4,15 +4,63 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'デプロイするブランチ'
+        required: true
+        default: 'main'
 
 jobs:
-  deploy:
-    name: Deploy migrations & Edge Functions
+  deploy-prd:
+    name: Deploy to prd
     runs-on: ubuntu-latest
-    if: github.actor == 'shotasten'
+    if: github.actor == 'shotasten' && github.event_name == 'push'
+    environment: prd
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run database migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+      - name: Set Edge Function secrets
+        run: |
+          supabase secrets set \
+            GOOGLE_SERVICE_ACCOUNT_JSON='${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}' \
+            GOOGLE_CALENDAR_ID='${{ secrets.GOOGLE_CALENDAR_ID }}'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Functions
+        run: supabase functions deploy
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+  deploy-dev:
+    name: Deploy to dev
+    runs-on: ubuntu-latest
+    # TODO: 開発フェーズ終了後は push トリガーを削除し dispatch のみに変更する
+    if: github.actor == 'shotasten'
+    environment: dev
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # dispatch 時は指定ブランチ、push 時は main の HEAD
+          ref: ${{ inputs.branch || github.sha }}
 
       - uses: supabase/setup-cli@v1
         with:

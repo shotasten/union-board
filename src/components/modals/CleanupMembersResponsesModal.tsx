@@ -25,8 +25,8 @@ export function CleanupMembersResponsesModal({ open, onClose, onNext }: Props) {
           <div style={{ padding: '12px', backgroundColor: '#fff3cd', border: '1px solid #ffc107', borderRadius: '6px', marginBottom: '15px' }}>
             <p style={{ margin: 0, color: '#856404', fontSize: '0.9rem', lineHeight: '1.5' }}>
               <strong>削除対象:</strong><br />
-              • Membersシートの全データ（ヘッダー行は残ります）<br />
-              • Responsesシートの全データ（ヘッダー行は残ります）
+              • Membersテーブルの全データ<br />
+              • Responsesテーブルの全データ
             </p>
           </div>
           <div style={{ padding: '12px', backgroundColor: '#e3f2fd', border: '1px solid #2196f3', borderRadius: '6px', marginBottom: '15px' }}>

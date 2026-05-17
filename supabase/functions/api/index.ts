@@ -135,10 +135,10 @@ Deno.serve(async (req: Request) => {
       return json({ success: true });
     }
 
-    if (action === 'setShowOnlyFutureEvents') {
+    if (action === 'setShowAllEvents') {
       const flag = String(body.flag === true);
       await db.from('config').upsert(
-        { space_id: spaceId, key: 'SHOW_ONLY_FUTURE_EVENTS', value: flag },
+        { space_id: spaceId, key: 'SHOW_ALL_EVENTS', value: flag },
         { onConflict: 'space_id,key' },
       );
       return json({ success: true });

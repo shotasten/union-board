@@ -12,4 +12,4 @@ returning id, name;
 -- values
 --   ('<space_id>', 'ADMIN_TOKEN', '<your-secret-token>'),
 --   ('<space_id>', 'CALENDAR_ID', '<google-calendar-id>'),
---   ('<space_id>', 'SHOW_ONLY_FUTURE_EVENTS', 'false');
+--   ('<space_id>', 'SHOW_ALL_EVENTS', 'false');  -- true: 全期間表示, false: 未来のみ表示（デフォルト）

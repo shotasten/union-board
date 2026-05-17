@@ -6,14 +6,14 @@ interface Props {
   open: boolean
   config: Config | null
   onClose: () => void
-  onSave: (startDateISO: string, endDateISO: string, showOnlyFuture: boolean) => Promise<boolean>
+  onSave: (startDateISO: string, endDateISO: string, showAll: boolean) => Promise<boolean>
   onClearConfirm: () => void
 }
 
 export function DisplayPeriodModal({ open, config, onClose, onSave, onClearConfirm }: Props) {
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [showOnlyFuture, setShowOnlyFuture] = useState(false)
+  const [showAll, setShowAll] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -29,11 +29,11 @@ export function DisplayPeriodModal({ open, config, onClose, onSave, onClearConfi
       } else {
         setEndDate('')
       }
-      setShowOnlyFuture(c['SHOW_ONLY_FUTURE_EVENTS'] === 'true')
+      setShowAll(c['SHOW_ALL_EVENTS'] === 'true')
     } else if (open) {
       setStartDate('')
       setEndDate('')
-      setShowOnlyFuture(false)
+      setShowAll(false)
     }
   }, [open, config])
 
@@ -64,7 +64,7 @@ export function DisplayPeriodModal({ open, config, onClose, onSave, onClearConfi
     }
 
     setLoading(true)
-    await onSave(startISO, endISO, showOnlyFuture)
+    await onSave(startISO, endISO, showAll)
     setLoading(false)
   }
 
@@ -81,15 +81,15 @@ export function DisplayPeriodModal({ open, config, onClose, onSave, onClearConfi
             <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
               <input
                 type="checkbox"
-                id="show-only-future-events"
-                checked={showOnlyFuture}
-                onChange={e => setShowOnlyFuture(e.target.checked)}
+                id="show-all-events"
+                checked={showAll}
+                onChange={e => setShowAll(e.target.checked)}
                 style={{ width: 'auto', marginRight: '8px', cursor: 'pointer' }}
               />
-              <span>現在日時以降の予定のみ表示する</span>
+              <span>全期間の予定を表示する（過去の予定を含む）</span>
             </label>
             <small style={{ color: '#666', fontSize: '0.85rem', display: 'block', marginTop: '4px' }}>
-              チェックすると、表示期間の開始日に関わらず現在日時以降の予定のみ表示されます
+              チェックしない場合は現在日時以降の予定のみ表示されます（デフォルト）
             </small>
           </div>
           <div className="form-group" style={{ marginTop: '20px' }}>

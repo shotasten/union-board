@@ -318,7 +318,9 @@ export function useAppState() {
           return resps.some(r => r.userKey === userKey)
         })
         if (eventIdsWithResponse.length > 0) {
-          api.syncAttendance(eventIdsWithResponse).catch(() => {/* ignore */})
+          api.syncAttendance(eventIdsWithResponse).then(result => {
+            if (result.failed > 0) console.warn('[calendar-sync] syncAttendance failed:', result.errors)
+          }).catch(e => console.warn('[calendar-sync] syncAttendance error:', e))
         }
 
         return true
@@ -340,6 +342,12 @@ export function useAppState() {
   const handleDeleteMember = useCallback(async (userKey: string): Promise<boolean> => {
     const member = membersRef.current.find(m => m.userKey === userKey)
     if (!member) return false
+
+    // Collect event IDs where this member has responses (before deletion)
+    const eventIdsToSync = Object.keys(responsesMapRef.current).filter(eventId => {
+      const resps = responsesMapRef.current[eventId] || []
+      return resps.some(r => r.userKey === userKey)
+    })
 
     // Optimistic update
     setMembers(prev => prev.filter(m => m.userKey !== userKey))
@@ -371,6 +379,12 @@ export function useAppState() {
           return updated
         })
         showToast('メンバーを削除しました', 'success')
+        // Sync calendar to remove deleted member from event descriptions
+        if (eventIdsToSync.length > 0) {
+          api.syncAttendance(eventIdsToSync).then(r => {
+            if (r.failed > 0) console.warn('[calendar-sync] syncAttendance after delete failed:', r.errors)
+          }).catch(e => console.warn('[calendar-sync] syncAttendance after delete error:', e))
+        }
         return true
       } else {
         // Rollback
@@ -452,7 +466,9 @@ export function useAppState() {
 
         // Fire-and-forget calendar sync
         const uniqueEventIds = [...new Set(updates.map(u => u.eventId))]
-        api.syncAttendance(uniqueEventIds).catch(() => {/* ignore */})
+        api.syncAttendance(uniqueEventIds).then(result => {
+          if (result.failed > 0) console.warn('[calendar-sync] syncAttendance failed:', result.errors)
+        }).catch(e => console.warn('[calendar-sync] syncAttendance error:', e))
 
         closeModal('memberEdit')
         setSelectedMember(null)
@@ -482,7 +498,9 @@ export function useAppState() {
         showToast('イベントを作成しました', 'success')
         closeModal('event')
         // Fire-and-forget calendar sync
-        api.syncEvent(result.event.id, '', adminToken).catch(() => {/* ignore */})
+        api.syncEvent(result.event.id, '', adminToken).then(r => {
+          if (!r.success) console.warn('[calendar-sync] syncEvent (create) failed:', r.error)
+        }).catch(e => console.warn('[calendar-sync] syncEvent (create) error:', e))
         return true
       } else {
         showToast(result.error || '作成に失敗しました', 'error')
@@ -506,7 +524,9 @@ export function useAppState() {
         showToast('イベントを更新しました', 'success')
         closeModal('event')
         await loadInitData()
-        api.syncEvent(eventId, '', adminToken).catch(() => {/* ignore */})
+        api.syncEvent(eventId, '', adminToken).then(r => {
+          if (!r.success) console.warn('[calendar-sync] syncEvent (update) failed:', r.error)
+        }).catch(e => console.warn('[calendar-sync] syncEvent (update) error:', e))
         return true
       } else {
         showToast(result.error || '更新に失敗しました', 'error')
@@ -533,7 +553,9 @@ export function useAppState() {
         })
         showToast('イベントを削除しました', 'success')
         closeModal('deleteConfirm')
-        api.syncEvent(eventId, '', adminToken).catch(() => {/* ignore */})
+        api.syncEvent(eventId, '', adminToken).then(r => {
+          if (!r.success) console.warn('[calendar-sync] syncEvent (delete) failed:', r.error)
+        }).catch(e => console.warn('[calendar-sync] syncEvent (delete) error:', e))
         return true
       } else {
         showToast(result.error || '削除に失敗しました', 'error')
@@ -549,7 +571,7 @@ export function useAppState() {
   const handleSaveDisplayPeriod = useCallback(async (
     startDateISO: string,
     endDateISO: string,
-    showOnlyFuture: boolean
+    showAll: boolean
   ): Promise<boolean> => {
     const adminToken = localStorage.getItem('adminToken')
     if (!adminToken) return false
@@ -557,7 +579,7 @@ export function useAppState() {
     try {
       const [periodResult, flagResult] = await Promise.all([
         api.adminSetDisplayPeriod(startDateISO, endDateISO, '', adminToken),
-        api.adminSetShowOnlyFutureEvents(showOnlyFuture, '', adminToken),
+        api.adminSetShowAllEvents(showAll, '', adminToken),
       ])
 
       if (periodResult.success && flagResult.success) {
@@ -565,7 +587,7 @@ export function useAppState() {
           ...prev,
           DISPLAY_START_DATE: startDateISO,
           DISPLAY_END_DATE: endDateISO,
-          SHOW_ONLY_FUTURE_EVENTS: showOnlyFuture ? 'true' : 'false',
+          SHOW_ALL_EVENTS: showAll ? 'true' : 'false',
         } : prev)
         closeModal('displayPeriod')
         showToast('表示期間を設定しました', 'success')
@@ -588,7 +610,7 @@ export function useAppState() {
     try {
       const [periodResult, flagResult] = await Promise.all([
         api.adminSetDisplayPeriod('', '', '', adminToken),
-        api.adminSetShowOnlyFutureEvents(false, '', adminToken),
+        api.adminSetShowAllEvents(false, '', adminToken),
       ])
 
       if (periodResult.success && flagResult.success) {
@@ -596,7 +618,7 @@ export function useAppState() {
           ...prev,
           DISPLAY_START_DATE: '',
           DISPLAY_END_DATE: '',
-          SHOW_ONLY_FUTURE_EVENTS: 'false',
+          SHOW_ALL_EVENTS: 'false',
         } : prev)
         closeModal('clearDisplayPeriodConfirm')
         showToast('表示期間の制限を解除しました', 'success')

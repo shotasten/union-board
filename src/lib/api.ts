@@ -35,7 +35,8 @@ function filterByDisplayPeriod(events: AttendanceEvent[], config: Config): Atten
   let endDate: Date | null = null;
   const c = config as unknown as Record<string, string>;
 
-  if (c['SHOW_ONLY_FUTURE_EVENTS'] === 'true') {
+  const showAll = c['SHOW_ALL_EVENTS'] === 'true';
+  if (!showAll) {
     startDate = now;
   } else {
     const s = c['DISPLAY_START_DATE'];
@@ -321,8 +322,8 @@ export const api = {
     return data as { success: boolean; error?: string };
   },
 
-  async adminSetShowOnlyFutureEvents(flag: boolean, _userKey: string, adminToken: string): Promise<{ success: boolean; error?: string }> {
-    const { data, error } = await supabase.rpc('admin_set_show_only_future_events', {
+  async adminSetShowAllEvents(flag: boolean, _userKey: string, adminToken: string): Promise<{ success: boolean; error?: string }> {
+    const { data, error } = await supabase.rpc('admin_set_show_all_events', {
       p_space_id: SPACE_ID,
       p_token:    adminToken,
       p_flag:     flag,
@@ -373,10 +374,12 @@ export const api = {
     return data as { success: number; failed: number; errors: string[] };
   },
 
-  async syncAttendance(eventIds: string[]): Promise<void> {
-    if (eventIds.length === 0) return;
-    supabase.functions.invoke('calendar-sync', {
+  async syncAttendance(eventIds: string[]): Promise<{ success: number; failed: number; errors: string[] }> {
+    if (eventIds.length === 0) return { success: 0, failed: 0, errors: [] };
+    const { data, error } = await supabase.functions.invoke('calendar-sync', {
       body: { action: 'syncAttendance', spaceId: SPACE_ID, eventIds },
-    }).catch(() => {/* fire-and-forget */});
+    });
+    if (error) return { success: 0, failed: eventIds.length, errors: [error.message] };
+    return (data as { success: number; failed: number; errors: string[] }) ?? { success: 0, failed: 0, errors: [] };
   },
 };

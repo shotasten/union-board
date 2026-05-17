@@ -235,9 +235,10 @@ Deno.serve(async (req: Request) => {
     action?: string;
     eventId?: string;
     eventIds?: string[];
+    limit?: boolean;
   };
 
-  const { spaceId, adminToken, action = 'syncAll', eventId, eventIds } = body;
+  const { spaceId, adminToken, action = 'syncAll', eventId, eventIds, limit } = body;
 
   if (!CALENDAR_ID) {
     return ok({ success: 0, failed: 0, errors: ['GOOGLE_CALENDAR_ID not configured'] });
@@ -383,9 +384,15 @@ Deno.serve(async (req: Request) => {
     query = query.neq('status', 'deleted');
   }
 
+  const eventsQuery = query;
+  let responsesQuery = db.from('responses').select('event_id,user_key,status,comment').eq('space_id', spaceId);
+  if (action === 'syncOne' && eventId) {
+    responsesQuery = responsesQuery.eq('event_id', eventId);
+  }
+
   const [{ data, error }, { data: responses, error: rErr }, { data: members, error: mErr }] = await Promise.all([
-    query,
-    db.from('responses').select('event_id,user_key,status,comment').eq('space_id', spaceId),
+    eventsQuery,
+    responsesQuery,
     db.from('members').select('user_key,name,display_name,part').eq('space_id', spaceId),
   ]);
   if (error) return ok({ success: 0, failed: 0, errors: [error.message] });
@@ -401,7 +408,45 @@ Deno.serve(async (req: Request) => {
     responsesMap.get(r.event_id)!.push(r);
   }
 
-  const eventsWithAttendance = ((data ?? []) as DbEvent[]).map((ev) => ({
+  // syncAll + limit=true のとき、表示期間設定に基づいてイベントを絞り込む（GAS syncAll と同じロジック）
+  let syncStartDate: Date | undefined;
+  let syncEndDate: Date | undefined;
+
+  if (action === 'syncAll' && limit) {
+    const { data: configData } = await db.from('config').select('key,value').eq('space_id', spaceId);
+    const cfg: Record<string, string> = {};
+    for (const row of (configData ?? []) as { key: string; value: string }[]) cfg[row.key] = row.value;
+
+    const showAll = cfg['SHOW_ALL_EVENTS'] === 'true';
+    const displayStart = cfg['DISPLAY_START_DATE'];
+    const displayEnd = cfg['DISPLAY_END_DATE'];
+
+    if (!showAll) {
+      syncStartDate = new Date();
+    } else if (displayStart) {
+      const d = new Date(displayStart);
+      if (!isNaN(d.getTime())) syncStartDate = d;
+    }
+
+    if (displayEnd) {
+      const d = new Date(displayEnd);
+      if (!isNaN(d.getTime())) {
+        d.setHours(23, 59, 59, 999);
+        syncEndDate = d;
+      }
+    }
+  }
+
+  const filteredEvents = ((data ?? []) as DbEvent[]).filter((ev) => {
+    if (!syncStartDate && !syncEndDate) return true;
+    const evStart = new Date(ev.start_at);
+    const evEnd = new Date(ev.end_at);
+    if (syncStartDate && evEnd < syncStartDate) return false;
+    if (syncEndDate && evStart > syncEndDate) return false;
+    return true;
+  });
+
+  const eventsWithAttendance = filteredEvents.map((ev) => ({
     ...ev,
     description: buildDescription(ev, responsesMap.get(ev.id) ?? [], memberMap),
   }));

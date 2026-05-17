@@ -10,7 +10,6 @@ body {
   color: #333;
   background: #fafafa;
   min-height: 100vh;
-  overflow-x: hidden;
   -webkit-text-size-adjust: 100%;
   -ms-text-size-adjust: 100%;
   /* スクロールバーの色設定（ライトブルー） */

@@ -22,3 +22,6 @@ site_url = "http://localhost:5173"
 
 [edge_runtime]
 policy = "oneshot"
+
+[functions.calendar-sync]
+verify_jwt = false

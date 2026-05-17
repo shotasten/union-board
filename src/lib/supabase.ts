@@ -7,8 +7,16 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing VITE_SUPABASE_URL or VITE_SUPABASE_ANON_KEY environment variable');
 }
 
-// Auth + admin operations (waits for auth initialization)
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Supabase v2 uses navigator.locks (Web Locks API) when persistSession: true.
+// In some Chrome profiles a stale lock causes auth.initialize() to hang forever,
+// blocking getSession() and all RPC calls. A no-op lock bypasses this.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const lockNoOp = async (_n: string, _t: number, fn: () => Promise<any>) => fn()
+
+// Auth + admin operations
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: { lock: lockNoOp },
+});
 
 // Public read-only queries: skips auth initialization so data loads immediately
 // even if auth.initialize() is slow or stuck in the background.

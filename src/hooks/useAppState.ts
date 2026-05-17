@@ -610,7 +610,7 @@ export function useAppState() {
     try {
       const [periodResult, flagResult] = await Promise.all([
         api.adminSetDisplayPeriod('', '', '', adminToken),
-        api.adminSetShowOnlyFutureEvents(false, '', adminToken),
+        api.adminSetShowOnlyFutureEvents(true, '', adminToken),
       ])
 
       if (periodResult.success && flagResult.success) {
@@ -618,7 +618,7 @@ export function useAppState() {
           ...prev,
           DISPLAY_START_DATE: '',
           DISPLAY_END_DATE: '',
-          SHOW_ONLY_FUTURE_EVENTS: 'false',
+          SHOW_ONLY_FUTURE_EVENTS: 'true',
         } : prev)
         closeModal('clearDisplayPeriodConfirm')
         showToast('表示期間の制限を解除しました', 'success')

@@ -35,7 +35,8 @@ function filterByDisplayPeriod(events: AttendanceEvent[], config: Config): Atten
   let endDate: Date | null = null;
   const c = config as unknown as Record<string, string>;
 
-  if (c['SHOW_ONLY_FUTURE_EVENTS'] === 'true') {
+  const showAll = c['SHOW_ONLY_FUTURE_EVENTS'] === 'false';
+  if (!showAll) {
     startDate = now;
   } else {
     const s = c['DISPLAY_START_DATE'];

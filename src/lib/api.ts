@@ -373,10 +373,12 @@ export const api = {
     return data as { success: number; failed: number; errors: string[] };
   },
 
-  async syncAttendance(eventIds: string[]): Promise<void> {
-    if (eventIds.length === 0) return;
-    supabase.functions.invoke('calendar-sync', {
+  async syncAttendance(eventIds: string[]): Promise<{ success: number; failed: number; errors: string[] }> {
+    if (eventIds.length === 0) return { success: 0, failed: 0, errors: [] };
+    const { data, error } = await supabase.functions.invoke('calendar-sync', {
       body: { action: 'syncAttendance', spaceId: SPACE_ID, eventIds },
-    }).catch(() => {/* fire-and-forget */});
+    });
+    if (error) return { success: 0, failed: eventIds.length, errors: [error.message] };
+    return (data as { success: number; failed: number; errors: string[] }) ?? { success: 0, failed: 0, errors: [] };
   },
 };

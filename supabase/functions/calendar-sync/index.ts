@@ -383,9 +383,15 @@ Deno.serve(async (req: Request) => {
     query = query.neq('status', 'deleted');
   }
 
+  const eventsQuery = query;
+  let responsesQuery = db.from('responses').select('event_id,user_key,status,comment').eq('space_id', spaceId);
+  if (action === 'syncOne' && eventId) {
+    responsesQuery = responsesQuery.eq('event_id', eventId);
+  }
+
   const [{ data, error }, { data: responses, error: rErr }, { data: members, error: mErr }] = await Promise.all([
-    query,
-    db.from('responses').select('event_id,user_key,status,comment').eq('space_id', spaceId),
+    eventsQuery,
+    responsesQuery,
     db.from('members').select('user_key,name,display_name,part').eq('space_id', spaceId),
   ]);
   if (error) return ok({ success: 0, failed: 0, errors: [error.message] });

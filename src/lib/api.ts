@@ -1,4 +1,4 @@
-import { supabase, SPACE_ID } from './supabase';
+import { supabase, supabasePublic, SPACE_ID } from './supabase';
 import type {
   AttendanceEvent,
   AttendanceResponse,
@@ -122,12 +122,11 @@ export const api = {
     events: AttendanceEvent[];
     responsesMap: Record<string, AttendanceResponse[]>;
   }> {
-    console.log('[api.getInitData] starting Promise.all queries')
     const [configResult, membersResult, eventsResult, responsesResult] = await Promise.all([
-      supabase.from('config').select('key,value').eq('space_id', SPACE_ID).then(r => { console.log('[api] config query done, error:', r.error); return r }),
-      supabase.from('members').select('*').eq('space_id', SPACE_ID).then(r => { console.log('[api] members query done, error:', r.error); return r }),
-      supabase.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: true }).then(r => { console.log('[api] events query done, error:', r.error); return r }),
-      supabase.from('responses').select('*').eq('space_id', SPACE_ID).then(r => { console.log('[api] responses query done, error:', r.error); return r }),
+      supabasePublic.from('config').select('key,value').eq('space_id', SPACE_ID),
+      supabasePublic.from('members').select('*').eq('space_id', SPACE_ID),
+      supabasePublic.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: true }),
+      supabasePublic.from('responses').select('*').eq('space_id', SPACE_ID),
     ]);
 
     const config: Config = { AUTH_MODE: 'anonymous' };
@@ -155,9 +154,9 @@ export const api = {
     error?: string;
   }> {
     const [configResult, eventsResult, responsesResult] = await Promise.all([
-      supabase.from('config').select('key,value').eq('space_id', SPACE_ID),
-      supabase.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: true }),
-      supabase.from('responses').select('*').eq('space_id', SPACE_ID),
+      supabasePublic.from('config').select('key,value').eq('space_id', SPACE_ID),
+      supabasePublic.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: true }),
+      supabasePublic.from('responses').select('*').eq('space_id', SPACE_ID),
     ]);
     if (eventsResult.error) return { success: false, events: [], responsesMap: {}, error: eventsResult.error.message };
     if (responsesResult.error) return { success: false, events: [], responsesMap: {}, error: responsesResult.error.message };
@@ -176,13 +175,13 @@ export const api = {
   },
 
   async getMembers(): Promise<Member[]> {
-    const { data, error } = await supabase.from('members').select('*').eq('space_id', SPACE_ID);
+    const { data, error } = await supabasePublic.from('members').select('*').eq('space_id', SPACE_ID);
     if (error) throw new Error(error.message);
     return (data as DbMember[]).map(toMember);
   },
 
   async getAllEventsForLocationHistory(): Promise<AttendanceEvent[]> {
-    const { data, error } = await supabase.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: false });
+    const { data, error } = await supabasePublic.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: false });
     if (error) return [];
     return (data as DbEvent[]).map(toEvent);
   },

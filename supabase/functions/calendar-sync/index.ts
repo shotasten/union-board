@@ -81,7 +81,11 @@ async function getAccessToken(): Promise<string> {
       assertion: jwt,
     }),
   });
-  const tokenData = (await tokenRes.json()) as { access_token: string };
+  const tokenData = (await tokenRes.json()) as { access_token?: string; error?: string; error_description?: string };
+  if (!tokenData.access_token) {
+    console.error('[getAccessToken] failed:', JSON.stringify(tokenData));
+    throw new Error(`Google token error: ${tokenData.error_description ?? tokenData.error ?? 'unknown'}`);
+  }
   return tokenData.access_token;
 }
 
@@ -136,7 +140,10 @@ async function upsertCalendarEvent(
     );
     if (res.ok) return event.calendar_event_id;
     // If not found, fall through to create
-    if (res.status !== 404) return null;
+    if (res.status !== 404) {
+      console.error(`[upsertCalendarEvent] PUT failed ${res.status}: ${await res.text()}`);
+      return null;
+    }
   }
 
   // Create
@@ -151,7 +158,10 @@ async function upsertCalendarEvent(
       body: JSON.stringify(body),
     },
   );
-  if (!res.ok) return null;
+  if (!res.ok) {
+    console.error(`[upsertCalendarEvent] POST failed ${res.status}: ${await res.text()}`);
+    return null;
+  }
   const data = (await res.json()) as { id: string };
   return data.id;
 }
@@ -389,7 +399,12 @@ Deno.serve(async (req: Request) => {
           body: JSON.stringify({ description }),
         },
       );
-      if (res.ok) { success++; } else { failed++; errors.push(`Failed to patch: ${ev.title}`); }
+      if (res.ok) { success++; } else {
+        const errText = await res.text();
+        console.error(`[syncAttendance] PATCH failed ${res.status} for "${ev.title}": ${errText}`);
+        failed++;
+        errors.push(`Failed to patch: ${ev.title}`);
+      }
     }
     return ok({ success, failed, errors });
   }

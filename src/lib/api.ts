@@ -122,11 +122,12 @@ export const api = {
     events: AttendanceEvent[];
     responsesMap: Record<string, AttendanceResponse[]>;
   }> {
+    console.log('[api.getInitData] starting Promise.all queries')
     const [configResult, membersResult, eventsResult, responsesResult] = await Promise.all([
-      supabase.from('config').select('key,value').eq('space_id', SPACE_ID),
-      supabase.from('members').select('*').eq('space_id', SPACE_ID),
-      supabase.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: true }),
-      supabase.from('responses').select('*').eq('space_id', SPACE_ID),
+      supabase.from('config').select('key,value').eq('space_id', SPACE_ID).then(r => { console.log('[api] config query done, error:', r.error); return r }),
+      supabase.from('members').select('*').eq('space_id', SPACE_ID).then(r => { console.log('[api] members query done, error:', r.error); return r }),
+      supabase.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: true }).then(r => { console.log('[api] events query done, error:', r.error); return r }),
+      supabase.from('responses').select('*').eq('space_id', SPACE_ID).then(r => { console.log('[api] responses query done, error:', r.error); return r }),
     ]);
 
     const config: Config = { AUTH_MODE: 'anonymous' };

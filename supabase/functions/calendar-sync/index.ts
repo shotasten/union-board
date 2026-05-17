@@ -85,6 +85,13 @@ async function getAccessToken(): Promise<string> {
 
 // --- Calendar API helpers ---
 
+// start_at/end_at are stored as UTC timestamps (JST midnight = UTC 15:00 previous day).
+// For all-day events we need the JST date string, not the UTC date string.
+function toJSTDateString(isoString: string): string {
+  const jst = new Date(new Date(isoString).getTime() + 9 * 60 * 60 * 1000);
+  return jst.toISOString().slice(0, 10);
+}
+
 async function upsertCalendarEvent(
   token: string,
   event: {
@@ -103,10 +110,10 @@ async function upsertCalendarEvent(
     location: event.location ?? undefined,
     description: event.description ?? undefined,
     start: event.is_all_day
-      ? { date: event.start_at.slice(0, 10) }
+      ? { date: toJSTDateString(event.start_at) }
       : { dateTime: event.start_at, timeZone: 'Asia/Tokyo' },
     end: event.is_all_day
-      ? { date: event.end_at.slice(0, 10) }
+      ? { date: toJSTDateString(event.end_at) }
       : { dateTime: event.end_at, timeZone: 'Asia/Tokyo' },
   };
 

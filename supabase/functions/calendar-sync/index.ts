@@ -275,8 +275,7 @@ Deno.serve(async (req: Request) => {
       Deno.env.get('SUPABASE_ANON_KEY')!,
       { global: { headers: { Authorization: authHeader } } },
     );
-    const { data: adminOk, error: adminErr } = await userDb.rpc('is_space_admin', { p_space_id: spaceId });
-    console.log('[calendar-sync] admin check:', adminOk, 'error:', adminErr?.message ?? null);
+    const { data: adminOk } = await userDb.rpc('is_space_admin', { p_space_id: spaceId });
     if (!adminOk) {
       return ok({ success: 0, failed: 0, errors: ['Unauthorized'] });
     }

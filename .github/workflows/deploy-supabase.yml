@@ -42,14 +42,6 @@ jobs:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
 
-      - name: Debug vars
-        run: |
-          echo "GOOGLE_CALENDAR_ID length: ${#GOOGLE_CALENDAR_ID_VAR}"
-          echo "GOOGLE_SERVICE_ACCOUNT_JSON length: ${#SA_JSON_VAR}"
-        env:
-          GOOGLE_CALENDAR_ID_VAR: ${{ vars.GOOGLE_CALENDAR_ID }}
-          SA_JSON_VAR: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
-
       - name: Set GOOGLE_SERVICE_ACCOUNT_JSON secret
         run: supabase secrets set GOOGLE_SERVICE_ACCOUNT_JSON='${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}'
         env:

@@ -1,38 +1,24 @@
-import { useState, useRef, useEffect } from 'react'
+import { useEffect } from 'react'
+import type { Session } from '@supabase/supabase-js'
 
 interface Props {
   open: boolean
   onClose: () => void
-  onLogin: (token: string) => Promise<boolean>
+  session: Session | null
+  isAdmin: boolean
+  onLoginClick: () => void
+  onLogout: () => void
 }
 
-export function AdminLoginModal({ open, onClose, onLogin }: Props) {
-  const [token, setToken] = useState('')
-  const [loading, setLoading] = useState(false)
-  const inputRef = useRef<HTMLInputElement>(null)
-
+export function AdminLoginModal({ open, onClose, session, isAdmin, onLoginClick, onLogout }: Props) {
   useEffect(() => {
-    if (open) {
-      setToken('')
-      setTimeout(() => inputRef.current?.focus(), 100)
-    }
-  }, [open])
+    if (isAdmin && open) onClose()
+  }, [isAdmin, open, onClose])
 
   if (!open) return null
 
   const handleBackdropClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (e.target === e.currentTarget) onClose()
-  }
-
-  const handleSubmit = async () => {
-    if (!token.trim()) return
-    setLoading(true)
-    const ok = await onLogin(token.trim())
-    setLoading(false)
-    if (!ok) {
-      setToken('')
-      inputRef.current?.focus()
-    }
   }
 
   return (
@@ -43,32 +29,28 @@ export function AdminLoginModal({ open, onClose, onLogin }: Props) {
           <button className="close-btn" onClick={onClose}>&times;</button>
         </div>
         <div className="modal-body">
-          <p>管理者トークンを入力してください</p>
-          <div className="form-group" style={{ marginTop: '20px' }}>
-            <label htmlFor="admin-token-input">管理者トークン</label>
-            <input
-              type="password"
-              id="admin-token-input"
-              ref={inputRef}
-              placeholder="管理者トークンを入力"
-              maxLength={100}
-              autoComplete="off"
-              value={token}
-              onChange={e => setToken(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleSubmit() }}
-            />
-          </div>
-          <div className="form-actions" style={{ marginTop: '20px' }}>
-            <button type="button" className="form-btn secondary" onClick={onClose}>キャンセル</button>
-            <button
-              type="button"
-              className="form-btn primary"
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? 'ログイン中...' : 'ログイン'}
-            </button>
-          </div>
+          {!session ? (
+            <>
+              <p>Googleアカウントでサインインしてください</p>
+              <div className="form-actions" style={{ marginTop: '20px' }}>
+                <button type="button" className="form-btn secondary" onClick={onClose}>キャンセル</button>
+                <button type="button" className="form-btn primary" onClick={onLoginClick}>
+                  Googleでサインイン
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <p style={{ color: '#d32f2f' }}>このアカウントには管理者権限がありません</p>
+              <p style={{ fontSize: '0.9rem', color: '#666', marginTop: '8px' }}>{session.user.email}</p>
+              <div className="form-actions" style={{ marginTop: '20px' }}>
+                <button type="button" className="form-btn secondary" onClick={onLogout}>ログアウト</button>
+                <button type="button" className="form-btn primary" onClick={onLoginClick}>
+                  別アカウントでサインイン
+                </button>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

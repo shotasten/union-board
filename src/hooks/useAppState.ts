@@ -1,5 +1,8 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
+import type { Session } from '@supabase/supabase-js'
 import { api } from '../lib/api'
+import { supabase, SPACE_ID } from '../lib/supabase'
+import { useAdmin } from './useAdmin'
 import type { AttendanceEvent, AttendanceResponse, Config, Member, ResponseStatus } from '../types/models'
 
 // ===== Types =====
@@ -40,6 +43,7 @@ export interface AppState {
   responsesMap: Record<string, AttendanceResponse[]>
   config: Config | null
   isAdmin: boolean
+  session: Session | null
   isLoading: boolean
   error: string | null
   toast: ToastState | null
@@ -88,11 +92,12 @@ const initialModalState: ModalState = {
 let toastIdCounter = 0
 
 export function useAppState() {
+  const { session, isAdmin } = useAdmin()
+
   const [events, setEvents] = useState<AttendanceEvent[]>([])
   const [members, setMembers] = useState<Member[]>([])
   const [responsesMap, setResponsesMap] = useState<Record<string, AttendanceResponse[]>>({})
   const [config, setConfig] = useState<Config | null>(null)
-  const [isAdmin, setIsAdmin] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [toast, setToast] = useState<ToastState | null>(null)
@@ -146,36 +151,24 @@ export function useAppState() {
     }))
   }, [])
 
-  // ===== Admin check =====
-  const checkAdminStatus = useCallback(async (): Promise<boolean> => {
-    const adminToken = localStorage.getItem('adminToken')
-    if (!adminToken) {
-      setIsAdmin(false)
-      return false
-    }
-    try {
-      const result = await api.checkAdminStatus('', adminToken)
-      setIsAdmin(result)
-      return result
-    } catch {
-      setIsAdmin(false)
-      return false
-    }
+  // ===== Show toast on admin sign-in =====
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, s) => {
+      if (event === 'SIGNED_IN' && s) {
+        const { data } = await supabase.rpc('is_space_admin', { p_space_id: SPACE_ID })
+        if (data === true) {
+          setToast({ message: '管理者としてログインしました', type: 'success', id: ++toastIdCounter })
+          setTimeout(() => setToast(prev => prev?.id === toastIdCounter ? null : prev), 3000)
+        }
+      }
+    })
+    return () => subscription.unsubscribe()
   }, [])
 
   // ===== Load initial data =====
   const loadInitData = useCallback(async () => {
     setIsLoading(true)
     setError(null)
-
-    // Handle URL ?admin= param
-    const urlParams = new URLSearchParams(window.location.search)
-    const adminTokenFromUrl = urlParams.get('admin')
-    if (adminTokenFromUrl) {
-      localStorage.setItem('adminToken', adminTokenFromUrl)
-      const newUrl = window.location.pathname + window.location.hash
-      window.history.replaceState({}, document.title, newUrl)
-    }
 
     try {
       const data = await api.getInitData()
@@ -184,18 +177,11 @@ export function useAppState() {
       setEvents(data.events)
       setResponsesMap(data.responsesMap)
       setIsLoading(false)
-
-      // Check admin status in parallel
-      const adminResult = await checkAdminStatus()
-      if (adminTokenFromUrl && adminResult) {
-        showToast('管理者ログインに成功しました', 'success')
-      }
     } catch (e) {
       setIsLoading(false)
       setError('データの取得に失敗しました。ブラウザのコンソールを確認してください。')
-      await checkAdminStatus()
     }
-  }, [checkAdminStatus, showToast])
+  }, [])
 
   // ===== Reload =====
   const reloadEvents = useCallback(async () => {
@@ -207,31 +193,17 @@ export function useAppState() {
     }
   }, [loadInitData, showToast])
 
-  // ===== Admin login =====
-  const handleAdminLogin = useCallback(async (token: string): Promise<boolean> => {
-    try {
-      const result = await api.checkAdminStatus('', token)
-      if (result) {
-        localStorage.setItem('adminToken', token)
-        setIsAdmin(true)
-        closeModal('adminLogin')
-        showToast('管理者ログインに成功しました', 'success')
-        await loadInitData()
-        return true
-      } else {
-        showToast('管理者トークンが正しくありません', 'error')
-        return false
-      }
-    } catch {
-      showToast('ログインに失敗しました', 'error')
-      return false
-    }
-  }, [closeModal, loadInitData, showToast])
+  // ===== Admin login (Google OAuth) =====
+  const handleAdminLogin = useCallback(async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin },
+    })
+  }, [])
 
   // ===== Admin logout =====
   const handleAdminLogout = useCallback(async () => {
-    localStorage.removeItem('adminToken')
-    setIsAdmin(false)
+    await supabase.auth.signOut()
     closeModal('logoutConfirmation')
     showToast('管理者ログアウトしました', 'success')
     await loadInitData()
@@ -487,18 +459,15 @@ export function useAppState() {
   const handleCreateEvent = useCallback(async (eventData: {
     title: string; start: string; end: string; isAllDay: boolean; location: string; description: string
   }): Promise<boolean> => {
-    const adminToken = localStorage.getItem('adminToken')
-    if (!adminToken) { showToast('管理者権限が必要です', 'error'); return false }
-
     try {
-      const result = await api.adminCreateEvent(eventData, '', adminToken)
+      const result = await api.adminCreateEvent(eventData)
       if (result.success && result.event) {
         setEvents(prev => [...prev, result.event!].sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime()))
         setResponsesMap(prev => ({ ...prev, [result.event!.id]: [] }))
         showToast('イベントを作成しました', 'success')
         closeModal('event')
         // Fire-and-forget calendar sync
-        api.syncEvent(result.event.id, '', adminToken).then(r => {
+        api.syncEvent(result.event.id).then(r => {
           if (!r.success) console.warn('[calendar-sync] syncEvent (create) failed:', r.error)
         }).catch(e => console.warn('[calendar-sync] syncEvent (create) error:', e))
         return true
@@ -515,16 +484,13 @@ export function useAppState() {
   const handleUpdateEvent = useCallback(async (eventId: string, updates: {
     title: string; start: string; end: string; isAllDay: boolean; location: string; description: string
   }): Promise<boolean> => {
-    const adminToken = localStorage.getItem('adminToken')
-    if (!adminToken) { showToast('管理者権限が必要です', 'error'); return false }
-
     try {
-      const result = await api.adminUpdateEvent(eventId, updates, '', adminToken)
+      const result = await api.adminUpdateEvent(eventId, updates)
       if (result.success) {
         showToast('イベントを更新しました', 'success')
         closeModal('event')
         await loadInitData()
-        api.syncEvent(eventId, '', adminToken).then(r => {
+        api.syncEvent(eventId).then(r => {
           if (!r.success) console.warn('[calendar-sync] syncEvent (update) failed:', r.error)
         }).catch(e => console.warn('[calendar-sync] syncEvent (update) error:', e))
         return true
@@ -539,11 +505,8 @@ export function useAppState() {
   }, [closeModal, loadInitData, showToast])
 
   const handleDeleteEvent = useCallback(async (eventId: string): Promise<boolean> => {
-    const adminToken = localStorage.getItem('adminToken')
-    if (!adminToken) { showToast('管理者権限が必要です', 'error'); return false }
-
     try {
-      const result = await api.adminDeleteEvent(eventId, '', adminToken)
+      const result = await api.adminDeleteEvent(eventId)
       if (result.success) {
         setEvents(prev => prev.filter(e => e.id !== eventId))
         setResponsesMap(prev => {
@@ -553,7 +516,7 @@ export function useAppState() {
         })
         showToast('イベントを削除しました', 'success')
         closeModal('deleteConfirm')
-        api.syncEvent(eventId, '', adminToken).then(r => {
+        api.syncEvent(eventId).then(r => {
           if (!r.success) console.warn('[calendar-sync] syncEvent (delete) failed:', r.error)
         }).catch(e => console.warn('[calendar-sync] syncEvent (delete) error:', e))
         return true
@@ -573,13 +536,10 @@ export function useAppState() {
     endDateISO: string,
     showAll: boolean
   ): Promise<boolean> => {
-    const adminToken = localStorage.getItem('adminToken')
-    if (!adminToken) return false
-
     try {
       const [periodResult, flagResult] = await Promise.all([
-        api.adminSetDisplayPeriod(startDateISO, endDateISO, '', adminToken),
-        api.adminSetShowAllEvents(showAll, '', adminToken),
+        api.adminSetDisplayPeriod(startDateISO, endDateISO),
+        api.adminSetShowAllEvents(showAll),
       ])
 
       if (periodResult.success && flagResult.success) {
@@ -604,13 +564,10 @@ export function useAppState() {
   }, [closeModal, loadInitData, showToast])
 
   const handleClearDisplayPeriod = useCallback(async (): Promise<boolean> => {
-    const adminToken = localStorage.getItem('adminToken')
-    if (!adminToken) return false
-
     try {
       const [periodResult, flagResult] = await Promise.all([
-        api.adminSetDisplayPeriod('', '', '', adminToken),
-        api.adminSetShowAllEvents(false, '', adminToken),
+        api.adminSetDisplayPeriod('', ''),
+        api.adminSetShowAllEvents(false),
       ])
 
       if (periodResult.success && flagResult.success) {
@@ -636,12 +593,9 @@ export function useAppState() {
 
   // ===== Cleanup members =====
   const handleCleanupMembersAndResponses = useCallback(async (): Promise<boolean> => {
-    const adminToken = localStorage.getItem('adminToken')
-    if (!adminToken) return false
-
     showFullscreenLoader('メンバーとレスポンスデータを削除中...')
     try {
-      const result = await api.adminCleanupMembersAndResponses('', adminToken)
+      const result = await api.adminCleanupMembersAndResponses()
       hideFullscreenLoader()
 
       if (result.success) {
@@ -660,7 +614,7 @@ export function useAppState() {
         showToast('削除に失敗しました', 'error')
         return false
       }
-    } catch (e) {
+    } catch {
       hideFullscreenLoader()
       showToast('エラーが発生しました', 'error')
       return false
@@ -669,14 +623,11 @@ export function useAppState() {
 
   // ===== Sync all events =====
   const handleSyncAllEvents = useCallback(async (): Promise<void> => {
-    const adminToken = localStorage.getItem('adminToken')
-    if (!adminToken) return
-
     closeModal('syncConfirmation')
     showFullscreenLoader('全イベントをカレンダーに同期中...')
 
     try {
-      const result = await api.syncAllEvents('', adminToken, true)
+      const result = await api.syncAllEvents(true)
       hideFullscreenLoader()
 
       if (result.success > 0 || result.failed === 0) {
@@ -725,6 +676,7 @@ export function useAppState() {
     responsesMap,
     config,
     isAdmin,
+    session,
     isLoading,
     error,
     toast,

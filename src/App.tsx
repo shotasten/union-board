@@ -31,6 +31,7 @@ export function App() {
     responsesMap,
     config,
     isAdmin,
+    session,
     isLoading,
     error,
     toast,
@@ -265,7 +266,10 @@ export function App() {
       <AdminLoginModal
         open={modals.adminLogin}
         onClose={() => closeModal('adminLogin')}
-        onLogin={handleAdminLogin}
+        session={session}
+        isAdmin={isAdmin}
+        onLoginClick={handleAdminLogin}
+        onLogout={handleAdminLogout}
       />
 
       <LogoutConfirmModal

@@ -4995,26 +4995,6 @@
         } else {
           // モーダル内にメッセージを表示
           const container = document.getElementById('event-status-list');
-          if (container) {
-            const messageDiv = document.createElement('div');
-            messageDiv.style.padding = '20px';
-            messageDiv.style.textAlign = 'center';
-            messageDiv.style.color = '#666';
-            messageDiv.style.backgroundColor = '#fff3cd';
-            messageDiv.style.border = '1px solid #ffc107';
-            messageDiv.style.borderRadius = '6px';
-            messageDiv.style.fontWeight = '500';
-            messageDiv.style.marginTop = '10px';
-            messageDiv.textContent = '更新するデータがありません。ステータスを変更するか、コメントを入力してください。';
-            container.appendChild(messageDiv);
-
-            // 3秒後にメッセージを削除
-            setTimeout(() => {
-              if (messageDiv.parentNode) {
-                messageDiv.parentNode.removeChild(messageDiv);
-              }
-            }, 3000);
-          }
           showToast('更新するデータがありません', 'info');
         }
         return;

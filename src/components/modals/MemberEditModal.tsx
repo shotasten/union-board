@@ -243,47 +243,44 @@ export function MemberEditModal({
 
                     {/* Comment input */}
                     <div style={{ display: 'flex', flexDirection: 'row', gap: '4px', marginTop: '8px', alignItems: 'flex-start' }}>
-                      <div style={{ flex: 1, position: 'relative' }}>
-                        <textarea
-                          className="comment-input"
-                          placeholder="コメントを入力（任意）"
-                          value={entry.comment}
-                          onChange={e => handleCommentChange(event.id, e.target.value)}
+                      <textarea
+                        className="comment-input"
+                        placeholder="コメントを入力（任意）"
+                        value={entry.comment}
+                        onChange={e => handleCommentChange(event.id, e.target.value)}
+                        style={{
+                          flex: 1,
+                          padding: '6px 8px',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px',
+                          fontSize: '0.85rem',
+                          minHeight: '40px',
+                          resize: 'vertical',
+                        }}
+                      />
+                      {entry.comment && (
+                        <button
+                          type="button"
+                          onClick={() => handleCommentChange(event.id, '')}
                           style={{
-                            width: '100%',
-                            padding: '6px 28px 6px 8px',
-                            border: '1px solid #ddd',
-                            borderRadius: '4px',
-                            fontSize: '0.85rem',
-                            minHeight: '40px',
-                            resize: 'vertical',
+                            flexShrink: 0,
+                            width: '24px',
+                            height: '24px',
+                            padding: 0,
+                            border: 'none',
+                            background: 'transparent',
+                            color: '#999',
+                            cursor: 'pointer',
+                            fontSize: '16px',
+                            lineHeight: '24px',
+                            borderRadius: '50%',
+                            marginTop: '6px',
                           }}
-                        />
-                        {entry.comment && (
-                          <button
-                            type="button"
-                            onClick={() => handleCommentChange(event.id, '')}
-                            style={{
-                              position: 'absolute',
-                              right: '4px',
-                              top: '4px',
-                              width: '20px',
-                              height: '20px',
-                              padding: 0,
-                              border: 'none',
-                              background: 'transparent',
-                              color: '#999',
-                              cursor: 'pointer',
-                              fontSize: '18px',
-                              lineHeight: 1,
-                              borderRadius: '50%',
-                            }}
-                            title="コメントをクリア"
-                          >
-                            ×
-                          </button>
-                        )}
-                      </div>
+                          title="コメントをクリア"
+                        >
+                          ×
+                        </button>
+                      )}
                     </div>
                   </div>
                 )

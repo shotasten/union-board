@@ -1,7 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { api } from '../lib/api'
-import { supabase, SPACE_ID } from '../lib/supabase'
+import { supabase } from '../lib/supabase'
 import { useAdmin } from './useAdmin'
 import type { AttendanceEvent, AttendanceResponse, Config, Member, ResponseStatus } from '../types/models'
 
@@ -152,18 +152,21 @@ export function useAppState() {
   }, [])
 
   // ===== Show toast on admin sign-in =====
+  const signedInRecentlyRef = useRef(false)
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, s) => {
-      if (event === 'SIGNED_IN' && s) {
-        const { data } = await supabase.rpc('is_space_admin', { p_space_id: SPACE_ID })
-        if (data === true) {
-          setToast({ message: '管理者としてログインしました', type: 'success', id: ++toastIdCounter })
-          setTimeout(() => setToast(prev => prev?.id === toastIdCounter ? null : prev), 3000)
-        }
-      }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN') signedInRecentlyRef.current = true
     })
     return () => subscription.unsubscribe()
   }, [])
+  useEffect(() => {
+    if (isAdmin && signedInRecentlyRef.current) {
+      signedInRecentlyRef.current = false
+      const id = ++toastIdCounter
+      setToast({ message: '管理者としてログインしました', type: 'success', id })
+      setTimeout(() => setToast(prev => prev?.id === id ? null : prev), 3000)
+    }
+  }, [isAdmin])
 
   // ===== Load initial data =====
   const loadInitData = useCallback(async () => {

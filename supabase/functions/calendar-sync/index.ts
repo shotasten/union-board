@@ -234,57 +234,32 @@ Deno.serve(async (req: Request) => {
     adminToken: string;
     action?: string;
     eventId?: string;
+    eventIds?: string[];
   };
 
-  const { spaceId, adminToken, action = 'syncAll', eventId } = body;
-
-  // Verify admin token
-  const { data: tokenOk } = await db.rpc('check_admin_token', {
-    p_space_id: spaceId,
-    p_token: adminToken,
-  });
-  if (!tokenOk) {
-    return ok({ success: 0, failed: 0, errors: ['Unauthorized'] });
-  }
+  const { spaceId, adminToken, action = 'syncAll', eventId, eventIds } = body;
 
   if (!CALENDAR_ID) {
     return ok({ success: 0, failed: 0, errors: ['GOOGLE_CALENDAR_ID not configured'] });
   }
 
-  let query = db.from('events').select('*').eq('space_id', spaceId);
-
-  if (action === 'syncOne' && eventId) {
-    query = query.eq('id', eventId);
-  } else {
-    query = query.neq('status', 'deleted');
+  // syncAttendance は一般ユーザーからも呼ばれるため認証不要（出欠サマリー書き込みのみ）
+  // それ以外の操作（作成・更新・削除）は管理者トークンを検証
+  if (action !== 'syncAttendance') {
+    const { data: tokenOk } = await db.rpc('check_admin_token', {
+      p_space_id: spaceId,
+      p_token: adminToken,
+    });
+    if (!tokenOk) {
+      return ok({ success: 0, failed: 0, errors: ['Unauthorized'] });
+    }
   }
-
-  const [{ data, error }, { data: responses, error: rErr }, { data: members, error: mErr }] = await Promise.all([
-    query,
-    db.from('responses').select('event_id,user_key,status,comment').eq('space_id', spaceId),
-    db.from('members').select('user_key,name,display_name').eq('space_id', spaceId),
-  ]);
-  if (error) return ok({ success: 0, failed: 0, errors: [error.message] });
-  if (rErr) return ok({ success: 0, failed: 0, errors: [rErr.message] });
-  if (mErr) return ok({ success: 0, failed: 0, errors: [mErr.message] });
 
   type ResponseRow = { event_id: string; user_key: string; status: string; comment: string | null };
   type MemberRow = { user_key: string; name: string; display_name: string };
-
-  const memberMap = new Map<string, MemberRow>();
-  for (const m of (members ?? []) as MemberRow[]) memberMap.set(m.user_key, m);
-
-  // Group responses by event
-  const responsesMap = new Map<string, ResponseRow[]>();
-  for (const r of (responses ?? []) as ResponseRow[]) {
-    if (!responsesMap.has(r.event_id)) responsesMap.set(r.event_id, []);
-    responsesMap.get(r.event_id)!.push(r);
-  }
-
   const statusLabel: Record<string, string> = { attend: '○', maybe: '△', absent: '×', unselected: '-' };
 
-  function buildDescription(ev: DbEvent): string {
-    const eventResponses = responsesMap.get(ev.id) ?? [];
+  function buildDescription(ev: DbEvent, eventResponses: ResponseRow[], memberMap: Map<string, MemberRow>): string {
     let attend = 0, maybe = 0, absent = 0, unselected = 0;
     for (const r of eventResponses) {
       if (!memberMap.has(r.user_key)) continue;
@@ -325,9 +300,80 @@ Deno.serve(async (req: Request) => {
     return desc;
   }
 
+  // --- syncAttendance: description のみ PATCH ---
+  if (action === 'syncAttendance') {
+    const targetIds = eventIds ?? (eventId ? [eventId] : []);
+    if (targetIds.length === 0) return ok({ success: 0, failed: 0, errors: ['eventIds is required'] });
+
+    const [{ data: evData, error: evErr }, { data: responses, error: rErr }, { data: members, error: mErr }] = await Promise.all([
+      db.from('events').select('*').eq('space_id', spaceId).in('id', targetIds),
+      db.from('responses').select('event_id,user_key,status,comment').eq('space_id', spaceId).in('event_id', targetIds),
+      db.from('members').select('user_key,name,display_name').eq('space_id', spaceId),
+    ]);
+    if (evErr) return ok({ success: 0, failed: 0, errors: [evErr.message] });
+    if (rErr) return ok({ success: 0, failed: 0, errors: [rErr.message] });
+    if (mErr) return ok({ success: 0, failed: 0, errors: [mErr.message] });
+
+    const memberMap = new Map<string, MemberRow>();
+    for (const m of (members ?? []) as MemberRow[]) memberMap.set(m.user_key, m);
+
+    const responsesMap = new Map<string, ResponseRow[]>();
+    for (const r of (responses ?? []) as ResponseRow[]) {
+      if (!responsesMap.has(r.event_id)) responsesMap.set(r.event_id, []);
+      responsesMap.get(r.event_id)!.push(r);
+    }
+
+    const token = await getAccessToken();
+    const calId = encodeURIComponent(CALENDAR_ID);
+    let success = 0, failed = 0;
+    const errors: string[] = [];
+
+    for (const ev of (evData ?? []) as DbEvent[]) {
+      if (!ev.calendar_event_id || ev.status === 'deleted') continue;
+      const description = buildDescription(ev, responsesMap.get(ev.id) ?? [], memberMap);
+      const res = await fetch(
+        `https://www.googleapis.com/calendar/v3/calendars/${calId}/events/${ev.calendar_event_id}`,
+        {
+          method: 'PATCH',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ description }),
+        },
+      );
+      if (res.ok) { success++; } else { failed++; errors.push(`Failed to patch: ${ev.title}`); }
+    }
+    return ok({ success, failed, errors });
+  }
+
+  // --- syncOne / syncAll ---
+  let query = db.from('events').select('*').eq('space_id', spaceId);
+
+  if (action === 'syncOne' && eventId) {
+    query = query.eq('id', eventId);
+  } else {
+    query = query.neq('status', 'deleted');
+  }
+
+  const [{ data, error }, { data: responses, error: rErr }, { data: members, error: mErr }] = await Promise.all([
+    query,
+    db.from('responses').select('event_id,user_key,status,comment').eq('space_id', spaceId),
+    db.from('members').select('user_key,name,display_name').eq('space_id', spaceId),
+  ]);
+  if (error) return ok({ success: 0, failed: 0, errors: [error.message] });
+  if (rErr) return ok({ success: 0, failed: 0, errors: [rErr.message] });
+  if (mErr) return ok({ success: 0, failed: 0, errors: [mErr.message] });
+
+  const memberMap = new Map<string, MemberRow>();
+  for (const m of (members ?? []) as MemberRow[]) memberMap.set(m.user_key, m);
+
+  const responsesMap = new Map<string, ResponseRow[]>();
+  for (const r of (responses ?? []) as ResponseRow[]) {
+    if (!responsesMap.has(r.event_id)) responsesMap.set(r.event_id, []);
+    responsesMap.get(r.event_id)!.push(r);
+  }
+
   const eventsWithAttendance = ((data ?? []) as DbEvent[]).map((ev) => ({
     ...ev,
-    description: buildDescription(ev),
+    description: buildDescription(ev, responsesMap.get(ev.id) ?? [], memberMap),
   }));
 
   const result = await syncEvents(spaceId, eventsWithAttendance);

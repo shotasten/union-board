@@ -5033,6 +5033,10 @@
             // 更新成功
             showToast(result.success + '件の出欠を更新しました', 'success');
 
+            // カレンダーの出欠状況を非同期で更新（fire-and-forget）
+            const uniqueEventIds = [...new Set(updates.map(u => u.eventId))];
+            api.syncAttendance(uniqueEventIds);
+
             // キャッシュを更新
             if (!window.allResponsesCache) {
               window.allResponsesCache = {};
@@ -5109,7 +5113,6 @@
             status: u.status,
             comment: u.comment
           }))
-          // カレンダー同期は定期同期（cron）に任せる（性能改善）
         );
     }
 
@@ -5822,6 +5825,9 @@
             if (result.success) {
               showToast('イベントを更新しました', 'success');
               closeEventModal();
+              // カレンダーに非同期で同期（fire-and-forget）
+              const adminToken = localStorage.getItem('adminToken');
+              if (adminToken) api.syncEvent(editingEventId, currentUserKey, adminToken);
               // 全データを再読み込み（出欠データも含む）
               loadInitData().then(() => {
                 renderEvents();
@@ -5860,6 +5866,9 @@
 
               showToast('イベントを作成しました', 'success');
               closeEventModal();
+              // カレンダーに非同期で同期（fire-and-forget）
+              const adminToken = localStorage.getItem('adminToken');
+              if (adminToken) api.syncEvent(result.event.id, currentUserKey, adminToken);
             } else {
               showToast(result.error || '作成に失敗しました', 'error');
             }
@@ -5933,6 +5942,9 @@
 
             showToast('イベントを削除しました', 'success');
             closeDeleteConfirm();
+            // カレンダーから非同期で削除（fire-and-forget）
+            const adminToken = localStorage.getItem('adminToken');
+            if (adminToken) api.syncEvent(deletingEventId, currentUserKey, adminToken);
           } else {
             showToast(result.error || '削除に失敗しました', 'error');
           }

@@ -1,0 +1,56 @@
+name: Deploy to Supabase
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: 'デプロイするブランチ'
+        required: true
+        default: 'main'
+
+jobs:
+  deploy-dev:
+    name: Deploy to dev
+    runs-on: ubuntu-latest
+    # TODO: 開発フェーズ終了後は以下の対応を行う
+    #   1. このジョブの if に "&& github.event_name == 'workflow_dispatch'" を追加（dispatch 専用に戻す）
+    #   2. deploy-prd ジョブを追加して main マージ時に prd へデプロイする（environment: prd）
+    if: github.actor == 'shotasten'
+    environment: dev
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # dispatch 時は指定ブランチ、push 時は main の HEAD
+          ref: ${{ inputs.branch || github.sha }}
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        run: supabase link --project-ref ${{ vars.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run database migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+      - name: Set Edge Function secrets
+        run: |
+          supabase secrets set \
+            GOOGLE_SERVICE_ACCOUNT_JSON='${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}' \
+            GOOGLE_CALENDAR_ID='${{ vars.GOOGLE_CALENDAR_ID }}'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Functions
+        run: supabase functions deploy
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

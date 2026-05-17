@@ -6,26 +6,28 @@ on:
       - main
   workflow_dispatch:
     inputs:
-      branch:
-        description: 'デプロイするブランチ'
+      environment:
+        description: 'デプロイ先環境'
         required: true
-        default: 'main'
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          # TODO: prd デプロイ対応後に有効化する
+          # - prd
 
 jobs:
   deploy-dev:
     name: Deploy to dev
     runs-on: ubuntu-latest
     # TODO: 開発フェーズ終了後は以下の対応を行う
-    #   1. このジョブの if に "&& github.event_name == 'workflow_dispatch'" を追加（dispatch 専用に戻す）
-    #   2. deploy-prd ジョブを追加して main マージ時に prd へデプロイする（environment: prd）
+    #   1. このジョブの if に "&& inputs.environment == 'dev'" を追加
+    #   2. deploy-prd ジョブを追加して prd 選択時にデプロイする（environment: prd）
     if: github.actor == 'shotasten'
     environment: dev
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          # dispatch 時は指定ブランチ、push 時は main の HEAD
-          ref: ${{ inputs.branch || github.sha }}
 
       - uses: supabase/setup-cli@v1
         with:

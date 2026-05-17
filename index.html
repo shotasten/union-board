@@ -4002,6 +4002,7 @@
             } else {
               gridData[targetEventId][memberName] = status.value;
             }
+            updateMemberSaveButtonState(memberName);
           };
 
           statusGroup.appendChild(btn);
@@ -4079,9 +4080,17 @@
           commentInput.focus();
         };
 
-        // コメント入力時のクリアボタン表示制御
+        // コメント入力時のクリアボタン表示制御 + 保存ボタン状態更新
         commentInput.oninput = () => {
           clearButton.style.display = commentInput.value ? 'block' : 'none';
+          updateMemberSaveButtonState(memberName);
+        };
+
+        // クリアボタン後も保存ボタン状態更新
+        const origClearOnclick = clearButton.onclick;
+        clearButton.onclick = () => {
+          origClearOnclick();
+          updateMemberSaveButtonState(memberName);
         };
 
         commentInputWrapper.appendChild(commentInput);
@@ -4091,6 +4100,32 @@
 
         container.appendChild(eventRow);
       });
+
+      // 初期状態：変更なしなので保存ボタンを非活性
+      updateMemberSaveButtonState(memberName);
+    }
+
+    /**
+     * メンバー編集モーダルの保存ボタン活性状態を更新
+     */
+    function updateMemberSaveButtonState(memberName) {
+      const saveBtn = document.querySelector('#member-edit-modal .form-btn.primary');
+      if (!saveBtn) return;
+      const memberUserKey = getMemberUserKey(memberName);
+      const hasChanges = currentEvents.some(event => {
+        const status = gridData[event.id] && gridData[event.id][memberName];
+        const commentInput = document.getElementById('comment-' + event.id + '-' + memberName);
+        const comment = commentInput ? commentInput.value.trim() : '';
+        const existingResponses = window.allResponsesCache[event.id] || [];
+        const existingResponse = existingResponses.find(r => r.userKey === memberUserKey);
+        const originalStatus = existingResponse ? existingResponse.status : null;
+        const originalComment = existingResponse ? (existingResponse.comment || '') : '';
+        const currentStatus = status !== undefined ? status : null;
+        return currentStatus !== originalStatus || comment !== originalComment;
+      });
+      saveBtn.disabled = !hasChanges;
+      saveBtn.style.opacity = hasChanges ? '1' : '0.5';
+      saveBtn.style.cursor = hasChanges ? 'pointer' : 'not-allowed';
     }
 
     /**
@@ -4995,7 +5030,7 @@
         } else {
           // モーダル内にメッセージを表示
           const container = document.getElementById('event-status-list');
-          showToast('更新するデータがありません', 'info');
+          showToast('更新するデータがありません。ステータスを変更するか、コメントを入力してください。', 'info');
         }
         return;
       }

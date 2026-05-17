@@ -4725,6 +4725,26 @@
       if (partSelect) partSelect.value = currentPart;
       if (nameInput) nameInput.value = currentName;
 
+      // 保存ボタンを初期状態で非活性
+      const saveBtn = document.querySelector('#member-info-edit-modal .form-btn.primary');
+      if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.style.opacity = '0.5';
+        saveBtn.style.cursor = 'not-allowed';
+      }
+
+      // 変更検知
+      const checkChanged = () => {
+        const changed = partSelect.value !== currentPart || nameInput.value.trim() !== currentName;
+        if (saveBtn) {
+          saveBtn.disabled = !changed;
+          saveBtn.style.opacity = changed ? '1' : '0.5';
+          saveBtn.style.cursor = changed ? 'pointer' : 'not-allowed';
+        }
+      };
+      if (partSelect) partSelect.oninput = checkChanged;
+      if (nameInput) nameInput.oninput = checkChanged;
+
       modal.style.display = 'block';
     }
 

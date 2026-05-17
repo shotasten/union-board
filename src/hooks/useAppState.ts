@@ -627,13 +627,15 @@ export function useAppState() {
   // ===== Sync all events =====
   const handleSyncAllEvents = useCallback(async (): Promise<void> => {
     closeModal('syncConfirmation')
-    showFullscreenLoader('全イベントをカレンダーに同期中...')
+    showFullscreenLoader('表示期間内のイベントを同期中...')
 
     try {
       const result = await api.syncAllEvents(true)
       hideFullscreenLoader()
 
-      if (result.success > 0 || result.failed === 0) {
+      if (result.errors && result.errors.length > 0 && result.success === 0 && result.failed === 0) {
+        showToast(`同期エラー: ${result.errors[0]}`, 'error')
+      } else if (result.success > 0 || result.failed === 0) {
         let message = `同期完了: 成功 ${result.success}件`
         if (result.failed > 0) message += `, 失敗 ${result.failed}件`
         showToast(message, 'success')

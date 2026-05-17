@@ -324,7 +324,12 @@ Deno.serve(async (req: Request) => {
       for (const r of comments) {
         const m = memberMap.get(r.user_key)!;
         const name = m.display_name || m.name;
-        desc += `${statusLabel[r.status] ?? '-'} ${name}: ${r.comment}\n`;
+        const commentLines = (r.comment ?? '').split('\n');
+        const prefix = `${statusLabel[r.status] ?? '-'} ${name}: `;
+        desc += prefix + commentLines[0] + '\n';
+        for (let i = 1; i < commentLines.length; i++) {
+          desc += '  ' + commentLines[i] + '\n';
+        }
       }
     } else {
       desc += '（コメントなし）\n';

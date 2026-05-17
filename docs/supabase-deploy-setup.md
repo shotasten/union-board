@@ -18,19 +18,25 @@
 
 ---
 
-## 必要な GitHub Secrets
+## 必要な GitHub Secrets / Variables
 
-各 Environment に同じ名前で登録します。
+各 Environment（`dev` / `prd`）の **Settings > Environments > [env名]** で登録します。  
+`dev` と `prd` でプロジェクトが異なるため、それぞれの値を設定してください。
+
+### Secrets（機密値）
 
 | Secret 名 | 取得場所 |
 |---|---|
-| `SUPABASE_ACCESS_TOKEN` | [supabase.com > Account > Access Tokens](https://supabase.com/dashboard/account/tokens) で生成 |
-| `SUPABASE_PROJECT_REF` | Supabase ダッシュボード > プロジェクト > Settings > General > Reference ID |
+| `SUPABASE_ACCESS_TOKEN` | [supabase.com > Account > Access Tokens](https://supabase.com/dashboard/account/tokens) で生成（個人トークン、env 共通でも可） |
 | `SUPABASE_DB_PASSWORD` | Supabase ダッシュボード > プロジェクト > Settings > Database > Database password |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | GCP コンソール > IAM > サービスアカウント > キー で生成した JSON 全体を貼り付け |
-| `GOOGLE_CALENDAR_ID` | Google Calendar の設定 > カレンダーの統合 > カレンダー ID |
 
-`dev` / `prd` それぞれで別プロジェクトを指すように `SUPABASE_PROJECT_REF` などを使い分けてください。
+### Variables（非機密の設定値）
+
+| Variable 名 | 取得場所 |
+|---|---|
+| `SUPABASE_PROJECT_REF` | Supabase ダッシュボード > プロジェクト > Settings > General > Reference ID |
+| `GOOGLE_CALENDAR_ID` | Google Calendar の設定 > カレンダーの統合 > カレンダー ID |
 
 ---
 

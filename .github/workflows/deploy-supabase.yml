@@ -26,7 +26,7 @@ jobs:
           version: latest
 
       - name: Link Supabase project
-        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: supabase link --project-ref ${{ vars.SUPABASE_PROJECT_REF }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
@@ -40,7 +40,7 @@ jobs:
         run: |
           supabase secrets set \
             GOOGLE_SERVICE_ACCOUNT_JSON='${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}' \
-            GOOGLE_CALENDAR_ID='${{ secrets.GOOGLE_CALENDAR_ID }}'
+            GOOGLE_CALENDAR_ID='${{ vars.GOOGLE_CALENDAR_ID }}'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
@@ -67,7 +67,7 @@ jobs:
           version: latest
 
       - name: Link Supabase project
-        run: supabase link --project-ref ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: supabase link --project-ref ${{ vars.SUPABASE_PROJECT_REF }}
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
@@ -81,7 +81,7 @@ jobs:
         run: |
           supabase secrets set \
             GOOGLE_SERVICE_ACCOUNT_JSON='${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}' \
-            GOOGLE_CALENDAR_ID='${{ secrets.GOOGLE_CALENDAR_ID }}'
+            GOOGLE_CALENDAR_ID='${{ vars.GOOGLE_CALENDAR_ID }}'
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 

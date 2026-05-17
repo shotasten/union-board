@@ -4880,6 +4880,15 @@
             // 更新成功
             showToast('メンバー情報を更新しました', 'success');
 
+            // このメンバーが回答済みのイベントをカレンダーに同期（fire-and-forget）
+            const eventIdsWithResponse = Object.keys(window.allResponsesCache || {}).filter(eventId => {
+              const responses = window.allResponsesCache[eventId] || [];
+              return responses.some(r => r.userKey === existingUserKey);
+            });
+            if (eventIdsWithResponse.length > 0) {
+              api.syncAttendance(eventIdsWithResponse);
+            }
+
             // メンバー編集モーダルの表示を更新
             const partDisplay = document.getElementById('member-part-display');
             const nameDisplay = document.getElementById('member-name-display');

@@ -85,7 +85,7 @@ export function AdminInviteModal({ open, onClose, onInvite }: Props) {
                 <input
                   type="email"
                   id="invite-email"
-                  placeholder="例: yamada@example.com"
+                  placeholder="例: user@example.com"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleInvite()}

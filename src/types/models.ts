@@ -67,6 +67,23 @@ export interface ResponseUpdate {
   comment?: string;
 }
 
+export interface AdminInfo {
+  userId: string;
+  email: string;
+  displayName: string | null;
+  role: 'owner' | 'admin';
+  createdAt: string;
+}
+
+export interface AdminInvitation {
+  id: string;
+  email: string;
+  displayName: string;
+  token: string;
+  expiresAt: string;
+  createdAt: string;
+}
+
 export interface ApiResult {
   success: boolean;
   error?: string;

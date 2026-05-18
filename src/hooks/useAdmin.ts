@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { supabase, SPACE_ID } from '../lib/supabase'
 
@@ -29,5 +29,12 @@ export function useAdmin() {
     return () => { stale = true }
   }, [session])
 
-  return { session, isAdmin }
+  const recheckAdmin = useCallback(async () => {
+    if (!session) { setIsAdmin(false); return }
+    const { data, error } = await supabase.rpc('is_space_admin', { p_space_id: SPACE_ID })
+    if (error) console.error('[useAdmin] recheckAdmin error:', error)
+    setIsAdmin(data === true)
+  }, [session])
+
+  return { session, isAdmin, recheckAdmin }
 }

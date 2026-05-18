@@ -1,5 +1,7 @@
 import { supabase, supabasePublic, SPACE_ID } from './supabase';
 import type {
+  AdminInfo,
+  AdminInvitation,
   AttendanceEvent,
   AttendanceResponse,
   Config,
@@ -329,6 +331,80 @@ export const api = {
     });
     if (error) return { success: false, errors: [error.message] };
     return data as { success: boolean; membersDeleted: number; responsesDeleted: number };
+  },
+
+  // ------------------------------------------------------------------
+  // Admin: Admin management (RPC)
+  // ------------------------------------------------------------------
+
+  async adminListAdmins(): Promise<{ success: boolean; admins?: AdminInfo[]; error?: string }> {
+    const { data, error } = await supabase.rpc('admin_list_admins', { p_space_id: SPACE_ID });
+    if (error) return { success: false, error: error.message };
+    const result = data as { success: boolean; admins?: Array<{ user_id: string; email: string; display_name: string | null; role: string; created_at: string }>; error?: string };
+    if (!result.success) return { success: false, error: result.error };
+    return {
+      success: true,
+      admins: (result.admins ?? []).map(a => ({
+        userId: a.user_id,
+        email: a.email,
+        displayName: a.display_name ?? null,
+        role: a.role as 'owner' | 'admin',
+        createdAt: a.created_at,
+      })),
+    };
+  },
+
+  async adminInviteAdmin(email: string, displayName: string): Promise<{ success: boolean; token?: string; error?: string }> {
+    const { data, error } = await supabase.rpc('admin_invite_admin', {
+      p_space_id: SPACE_ID,
+      p_email: email,
+      p_display_name: displayName,
+    });
+    if (error) return { success: false, error: error.message };
+    return data as { success: boolean; token?: string; error?: string };
+  },
+
+  async adminListInvitations(): Promise<{ success: boolean; invitations?: AdminInvitation[]; error?: string }> {
+    const { data, error } = await supabase.rpc('admin_list_invitations', { p_space_id: SPACE_ID });
+    if (error) return { success: false, error: error.message };
+    const result = data as { success: boolean; invitations?: Array<{ id: string; email: string; display_name: string; token: string; expires_at: string; created_at: string }>; error?: string };
+    if (!result.success) return { success: false, error: result.error };
+    return {
+      success: true,
+      invitations: (result.invitations ?? []).map(i => ({
+        id: i.id,
+        email: i.email,
+        displayName: i.display_name,
+        token: i.token,
+        expiresAt: i.expires_at,
+        createdAt: i.created_at,
+      })),
+    };
+  },
+
+  async adminCancelInvitation(token: string): Promise<{ success: boolean; error?: string }> {
+    const { data, error } = await supabase.rpc('admin_cancel_invitation', {
+      p_space_id: SPACE_ID,
+      p_token: token,
+    });
+    if (error) return { success: false, error: error.message };
+    return data as { success: boolean; error?: string };
+  },
+
+  async adminRemoveAdmin(targetUserId: string): Promise<{ success: boolean; error?: string }> {
+    const { data, error } = await supabase.rpc('admin_remove_admin', {
+      p_space_id: SPACE_ID,
+      p_target_user_id: targetUserId,
+    });
+    if (error) return { success: false, error: error.message };
+    return data as { success: boolean; error?: string };
+  },
+
+  async acceptAdminInvitation(token: string): Promise<{ success: boolean; spaceId?: string; error?: string }> {
+    const { data, error } = await supabase.rpc('accept_admin_invitation', { p_token: token });
+    if (error) return { success: false, error: error.message };
+    const result = data as { success: boolean; space_id?: string; error?: string };
+    return { success: result.success, spaceId: result.space_id, error: result.error };
   },
 
   // ------------------------------------------------------------------

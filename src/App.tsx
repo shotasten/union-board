@@ -23,6 +23,7 @@ import { ClearDisplayPeriodConfirmModal } from './components/modals/ClearDisplay
 import { CleanupMembersResponsesModal } from './components/modals/CleanupMembersResponsesModal'
 import { CleanupMembersResponsesFinalConfirmModal } from './components/modals/CleanupMembersResponsesFinalConfirmModal'
 import { AddToCalendarModal } from './components/modals/AddToCalendarModal'
+import { AdminManageModal } from './components/modals/AdminManageModal'
 
 export function App() {
   const {
@@ -46,6 +47,11 @@ export function App() {
     setSelectedMember,
     handleAdminLogin,
     handleAdminLogout,
+    handleAdminListAdmins,
+    handleAdminListInvitations,
+    handleAdminInviteAdmin,
+    handleAdminCancelInvitation,
+    handleAdminRemoveAdmin,
     handleRegisterMember,
     handleUpdateMemberInfo,
     handleDeleteMember,
@@ -58,6 +64,7 @@ export function App() {
     handleCleanupMembersAndResponses,
     handleSyncAllEvents,
     showToast,
+    pendingInvitationToken,
   } = useAppState()
 
   useEffect(() => {
@@ -147,6 +154,7 @@ export function App() {
             <Header
               isAdmin={isAdmin}
               onAdminLoginClick={() => openModal('adminLogin', true)}
+              onAdminManageClick={() => openModal('adminManage', true)}
               onSyncAllClick={() => openModal('syncConfirmation', true)}
               onLogoutClick={() => openModal('logoutConfirmation', true)}
             />
@@ -261,6 +269,24 @@ export function App() {
           </div>
         </div>
       </div>
+
+      {/* Invitation banner */}
+      {pendingInvitationToken && !session && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 9999,
+          backgroundColor: '#1565c0', color: '#fff',
+          padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px',
+        }}>
+          <span style={{ fontSize: '0.95rem' }}>管理者として招待されています。Googleアカウントでログインして招待を承認してください。</span>
+          <button
+            className="form-btn primary"
+            style={{ backgroundColor: '#fff', color: '#1565c0', whiteSpace: 'nowrap' }}
+            onClick={() => openModal('adminLogin', true)}
+          >
+            ログイン
+          </button>
+        </div>
+      )}
 
       {/* Modals */}
       <AdminLoginModal
@@ -379,6 +405,16 @@ export function App() {
         open={modals.addToCalendar}
         config={config}
         onClose={() => closeModal('addToCalendar')}
+      />
+
+      <AdminManageModal
+        open={modals.adminManage}
+        onClose={() => closeModal('adminManage')}
+        onListAdmins={handleAdminListAdmins}
+        onListInvitations={handleAdminListInvitations}
+        onInviteAdmin={handleAdminInviteAdmin}
+        onCancelInvitation={handleAdminCancelInvitation}
+        onRemoveAdmin={handleAdminRemoveAdmin}
       />
 
       {/* Toast notification */}

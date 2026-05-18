@@ -1,11 +1,12 @@
 interface Props {
   isAdmin: boolean
   onAdminLoginClick: () => void
+  onAdminManageClick: () => void
   onSyncAllClick: () => void
   onLogoutClick: () => void
 }
 
-export function Header({ isAdmin, onAdminLoginClick, onSyncAllClick, onLogoutClick }: Props) {
+export function Header({ isAdmin, onAdminLoginClick, onAdminManageClick, onSyncAllClick, onLogoutClick }: Props) {
   return (
     <header>
       <div className="header-top">
@@ -18,6 +19,13 @@ export function Header({ isAdmin, onAdminLoginClick, onSyncAllClick, onLogoutCli
           )}
           {isAdmin && (
             <div className="header-action-group" style={{ display: 'flex' }}>
+              <button
+                className="icon-action-btn"
+                onClick={onAdminManageClick}
+                title="管理者管理"
+              >
+                <i className="fas fa-user-shield"></i>
+              </button>
               <button
                 className="sync-all-btn icon-action-btn"
                 onClick={onSyncAllClick}

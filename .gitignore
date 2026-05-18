@@ -4,3 +4,7 @@ dist/
 .env.local
 .DS_Store
 supabase/.temp/
+
+# 移行スクリプト用の実データ（sample-data/ はサンプルなのでコミット対象）
+scripts/migrate-from-gas/data/
+migration.sql

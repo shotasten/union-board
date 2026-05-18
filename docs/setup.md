@@ -50,6 +50,9 @@ Cloudflare Dashboard → Workers & Pages → プロジェクト → Settings →
 | `VITE_SUPABASE_ANON_KEY` | Variable | Supabase anon key |
 | `VITE_SPACE_ID` | Variable | スペースの UUID |
 | `VITE_FUNCTIONS_URL` | Variable | `https://<project>.supabase.co/functions/v1` |
+| `VITE_CAL_IFRAME_SRC` | Variable | `/cal` に埋め込む Google カレンダーの iframe src URL |
+
+`VITE_CAL_IFRAME_SRC` は dev・prd それぞれの環境変数に設定する。Google カレンダーの「カレンダーを埋め込む」から取得できる URL（`https://calendar.google.com/calendar/embed?...`）をそのまま貼り付ける。
 
 ---
 

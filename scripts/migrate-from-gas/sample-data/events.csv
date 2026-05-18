@@ -1,3 +1,0 @@
-id,title,start,end,isAllDay,location,description,calendarEventId,notesHash,status,createdAt,updatedAt,lastSynced
-550e8400-e29b-41d4-a716-446655440001,第1回練習,2025-04-05T14:00:00.000Z,2025-04-05T17:00:00.000Z,false,音楽室A,通常練習,cal_abc123,hash1,active,2025-04-01T09:00:00.000Z,2025-04-01T09:00:00.000Z,2025-04-05T18:00:00.000Z
-550e8400-e29b-41d4-a716-446655440002,定期演奏会,2025-05-10T13:00:00.000Z,2025-05-10T16:00:00.000Z,false,市民ホール,"本番です。制服着用",cal_def456,hash2,active,2025-04-10T10:00:00.000Z,2025-04-10T10:00:00.000Z,2025-05-10T17:00:00.000Z

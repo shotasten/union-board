@@ -250,9 +250,23 @@ export function useAppState() {
     return api.adminListAdmins()
   }, [])
 
-  const handleAdminInviteAdmin = useCallback(async (email: string) => {
-    return api.adminInviteAdmin(email)
+  const handleAdminListInvitations = useCallback(async () => {
+    return api.adminListInvitations()
   }, [])
+
+  const handleAdminInviteAdmin = useCallback(async (email: string, displayName: string) => {
+    return api.adminInviteAdmin(email, displayName)
+  }, [])
+
+  const handleAdminCancelInvitation = useCallback(async (token: string): Promise<{ success: boolean; error?: string }> => {
+    const result = await api.adminCancelInvitation(token)
+    if (result.success) {
+      showToast('招待を取り消しました', 'success')
+    } else {
+      showToast(result.error || '取消に失敗しました', 'error')
+    }
+    return result
+  }, [showToast])
 
   const handleAdminRemoveAdmin = useCallback(async (targetUserId: string): Promise<{ success: boolean; error?: string }> => {
     const result = await api.adminRemoveAdmin(targetUserId)
@@ -756,7 +770,9 @@ export function useAppState() {
     handleAdminLogin,
     handleAdminLogout,
     handleAdminListAdmins,
+    handleAdminListInvitations,
     handleAdminInviteAdmin,
+    handleAdminCancelInvitation,
     handleAdminRemoveAdmin,
     handleRegisterMember,
     handleUpdateMemberInfo,

@@ -48,7 +48,9 @@ export function App() {
     handleAdminLogin,
     handleAdminLogout,
     handleAdminListAdmins,
+    handleAdminListInvitations,
     handleAdminInviteAdmin,
+    handleAdminCancelInvitation,
     handleAdminRemoveAdmin,
     handleRegisterMember,
     handleUpdateMemberInfo,
@@ -409,7 +411,9 @@ export function App() {
         open={modals.adminManage}
         onClose={() => closeModal('adminManage')}
         onListAdmins={handleAdminListAdmins}
+        onListInvitations={handleAdminListInvitations}
         onInviteAdmin={handleAdminInviteAdmin}
+        onCancelInvitation={handleAdminCancelInvitation}
         onRemoveAdmin={handleAdminRemoveAdmin}
       />
 

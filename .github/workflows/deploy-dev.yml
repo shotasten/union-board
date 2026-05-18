@@ -1,28 +1,15 @@
-name: Deploy to Supabase
+name: Deploy (dev)
 
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-    inputs:
-      environment:
-        description: 'デプロイ先環境'
-        required: true
-        default: 'dev'
-        type: choice
-        options:
-          - dev
-          # TODO: prd デプロイ対応後に有効化する
-          # - prd
 
 jobs:
-  deploy-dev:
-    name: Deploy to dev
+  deploy:
+    name: Deploy Supabase (dev)
     runs-on: ubuntu-latest
-    # TODO: 開発フェーズ終了後は以下の対応を行う
-    #   1. このジョブの if に "&& inputs.environment == 'dev'" を追加
-    #   2. deploy-prd ジョブを追加して prd 選択時にデプロイする（environment: prd）
     if: github.actor == 'shotasten'
     environment: dev
 

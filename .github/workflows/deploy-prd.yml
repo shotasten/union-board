@@ -68,6 +68,14 @@ jobs:
 
       # Cloudflare Pages の GitHub 連携は1リポジトリにつき1アカウントしか紐付けられない。
       # dev アカウントがすでにリポジトリと連携済みのため、prd は Wrangler CLI でデプロイする。
+      - name: Create Cloudflare Pages project (初回のみ、既存の場合は無視)
+        uses: cloudflare/wrangler-action@v3
+        continue-on-error: true
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages project create union-board-prd --production-branch=main
+
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:

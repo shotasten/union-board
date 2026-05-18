@@ -67,6 +67,8 @@ jobs:
           VITE_FUNCTIONS_URL: ${{ vars.VITE_FUNCTIONS_URL }}
           VITE_CAL_IFRAME_SRC: ${{ vars.VITE_CAL_IFRAME_SRC }}
 
+      # Cloudflare Pages の GitHub 連携は1リポジトリにつき1アカウントしか紐付けられない。
+      # dev アカウントがすでにリポジトリと連携済みのため、prd は Wrangler CLI でデプロイする。
       - name: Deploy to Cloudflare Pages
         uses: cloudflare/wrangler-action@v3
         with:

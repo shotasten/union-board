@@ -34,6 +34,10 @@ INSERT INTO space_admins (space_id, user_id, role)
 VALUES ('<スペースのUUID>', '<管理者のauth.uid>', 'owner');
 ```
 
+> **注意:** `owner` の登録は現状この SQL 手動実行のみ。2人目以降の管理者はアプリの「管理者管理」画面から招待できる。
+>
+> **将来 SaaS 化する際の設計方針:** スペース作成画面でログインして作成すると、そのユーザーが自動的に `owner` になるフローを実装する（`create_space_with_owner` RPC でスペース作成と owner 登録をひとつのトランザクションにまとめる想定）。
+
 ---
 
 ## 3. Cloudflare Pages 環境変数

@@ -1,4 +1,4 @@
-name: Deploy to Supabase
+name: Deploy
 
 on:
   push:
@@ -14,10 +14,12 @@ on:
         options:
           - dev
           - prd
+          - prd-supabase
 
 jobs:
+  # main push または dispatch dev: dev Supabase へデプロイ
   deploy-dev:
-    name: Deploy to dev
+    name: Deploy Supabase (dev)
     runs-on: ubuntu-latest
     if: github.actor == 'shotasten' && (github.event_name == 'push' || inputs.environment == 'dev')
     environment: dev
@@ -60,10 +62,45 @@ jobs:
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
 
+  # dispatch prd: prd Cloudflare Pages へデプロイ
   deploy-prd:
-    name: Deploy to prd
+    name: Deploy Cloudflare Pages (prd)
     runs-on: ubuntu-latest
     if: github.actor == 'shotasten' && github.event_name == 'workflow_dispatch' && inputs.environment == 'prd'
+    environment: prd
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          VITE_SPACE_ID: ${{ vars.VITE_SPACE_ID }}
+          VITE_FUNCTIONS_URL: ${{ vars.VITE_FUNCTIONS_URL }}
+          VITE_CAL_IFRAME_SRC: ${{ vars.VITE_CAL_IFRAME_SRC }}
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy dist --project-name=union-board-prd
+
+  # dispatch prd-supabase: prd Supabase へデプロイ（マイグレーション・Edge Functions 更新時のみ）
+  deploy-prd-supabase:
+    name: Deploy Supabase (prd)
+    runs-on: ubuntu-latest
+    if: github.actor == 'shotasten' && github.event_name == 'workflow_dispatch' && inputs.environment == 'prd-supabase'
     environment: prd
 
     steps:

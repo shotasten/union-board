@@ -1,0 +1,52 @@
+name: Deploy (dev)
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy Supabase (dev)
+    runs-on: ubuntu-latest
+    if: github.actor == 'shotasten'
+    environment: dev
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link Supabase project
+        run: supabase link --project-ref ${{ vars.SUPABASE_PROJECT_REF }}
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Run database migrations
+        run: supabase db push
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+
+      - name: Set GOOGLE_SERVICE_ACCOUNT_JSON secret
+        run: supabase secrets set GOOGLE_SERVICE_ACCOUNT_JSON='${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Set GOOGLE_CALENDAR_ID
+        run: supabase secrets set GOOGLE_CALENDAR_ID='${{ vars.GOOGLE_CALENDAR_ID }}'
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Verify secrets are set
+        run: supabase secrets list
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+
+      - name: Deploy Edge Functions
+        run: supabase functions deploy
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}

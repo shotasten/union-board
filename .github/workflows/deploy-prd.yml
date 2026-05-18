@@ -1,72 +1,22 @@
-name: Deploy
+name: Deploy (prd)
 
 on:
-  push:
-    branches:
-      - main
   workflow_dispatch:
     inputs:
-      environment:
-        description: 'デプロイ先環境'
+      target:
+        description: 'デプロイ対象'
         required: true
-        default: 'dev'
         type: choice
         options:
-          - dev
-          - prd
-          - prd-supabase
+          - cloudflare
+          - supabase
 
 jobs:
-  # main push または dispatch dev: dev Supabase へデプロイ
-  deploy-dev:
-    name: Deploy Supabase (dev)
-    runs-on: ubuntu-latest
-    if: github.actor == 'shotasten' && (github.event_name == 'push' || inputs.environment == 'dev')
-    environment: dev
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
-
-      - name: Link Supabase project
-        run: supabase link --project-ref ${{ vars.SUPABASE_PROJECT_REF }}
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-
-      - name: Run database migrations
-        run: supabase db push
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
-
-      - name: Set GOOGLE_SERVICE_ACCOUNT_JSON secret
-        run: supabase secrets set GOOGLE_SERVICE_ACCOUNT_JSON='${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}'
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-
-      - name: Set GOOGLE_CALENDAR_ID
-        run: supabase secrets set GOOGLE_CALENDAR_ID='${{ vars.GOOGLE_CALENDAR_ID }}'
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-
-      - name: Verify secrets are set
-        run: supabase secrets list
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-
-      - name: Deploy Edge Functions
-        run: supabase functions deploy
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-
-  # dispatch prd: prd Cloudflare Pages へデプロイ
-  deploy-prd:
+  # Cloudflare Pages へのフロントエンドデプロイ
+  deploy-cloudflare:
     name: Deploy Cloudflare Pages (prd)
     runs-on: ubuntu-latest
-    if: github.actor == 'shotasten' && github.event_name == 'workflow_dispatch' && inputs.environment == 'prd'
+    if: github.actor == 'shotasten' && inputs.target == 'cloudflare'
     environment: prd
 
     steps:
@@ -96,11 +46,11 @@ jobs:
           accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy dist --project-name=union-board-prd
 
-  # dispatch prd-supabase: prd Supabase へデプロイ（マイグレーション・Edge Functions 更新時のみ）
-  deploy-prd-supabase:
+  # Supabase へのマイグレーション・Edge Functions デプロイ
+  deploy-supabase:
     name: Deploy Supabase (prd)
     runs-on: ubuntu-latest
-    if: github.actor == 'shotasten' && github.event_name == 'workflow_dispatch' && inputs.environment == 'prd-supabase'
+    if: github.actor == 'shotasten' && inputs.target == 'supabase'
     environment: prd
 
     steps:

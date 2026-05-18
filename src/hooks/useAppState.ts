@@ -22,6 +22,8 @@ export interface FullscreenLoaderState {
 export interface ModalState {
   adminLogin: boolean
   adminManage: boolean
+  adminInvite: boolean
+  adminDeleteConfirm: { open: boolean; userId: string | null; adminName: string }
   event: { open: boolean; eventId: string | null }
   eventDetail: { open: boolean; eventId: string | null }
   deleteConfirm: { open: boolean; eventId: string | null; eventTitle: string }
@@ -75,6 +77,8 @@ export { PART_ORDER, PART_LABELS }
 const initialModalState: ModalState = {
   adminLogin: false,
   adminManage: false,
+  adminInvite: false,
+  adminDeleteConfirm: { open: false, userId: null, adminName: '' },
   event: { open: false, eventId: null },
   eventDetail: { open: false, eventId: null },
   deleteConfirm: { open: false, eventId: null, eventTitle: '' },
@@ -147,7 +151,7 @@ export function useAppState() {
   const closeModal = useCallback((key: keyof ModalState) => {
     setModals(prev => ({
       ...prev,
-      [key]: key === 'event' || key === 'eventDetail' || key === 'deleteConfirm' || key === 'memberEdit' || key === 'memberDeleteConfirm'
+      [key]: key === 'event' || key === 'eventDetail' || key === 'deleteConfirm' || key === 'memberEdit' || key === 'memberDeleteConfirm' || key === 'adminDeleteConfirm'
         ? { ...initialModalState[key] }
         : false,
     }))
@@ -268,15 +272,17 @@ export function useAppState() {
     return result
   }, [showToast])
 
-  const handleAdminRemoveAdmin = useCallback(async (targetUserId: string): Promise<{ success: boolean; error?: string }> => {
+  const handleAdminRemoveAdmin = useCallback(async (targetUserId: string): Promise<boolean> => {
     const result = await api.adminRemoveAdmin(targetUserId)
     if (result.success) {
+      closeModal('adminDeleteConfirm')
       showToast('管理者を削除しました', 'success')
+      return true
     } else {
       showToast(result.error || '削除に失敗しました', 'error')
+      return false
     }
-    return result
-  }, [showToast])
+  }, [closeModal, showToast])
 
   // ===== Member registration =====
   const handleRegisterMember = useCallback(async (part: string, name: string): Promise<boolean> => {

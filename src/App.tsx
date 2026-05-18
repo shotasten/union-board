@@ -24,6 +24,8 @@ import { CleanupMembersResponsesModal } from './components/modals/CleanupMembers
 import { CleanupMembersResponsesFinalConfirmModal } from './components/modals/CleanupMembersResponsesFinalConfirmModal'
 import { AddToCalendarModal } from './components/modals/AddToCalendarModal'
 import { AdminManageModal } from './components/modals/AdminManageModal'
+import { AdminInviteModal } from './components/modals/AdminInviteModal'
+import { AdminDeleteConfirmModal } from './components/modals/AdminDeleteConfirmModal'
 
 export function App() {
   const {
@@ -410,11 +412,25 @@ export function App() {
       <AdminManageModal
         open={modals.adminManage}
         onClose={() => closeModal('adminManage')}
+        onInviteClick={() => openModal('adminInvite', true)}
+        onDeleteClick={(userId, adminName) => openModal('adminDeleteConfirm', { open: true, userId, adminName })}
         onListAdmins={handleAdminListAdmins}
         onListInvitations={handleAdminListInvitations}
-        onInviteAdmin={handleAdminInviteAdmin}
         onCancelInvitation={handleAdminCancelInvitation}
-        onRemoveAdmin={handleAdminRemoveAdmin}
+      />
+
+      <AdminInviteModal
+        open={modals.adminInvite}
+        onClose={() => closeModal('adminInvite')}
+        onInvite={handleAdminInviteAdmin}
+      />
+
+      <AdminDeleteConfirmModal
+        open={modals.adminDeleteConfirm.open}
+        userId={modals.adminDeleteConfirm.userId}
+        adminName={modals.adminDeleteConfirm.adminName}
+        onClose={() => closeModal('adminDeleteConfirm')}
+        onConfirm={handleAdminRemoveAdmin}
       />
 
       {/* Toast notification */}

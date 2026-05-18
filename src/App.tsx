@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useAppState } from './hooks/useAppState'
 import { Header } from './components/Header'
 import { AttendanceGrid } from './components/AttendanceGrid'
@@ -68,6 +68,9 @@ export function App() {
     showToast,
     pendingInvitationToken,
   } = useAppState()
+
+  const [adminManageRefresh, setAdminManageRefresh] = useState(0)
+  const bumpAdminManageRefresh = () => setAdminManageRefresh(n => n + 1)
 
   useEffect(() => {
     loadInitData()
@@ -411,6 +414,7 @@ export function App() {
 
       <AdminManageModal
         open={modals.adminManage}
+        refreshTrigger={adminManageRefresh}
         onClose={() => closeModal('adminManage')}
         onInviteClick={() => openModal('adminInvite', true)}
         onDeleteClick={(userId, adminName) => openModal('adminDeleteConfirm', { open: true, userId, adminName })}
@@ -421,7 +425,7 @@ export function App() {
 
       <AdminInviteModal
         open={modals.adminInvite}
-        onClose={() => closeModal('adminInvite')}
+        onClose={() => { closeModal('adminInvite'); bumpAdminManageRefresh() }}
         onInvite={handleAdminInviteAdmin}
       />
 
@@ -430,7 +434,7 @@ export function App() {
         userId={modals.adminDeleteConfirm.userId}
         adminName={modals.adminDeleteConfirm.adminName}
         onClose={() => closeModal('adminDeleteConfirm')}
-        onConfirm={handleAdminRemoveAdmin}
+        onConfirm={async (userId) => { const ok = await handleAdminRemoveAdmin(userId); if (ok) bumpAdminManageRefresh(); return ok }}
       />
 
       {/* Toast notification */}

@@ -70,7 +70,7 @@ export function AdminInviteModal({ open, onClose, onInvite }: Props) {
           {!inviteUrl ? (
             <>
               <div className="form-group">
-                <label htmlFor="invite-display-name">名前</label>
+                <label htmlFor="invite-display-name">名前 <span style={{ color: 'red' }}>*</span></label>
                 <input
                   type="text"
                   id="invite-display-name"
@@ -81,11 +81,11 @@ export function AdminInviteModal({ open, onClose, onInvite }: Props) {
                 />
               </div>
               <div className="form-group" style={{ marginTop: '16px' }}>
-                <label htmlFor="invite-email">メールアドレス</label>
+                <label htmlFor="invite-email">メールアドレス <span style={{ color: 'red' }}>*</span></label>
                 <input
                   type="email"
                   id="invite-email"
-                  placeholder="例: yamada@example.com"
+                  placeholder="例: user@example.com"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleInvite()}

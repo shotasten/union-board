@@ -46,7 +46,7 @@ export function MemberRegisterModal({ open, onClose, onRegister }: Props) {
         </div>
         <div className="modal-body">
           <div className="form-group" style={{ marginTop: '20px' }}>
-            <label htmlFor="member-part">パート</label>
+            <label htmlFor="member-part">パート <span style={{ color: 'red' }}>*</span></label>
             <select
               id="member-part"
               value={part}
@@ -60,7 +60,7 @@ export function MemberRegisterModal({ open, onClose, onRegister }: Props) {
             </select>
           </div>
           <div className="form-group" style={{ marginTop: '20px' }}>
-            <label htmlFor="member-name">名前</label>
+            <label htmlFor="member-name">名前 <span style={{ color: 'red' }}>*</span></label>
             <input
               type="text"
               id="member-name"

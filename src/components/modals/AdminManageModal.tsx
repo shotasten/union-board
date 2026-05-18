@@ -3,6 +3,7 @@ import type { AdminInfo, AdminInvitation } from '../../types/models'
 
 interface Props {
   open: boolean
+  refreshTrigger: number
   onClose: () => void
   onInviteClick: () => void
   onDeleteClick: (userId: string, adminName: string) => void
@@ -19,7 +20,7 @@ function getRemainingDays(expiresAt: string): string {
   return `残り${days}日`
 }
 
-export function AdminManageModal({ open, onClose, onInviteClick, onDeleteClick, onListAdmins, onListInvitations, onCancelInvitation }: Props) {
+export function AdminManageModal({ open, refreshTrigger, onClose, onInviteClick, onDeleteClick, onListAdmins, onListInvitations, onCancelInvitation }: Props) {
   const [admins, setAdmins] = useState<AdminInfo[]>([])
   const [invitations, setInvitations] = useState<AdminInvitation[]>([])
   const [loading, setLoading] = useState(false)
@@ -36,7 +37,7 @@ export function AdminManageModal({ open, onClose, onInviteClick, onDeleteClick, 
       else setError(adminsResult.error ?? '管理者一覧の取得に失敗しました')
       if (invitationsResult.success) setInvitations(invitationsResult.invitations ?? [])
     })
-  }, [open])
+  }, [open, refreshTrigger])
 
   const handleCancelInvitation = async (token: string) => {
     setCancellingToken(token)

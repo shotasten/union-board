@@ -47,7 +47,7 @@ export function MemberInfoEditModal({ open, member, onClose, onSave }: Props) {
         </div>
         <div className="modal-body">
           <div className="form-group" style={{ marginTop: '20px' }}>
-            <label htmlFor="member-info-part">パート</label>
+            <label htmlFor="member-info-part">パート <span style={{ color: 'red' }}>*</span></label>
             <select
               id="member-info-part"
               value={part}
@@ -61,7 +61,7 @@ export function MemberInfoEditModal({ open, member, onClose, onSave }: Props) {
             </select>
           </div>
           <div className="form-group" style={{ marginTop: '20px' }}>
-            <label htmlFor="member-info-name">名前</label>
+            <label htmlFor="member-info-name">名前 <span style={{ color: 'red' }}>*</span></label>
             <input
               type="text"
               id="member-info-name"

@@ -21,6 +21,7 @@ export interface FullscreenLoaderState {
 
 export interface ModalState {
   adminLogin: boolean
+  adminManage: boolean
   event: { open: boolean; eventId: string | null }
   eventDetail: { open: boolean; eventId: string | null }
   deleteConfirm: { open: boolean; eventId: string | null; eventTitle: string }
@@ -73,6 +74,7 @@ export { PART_ORDER, PART_LABELS }
 
 const initialModalState: ModalState = {
   adminLogin: false,
+  adminManage: false,
   event: { open: false, eventId: null },
   eventDetail: { open: false, eventId: null },
   deleteConfirm: { open: false, eventId: null, eventTitle: '' },
@@ -92,7 +94,7 @@ const initialModalState: ModalState = {
 let toastIdCounter = 0
 
 export function useAppState() {
-  const { session, isAdmin } = useAdmin()
+  const { session, isAdmin, recheckAdmin } = useAdmin()
 
   const [events, setEvents] = useState<AttendanceEvent[]>([])
   const [members, setMembers] = useState<Member[]>([])
@@ -196,13 +198,44 @@ export function useAppState() {
     }
   }, [loadInitData, showToast])
 
+  // ===== Invitation token from URL =====
+  const [pendingInvitationToken, setPendingInvitationToken] = useState<string | null>(() => {
+    const params = new URLSearchParams(window.location.search)
+    return params.get('admin_invite')
+  })
+
+  const invitationAcceptedRef = useRef(false)
+  useEffect(() => {
+    if (!pendingInvitationToken || !session || invitationAcceptedRef.current) return
+    invitationAcceptedRef.current = true
+
+    api.acceptAdminInvitation(pendingInvitationToken).then(result => {
+      setPendingInvitationToken(null)
+      const url = new URL(window.location.href)
+      url.searchParams.delete('admin_invite')
+      window.history.replaceState({}, '', url.toString())
+
+      if (result.success) {
+        recheckAdmin()
+        const id = ++toastIdCounter
+        setToast({ message: '管理者として登録されました', type: 'success', id })
+        setTimeout(() => setToast(prev => prev?.id === id ? null : prev), 3000)
+      } else {
+        const id = ++toastIdCounter
+        setToast({ message: result.error || '招待の承認に失敗しました', type: 'error', id })
+        setTimeout(() => setToast(prev => prev?.id === id ? null : prev), 4000)
+      }
+    })
+  }, [session, pendingInvitationToken, recheckAdmin])
+
   // ===== Admin login (Google OAuth) =====
   const handleAdminLogin = useCallback(async () => {
+    const redirectTo = pendingInvitationToken ? window.location.href : window.location.origin
     await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo },
     })
-  }, [])
+  }, [pendingInvitationToken])
 
   // ===== Admin logout =====
   const handleAdminLogout = useCallback(async () => {
@@ -211,6 +244,25 @@ export function useAppState() {
     showToast('管理者ログアウトしました', 'success')
     await loadInitData()
   }, [closeModal, loadInitData, showToast])
+
+  // ===== Admin management =====
+  const handleAdminListAdmins = useCallback(async () => {
+    return api.adminListAdmins()
+  }, [])
+
+  const handleAdminInviteAdmin = useCallback(async (email: string) => {
+    return api.adminInviteAdmin(email)
+  }, [])
+
+  const handleAdminRemoveAdmin = useCallback(async (targetUserId: string): Promise<{ success: boolean; error?: string }> => {
+    const result = await api.adminRemoveAdmin(targetUserId)
+    if (result.success) {
+      showToast('管理者を削除しました', 'success')
+    } else {
+      showToast(result.error || '削除に失敗しました', 'error')
+    }
+    return result
+  }, [showToast])
 
   // ===== Member registration =====
   const handleRegisterMember = useCallback(async (part: string, name: string): Promise<boolean> => {
@@ -689,6 +741,7 @@ export function useAppState() {
     modals,
     selectedMember,
     localStatusOverrides,
+    pendingInvitationToken,
     // Actions
     loadInitData,
     reloadEvents,
@@ -702,6 +755,9 @@ export function useAppState() {
     clearLocalOverridesForMember,
     handleAdminLogin,
     handleAdminLogout,
+    handleAdminListAdmins,
+    handleAdminInviteAdmin,
+    handleAdminRemoveAdmin,
     handleRegisterMember,
     handleUpdateMemberInfo,
     handleDeleteMember,

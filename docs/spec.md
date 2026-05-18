@@ -121,6 +121,21 @@ event_id + user_key で unique。
 | DISPLAY_START_DATE | 表示開始日（SHOW_ALL_EVENTS が true のとき有効） |
 | DISPLAY_END_DATE | 表示終了日 |
 
+### admin_invitations
+
+管理者招待の一時トークンを保存するテーブル。`admin_invite_admin` RPC によって生成される。
+
+| カラム | 型 | 説明 |
+|---|---|---|
+| id | uuid PK | |
+| space_id | uuid FK | |
+| email | text | 招待先メールアドレス（小文字正規化済み） |
+| token | text | 一意のランダムトークン（64文字 hex） |
+| invited_by | uuid | 招待した管理者の Auth UID |
+| expires_at | timestamptz | 有効期限（発行から7日） |
+| accepted_at | timestamptz | 承認日時（null = 未承認） |
+| created_at | timestamptz | |
+
 ### members_archive / responses_archive
 新年度リセット時にアーカイブされたデータを保存するテーブル。`admin_cleanup_members_responses` RPC によって退避される。
 
@@ -136,6 +151,18 @@ event_id + user_key で unique。
 一般ユーザーは Supabase anon key で直接 DB に読み書きする。responses の upsert と members の CRUD が可能。RLS で space_id が一致するデータのみ触れる。
 
 管理者は Google OAuth（`supabase.auth.signInWithOAuth`）でサインインする。認証後のセッション JWT は Supabase が管理し、`supabase.auth.getSession()` で取得する。イベント CRUD や設定変更は RPC 経由で実行し、DB 側の `is_space_admin` 関数でセッションの UID を `space_admins` テーブルと照合して認可する。
+
+### 管理者招待フロー
+
+1. 既存管理者がヘッダーの「管理者管理」ボタンから管理画面を開く
+2. 招待先のメールアドレスを入力して「URL発行」をクリック → `admin_invite_admin` RPC がトークンを生成（有効期限7日）
+3. 生成された招待URL（`?admin_invite=<token>` 付き）を手動で招待先に送付する
+4. 招待先がURLを開くと招待バナーが表示され、「ログイン」ボタンから Google OAuth へ進む
+5. OAuth 後の redirect先はトークン付き URL に設定され、ログイン後に `accept_admin_invitation` RPC が自動実行される
+6. RPC は招待メールアドレスとログインユーザーのメールアドレスを照合し、一致すれば `space_admins` に `role='admin'` で追加する
+7. 登録後は `is_space_admin` を再チェックして管理者権限を即時付与する
+
+`role='owner'` のユーザーは管理画面から削除不可。`role='admin'` は既存管理者が削除可能。
 
 ---
 

@@ -320,12 +320,10 @@ main {
   height: 12px;
   width: 100%;
   margin-bottom: 4px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px 8px 0 0;
-  background: #f0f0f0;
-  scrollbar-width: thin;
-  scrollbar-color: #5B9BD5 #f0f0f0;
   display: none;
+  /* scrollbar-width/color のみで制御（::-webkit-scrollbar との混在を避ける） */
+  scrollbar-width: thin;
+  scrollbar-color: #5B9BD5 #FF6B6B;
 }
 
 .attendance-grid-scrollbar-top.visible {
@@ -334,26 +332,22 @@ main {
   z-index: 5;
 }
 
-.attendance-grid-scrollbar-top::-webkit-scrollbar {
-  height: 12px;
-}
-
-.attendance-grid-scrollbar-top::-webkit-scrollbar-button {
-  display: none;
-}
-
-.attendance-grid-scrollbar-top::-webkit-scrollbar-track {
-  background: #f0f0f0;
-  border-radius: 6px;
-}
-
-.attendance-grid-scrollbar-top::-webkit-scrollbar-thumb {
-  background: #5B9BD5;
-  border-radius: 6px;
-}
-
-.attendance-grid-scrollbar-top::-webkit-scrollbar-thumb:hover {
-  background: #4A8BC2;
+/* ::-webkit-scrollbar は ::-webkit-scrollbar-button が出るため使わない */
+@supports not (scrollbar-color: auto) {
+  /* scrollbar-color 非対応の古いブラウザ向けフォールバック */
+  .attendance-grid-scrollbar-top::-webkit-scrollbar {
+    height: 12px;
+  }
+  .attendance-grid-scrollbar-top::-webkit-scrollbar-button {
+    display: none;
+  }
+  .attendance-grid-scrollbar-top::-webkit-scrollbar-track {
+    background: #c8d8ed;
+  }
+  .attendance-grid-scrollbar-top::-webkit-scrollbar-thumb {
+    background: #5B9BD5;
+    border-radius: 6px;
+  }
 }
 
 /* Webkit系ブラウザ用のスクロールバースタイル（横スクロール） */

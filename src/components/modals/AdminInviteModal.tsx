@@ -74,7 +74,7 @@ export function AdminInviteModal({ open, onClose, onInvite }: Props) {
                 <input
                   type="text"
                   id="invite-display-name"
-                  placeholder="例: 山田太郎"
+                  placeholder="例: 管理者太郎"
                   maxLength={50}
                   value={displayName}
                   onChange={e => setDisplayName(e.target.value)}

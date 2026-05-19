@@ -317,12 +317,14 @@ main {
 .attendance-grid-scrollbar-top {
   overflow-x: scroll;
   overflow-y: hidden;
-  height: 16px;
+  height: 12px;
   width: 100%;
   margin-bottom: 4px;
   border: 1px solid #e0e0e0;
   border-radius: 8px 8px 0 0;
   background: #f0f0f0;
+  scrollbar-width: thin;
+  scrollbar-color: #5B9BD5 #f0f0f0;
   display: none;
 }
 
@@ -333,7 +335,11 @@ main {
 }
 
 .attendance-grid-scrollbar-top::-webkit-scrollbar {
-  height: 16px;
+  height: 12px;
+}
+
+.attendance-grid-scrollbar-top::-webkit-scrollbar-button {
+  display: none;
 }
 
 .attendance-grid-scrollbar-top::-webkit-scrollbar-track {

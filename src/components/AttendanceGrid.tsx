@@ -185,8 +185,7 @@ export function AttendanceGrid({
 
   return (
     <div className="table-responsive attendance-grid-wrapper" ref={wrapperRef}>
-      <div className="attendance-grid-wrapper-top-fade"></div>
-      <div id="attendance-grid-scrollbar-top" className="attendance-grid-scrollbar-top" ref={topScrollbarRef}>
+<div id="attendance-grid-scrollbar-top" className="attendance-grid-scrollbar-top" ref={topScrollbarRef}>
         <div></div>
       </div>
       <div id="attendance-grid" className="attendance-grid-container" ref={containerRef}>

@@ -103,7 +103,7 @@ export function AttendanceGrid({
     const scrollLeft = container.scrollLeft
     const scrollRight = container.scrollWidth - container.scrollLeft - container.clientWidth
 
-    wrapper.classList.remove('scrollable-left', 'scrollable-right', 'scrollable-top', 'scrolled')
+    wrapper.classList.remove('scrollable-left', 'scrollable-right')
 
     if (isScrollable) {
       if (topScrollbar) {
@@ -119,13 +119,6 @@ export function AttendanceGrid({
 
       if (scrollLeft > 5) wrapper.classList.add('scrollable-left')
       if (scrollRight > 5) wrapper.classList.add('scrollable-right')
-
-      const scrollTop = container.scrollTop
-      if (scrollTop > 5) {
-        wrapper.classList.add('scrolled')
-      } else {
-        wrapper.classList.add('scrollable-top')
-      }
     } else {
       if (topScrollbar) topScrollbar.classList.remove('visible')
     }
@@ -192,8 +185,7 @@ export function AttendanceGrid({
 
   return (
     <div className="table-responsive attendance-grid-wrapper" ref={wrapperRef}>
-      <div className="attendance-grid-wrapper-top-fade"></div>
-      <div id="attendance-grid-scrollbar-top" className="attendance-grid-scrollbar-top" ref={topScrollbarRef}>
+<div id="attendance-grid-scrollbar-top" className="attendance-grid-scrollbar-top" ref={topScrollbarRef}>
         <div></div>
       </div>
       <div id="attendance-grid" className="attendance-grid-container" ref={containerRef}>

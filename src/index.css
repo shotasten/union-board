@@ -323,7 +323,7 @@ main {
   display: none;
   /* scrollbar-width/color のみで制御（::-webkit-scrollbar との混在を避ける） */
   scrollbar-width: thin;
-  scrollbar-color: #5B9BD5 #FF6B6B;
+  scrollbar-color: #5B9BD5 #f0f0f0;
 }
 
 .attendance-grid-scrollbar-top.visible {

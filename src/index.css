@@ -332,6 +332,8 @@ main {
 
 .attendance-grid-scrollbar-top.visible {
   display: block;
+  position: relative;
+  z-index: 5;
 }
 
 .attendance-grid-scrollbar-top::-webkit-scrollbar {
@@ -405,27 +407,8 @@ main {
   opacity: 1;
 }
 
-/* スクロール可能な場合の上部のフェードアウト効果 */
 .attendance-grid-wrapper-top-fade {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 20px;
-  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.95), transparent);
-  pointer-events: none;
-  z-index: 4;
-  transition: opacity 0.2s ease;
-  opacity: 0;
-}
-
-.attendance-grid-wrapper.scrollable-top .attendance-grid-wrapper-top-fade {
-  opacity: 1;
-}
-
-/* スクロール時に上部グラデーションを非表示 */
-.attendance-grid-wrapper.scrolled .attendance-grid-wrapper-top-fade {
-  opacity: 0;
+  display: none;
 }
 
 /* スクロールヒント */

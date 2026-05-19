@@ -103,7 +103,7 @@ export function AttendanceGrid({
     const scrollLeft = container.scrollLeft
     const scrollRight = container.scrollWidth - container.scrollLeft - container.clientWidth
 
-    wrapper.classList.remove('scrollable-left', 'scrollable-right', 'scrollable-top', 'scrolled')
+    wrapper.classList.remove('scrollable-left', 'scrollable-right')
 
     if (isScrollable) {
       if (topScrollbar) {
@@ -119,13 +119,6 @@ export function AttendanceGrid({
 
       if (scrollLeft > 5) wrapper.classList.add('scrollable-left')
       if (scrollRight > 5) wrapper.classList.add('scrollable-right')
-
-      const scrollTop = container.scrollTop
-      if (scrollTop > 5) {
-        wrapper.classList.add('scrolled')
-      } else {
-        wrapper.classList.add('scrollable-top')
-      }
     } else {
       if (topScrollbar) topScrollbar.classList.remove('visible')
     }

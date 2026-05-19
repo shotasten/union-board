@@ -315,19 +315,15 @@ main {
 
 /* 上部のスクロールバー */
 .attendance-grid-scrollbar-top {
-  overflow-x: auto;
+  overflow-x: scroll;
   overflow-y: hidden;
-  height: 12px;
+  height: 16px;
   width: 100%;
   margin-bottom: 4px;
   border: 1px solid #e0e0e0;
   border-radius: 8px 8px 0 0;
   background: #f0f0f0;
-  /* スクロールバーを目立たせる（ライトブルー） */
-  scrollbar-width: thin;
-  scrollbar-color: #5B9BD5 #f0f0f0;
   display: none;
-  /* スクロール可能な場合のみ表示 */
 }
 
 .attendance-grid-scrollbar-top.visible {
@@ -337,7 +333,7 @@ main {
 }
 
 .attendance-grid-scrollbar-top::-webkit-scrollbar {
-  height: 12px;
+  height: 16px;
 }
 
 .attendance-grid-scrollbar-top::-webkit-scrollbar-track {

@@ -19,7 +19,7 @@
 
 - [セットアップ手順](docs/setup.md)
 - [仕様書](docs/spec.md)
-- [Supabase デプロイセットアップ](docs/deploy-setup.md)
+- [デプロイセットアップ](docs/deploy-setup.md)
 
 ---
 
@@ -42,7 +42,7 @@ VITE_CAL_IFRAME_SRC=https://calendar.google.com/calendar/embed?src=...
 
 ## Edge Function のデプロイ
 
-GitHub Actions の `Deploy to Supabase` ワークフロー（main へのマージ）で自動デプロイされる。手動でデプロイする場合は以下のコマンドを使う（[Supabase デプロイセットアップ](docs/deploy-setup.md) 参照）。
+GitHub Actions の `Deploy to Supabase` ワークフロー（main へのマージ）で自動デプロイされる。手動でデプロイする場合は以下のコマンドを使う（[デプロイセットアップ](docs/deploy-setup.md) 参照）。
 
 ```bash
 supabase functions deploy --project-ref <project-ref>

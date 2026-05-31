@@ -201,7 +201,7 @@ export function MemberEditModal({
                   { value: '○', label: '○', cls: 'attend' },
                   { value: '△', label: '△', cls: 'maybe' },
                   { value: '×', label: '×', cls: 'absent' },
-                  { value: '-', label: '未定', cls: 'cancel' },
+                  { value: '-', label: '未定', cls: 'undecided' },
                 ]
                 return (
                   <div

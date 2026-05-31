@@ -62,16 +62,16 @@ export function MemberEditModal({
     sortedEvents.forEach(event => {
       const responses = responsesMap[event.id] || []
       const memberResponse = responses.find(r => r.userKey === member.userKey)
-      const hasResponse = memberResponse !== undefined
-      const status = memberResponse ? memberResponse.status : null
+      const originalHasResponse = memberResponse !== undefined
+      const status = memberResponse ? memberResponse.status : '-'
       const comment = memberResponse?.comment || ''
       initial[event.id] = {
         status: status,
         comment: comment,
-        hasResponse: hasResponse,
+        hasResponse: true,
         originalStatus: status,
         originalComment: comment,
-        originalHasResponse: hasResponse,
+        originalHasResponse: originalHasResponse,
       }
     })
     setEventStatuses(initial)

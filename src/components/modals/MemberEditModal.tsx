@@ -7,8 +7,10 @@ type StatusOrNone = ResponseStatus | '-' | null
 interface EventStatusEntry {
   status: StatusOrNone
   comment: string
+  hasResponse: boolean
   originalStatus: StatusOrNone
   originalComment: string
+  originalHasResponse: boolean
 }
 
 interface Props {
@@ -60,13 +62,16 @@ export function MemberEditModal({
     sortedEvents.forEach(event => {
       const responses = responsesMap[event.id] || []
       const memberResponse = responses.find(r => r.userKey === member.userKey)
-      const status = memberResponse ? memberResponse.status : null
+      const originalHasResponse = memberResponse !== undefined
+      const status = memberResponse ? memberResponse.status : '-'
       const comment = memberResponse?.comment || ''
       initial[event.id] = {
         status: status,
         comment: comment,
+        hasResponse: true,
         originalStatus: status,
         originalComment: comment,
+        originalHasResponse: originalHasResponse,
       }
     })
     setEventStatuses(initial)
@@ -75,7 +80,7 @@ export function MemberEditModal({
 
   const hasChanges = useCallback(() => {
     return Object.values(eventStatuses).some(entry =>
-      entry.status !== entry.originalStatus || entry.comment !== entry.originalComment
+      entry.status !== entry.originalStatus || entry.comment !== entry.originalComment || entry.hasResponse !== entry.originalHasResponse
     )
   }, [eventStatuses])
 
@@ -88,7 +93,7 @@ export function MemberEditModal({
   const handleStatusChange = (eventId: string, status: StatusOrNone) => {
     setEventStatuses(prev => ({
       ...prev,
-      [eventId]: { ...prev[eventId], status },
+      [eventId]: { ...prev[eventId], status, hasResponse: true },
     }))
   }
 
@@ -107,7 +112,7 @@ export function MemberEditModal({
         const entry = eventStatuses[event.id]
         if (!entry) return null
 
-        const statusChanged = entry.status !== entry.originalStatus
+        const statusChanged = entry.status !== entry.originalStatus || entry.hasResponse !== entry.originalHasResponse
         const commentChanged = entry.comment !== entry.originalComment
 
         if (!statusChanged && !commentChanged) return null
@@ -181,7 +186,7 @@ export function MemberEditModal({
                 </div>
               )}
               {sortedEvents.map(event => {
-                const entry = eventStatuses[event.id] || { status: null, comment: '', originalStatus: null, originalComment: '' }
+                const entry = eventStatuses[event.id] || { status: null, comment: '', hasResponse: false, originalStatus: null, originalComment: '', originalHasResponse: false }
                 const startDate = new Date(event.start)
                 const endDate = new Date(event.end)
                 const isAllDay = getIsAllDay(event.isAllDay)
@@ -196,12 +201,8 @@ export function MemberEditModal({
                   { value: '○', label: '○', cls: 'attend' },
                   { value: '△', label: '△', cls: 'maybe' },
                   { value: '×', label: '×', cls: 'absent' },
-                  { value: null, label: '未定', cls: 'cancel' },
+                  { value: '-', label: '未定', cls: 'cancel' },
                 ]
-
-                // Normalize: '-' treated as null (undecided)
-                const currentStatus = entry.status === '-' ? null : entry.status
-
                 return (
                   <div
                     key={event.id}
@@ -232,7 +233,7 @@ export function MemberEditModal({
                           <button
                             key={s.cls}
                             type="button"
-                            className={`response-btn ${s.cls}${(s.value === null && currentStatus === null) || s.value === currentStatus ? ' active' : ''}`}
+                            className={`response-btn ${s.cls}${s.value === entry.status ? ' active' : ''}`}
                             onClick={() => handleStatusChange(event.id, s.value)}
                           >
                             {s.label}

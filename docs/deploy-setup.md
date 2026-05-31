@@ -79,6 +79,10 @@
 1. GitHub リポジトリの **Actions > Deploy (dev)** を開く
 2. **Run workflow** をクリックして実行
 
+## Data API 権限
+
+`supabase/migrations/004_explicit_data_api_grants.sql` で、フロントエンドと Edge Function が Data API（PostgREST / `supabase-js`）経由で使うテーブル・RPC だけに明示的な `GRANT` を付与する。新しいテーブルや RPC を追加した場合は、同じ migration flow で必要最小限の `GRANT` も追加する。
+
 ## prd への初回マイグレーション手順
 
 `supabase db push` は Supabase CLI が適用済みマイグレーションを追跡するが、SQL Editor で手動適用したマイグレーションは追跡外になる。その場合は以下を Supabase SQL Editor で実行して既適用済みとしてマークする。

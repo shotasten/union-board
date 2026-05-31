@@ -196,12 +196,8 @@ export function MemberEditModal({
                   { value: '○', label: '○', cls: 'attend' },
                   { value: '△', label: '△', cls: 'maybe' },
                   { value: '×', label: '×', cls: 'absent' },
-                  { value: null, label: '未定', cls: 'cancel' },
+                  { value: '-', label: '未定', cls: 'cancel' },
                 ]
-
-                // Normalize: '-' treated as null (undecided)
-                const currentStatus = entry.status === '-' ? null : entry.status
-
                 return (
                   <div
                     key={event.id}
@@ -232,7 +228,7 @@ export function MemberEditModal({
                           <button
                             key={s.cls}
                             type="button"
-                            className={`response-btn ${s.cls}${(s.value === null && currentStatus === null) || s.value === currentStatus ? ' active' : ''}`}
+                            className={`response-btn ${s.cls}${s.value === entry.status ? ' active' : ''}`}
                             onClick={() => handleStatusChange(event.id, s.value)}
                           >
                             {s.label}

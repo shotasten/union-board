@@ -175,6 +175,9 @@ event_id + user_key で unique。
 | absent | × | 欠席 |
 | unselected | - | 未定 |
 
+未登録の出欠は responses 行が存在しない状態として扱い、画面上は白背景で `-` を表示する。
+明示的に未定を登録した場合は `unselected` として responses 行を保存し、画面上はグレー背景で `-` を表示する。
+
 ---
 
 ## Google Calendar 連携

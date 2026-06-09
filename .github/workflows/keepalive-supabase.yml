@@ -1,6 +1,9 @@
 name: Keep alive Supabase
 
 on:
+  pull_request:
+    branches:
+      - main
   schedule:
     # Free projects may be paused after 7 days of inactivity.
     # Run once a day from outside Supabase so the project receives a real API request.

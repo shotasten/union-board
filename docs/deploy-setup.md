@@ -43,6 +43,24 @@
 
 ---
 
+## Supabase keep-alive
+
+`.github/workflows/keepalive-supabase.yml` で、`dev` / `prd` の Supabase Data API に1日1回アクセスする。
+
+目的は Free Plan project の inactivity pause を避けるための軽量な外部アクセス。Supabase 公式が inactivity 判定条件の詳細を公開しているわけではないため、これは保証付きの回避策ではない。確実に pause させたくない環境は Pro Plan を使う。
+
+この workflow は各 GitHub Environment の既存 Variables を使う。
+
+| Variable 名 | 用途 |
+|---|---|
+| `VITE_SUPABASE_URL` | Data API のアクセス先 |
+| `VITE_SUPABASE_ANON_KEY` | Data API の anon / publishable key |
+| `VITE_SPACE_ID` | `config` テーブルの読み取り対象 space |
+
+ping 対象は anon select が許可されている `config` テーブルで、取得カラムは `key` のみ、`limit=1` とする。アプリ画面を単に `curl` してもブラウザ JavaScript が実行されず Supabase への初期データ取得は発生しないため、Data API を直接叩く。
+
+---
+
 ## prd 環境の構成
 
 ### Supabase

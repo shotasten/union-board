@@ -1,0 +1,57 @@
+name: Keep alive Supabase
+
+on:
+  schedule:
+    # Free projects may be paused after 7 days of inactivity.
+    # Run once a day from outside Supabase so the project receives a real API request.
+    - cron: "15 18 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  keepalive:
+    name: Keep alive (${{ matrix.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ matrix.environment }}
+    strategy:
+      fail-fast: false
+      matrix:
+        environment:
+          - dev
+          - prd
+
+    steps:
+      - name: Ping Supabase Data API
+        shell: bash
+        env:
+          TARGET_ENV: ${{ matrix.environment }}
+          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
+          SPACE_ID: ${{ vars.VITE_SPACE_ID }}
+        run: |
+          set -euo pipefail
+
+          : "${SUPABASE_URL:?VITE_SUPABASE_URL is not set}"
+          : "${SUPABASE_ANON_KEY:?VITE_SUPABASE_ANON_KEY is not set}"
+          : "${SPACE_ID:?VITE_SPACE_ID is not set}"
+
+          response_file="${RUNNER_TEMP}/supabase-keepalive-${TARGET_ENV}.json"
+          http_status="$(
+            curl -sS -o "${response_file}" -w "%{http_code}" --get \
+              "${SUPABASE_URL}/rest/v1/config" \
+              --data-urlencode "select=key" \
+              --data-urlencode "space_id=eq.${SPACE_ID}" \
+              --data-urlencode "limit=1" \
+              -H "apikey: ${SUPABASE_ANON_KEY}" \
+              -H "Authorization: Bearer ${SUPABASE_ANON_KEY}"
+          )"
+
+          if [[ "${http_status}" -lt 200 || "${http_status}" -ge 300 ]]; then
+            echo "::error::Supabase keep-alive failed for ${TARGET_ENV} (HTTP ${http_status})."
+            sed -n '1,20p' "${response_file}"
+            exit 1
+          fi
+
+          echo "Supabase keep-alive succeeded for ${TARGET_ENV}."

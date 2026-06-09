@@ -2,8 +2,8 @@ name: Keep alive Supabase
 
 on:
   schedule:
-    # Free projects may be paused after 7 days of inactivity.
-    # Run once a day from outside Supabase so the project receives a real API request.
+    # Free Plan のプロジェクトは 7 日間利用がないと pause される可能性がある。
+    # Supabase の外部から 1 日 1 回 Data API にアクセスして、実際の API リクエストを発生させる。
     - cron: "15 18 * * *"
   workflow_dispatch:
 

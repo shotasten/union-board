@@ -4,7 +4,7 @@
 
 | ファイル | トリガー | 内容 |
 |---|---|---|
-| `deploy-dev.yml` | `main` マージ / 手動実行 | Supabase (dev) にマイグレーション・Edge Functions をデプロイ |
+| `deploy-dev.yml` | 手動実行 | Supabase (dev) にマイグレーション・Edge Functions をデプロイ |
 | `deploy-prd.yml` | `main` マージ | Supabase (prd) にマイグレーション・Edge Functions をデプロイ → Cloudflare Pages (prd) にフロントエンドをデプロイ |
 
 `github.actor == 'shotasten'` 以外のアクターによるプッシュはすべてスキップされます。
@@ -23,6 +23,7 @@
 |---|---|
 | `SUPABASE_ACCESS_TOKEN` | [supabase.com > Account > Access Tokens](https://supabase.com/dashboard/account/tokens) で生成した個人トークン |
 | `SUPABASE_DB_PASSWORD` | Supabase Dashboard > Project Settings > Database > Database password |
+| `SUPABASE_KEEPALIVE_TOKEN` | keep-alive RPC の任意トークン。DB の `config` に `KEEPALIVE_TOKEN` を設定した場合だけ照合される |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | GCP サービスアカウントの JSON キー全体 |
 | `CLOUDFLARE_API_TOKEN` | Cloudflare Dashboard > My Profile > API Tokens で生成（prd のみ） |
 
@@ -45,19 +46,33 @@
 
 ## Supabase keep-alive
 
-`.github/workflows/keepalive-supabase.yml` で、`dev` / `prd` の Supabase Data API に1日1回アクセスする。
+`.github/workflows/keepalive-supabase.yml` で、`dev` / `prd` の Supabase Data API に1日2回アクセスし、`record_keepalive` RPC で `keepalive_pings` に軽量な write を発生させる。
 
-目的は Free Plan project の inactivity pause を避けるための軽量な外部アクセス。Supabase 公式が inactivity 判定条件の詳細を公開しているわけではないため、これは保証付きの回避策ではない。確実に pause させたくない環境は Pro Plan を使う。
+目的は Free Plan project の inactivity pause を避けるための外部 activity。Supabase 公式が inactivity 判定条件の詳細を公開しているわけではないため、これは保証付きの回避策ではない。確実に pause させたくない環境は Pro Plan を使う。
 
-この workflow は各 GitHub Environment の既存 Variables を使う。
+この workflow は各 GitHub Environment の Variables と、任意で Secret を使う。
 
 | Variable 名 | 用途 |
 |---|---|
 | `VITE_SUPABASE_URL` | Data API のアクセス先 |
 | `VITE_SUPABASE_ANON_KEY` | Data API の anon / publishable key |
-| `VITE_SPACE_ID` | `config` テーブルの読み取り対象 space |
+| `VITE_SPACE_ID` | keep-alive 対象 space |
 
-ping 対象は anon select が許可されている `config` テーブルで、取得カラムは `key` のみ、`limit=1` とする。アプリ画面を単に `curl` してもブラウザ JavaScript が実行されず Supabase への初期データ取得は発生しないため、Data API を直接叩く。
+| Secret 名 | 用途 |
+|---|---|
+| `SUPABASE_KEEPALIVE_TOKEN` | `config` の `KEEPALIVE_TOKEN` に値がある場合だけ RPC で照合する |
+
+`KEEPALIVE_TOKEN` を有効化する場合は、各 Supabase project の SQL Editor で以下を実行し、同じ値を GitHub Environment Secret `SUPABASE_KEEPALIVE_TOKEN` に設定する。
+
+```sql
+insert into config (space_id, key, value)
+values ('<space_id>', 'KEEPALIVE_TOKEN', '<random-token>')
+on conflict (space_id, key) do update set value = excluded.value;
+```
+
+`KEEPALIVE_TOKEN` が未設定の場合も RPC は成功する。これは merge 直後に未設定 secret で workflow が止まるのを避けるため。`config` の `ADMIN_TOKEN` / `KEEPALIVE_TOKEN` は anon / authenticated の select 対象から除外される。
+
+アプリ画面を単に `curl` してもブラウザ JavaScript が実行されず Supabase への初期データ取得は発生しないため、Data API の RPC を直接叩く。
 
 ---
 

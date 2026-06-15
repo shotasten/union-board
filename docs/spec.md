@@ -120,6 +120,19 @@ event_id + user_key で unique。
 | SHOW_ALL_EVENTS | `true` のとき全件表示。`false` のとき現在より前のイベントを非表示 |
 | DISPLAY_START_DATE | 表示開始日（SHOW_ALL_EVENTS が true のとき有効） |
 | DISPLAY_END_DATE | 表示終了日 |
+| KEEPALIVE_TOKEN | keep-alive RPC の任意トークン。anon / authenticated の select からは除外 |
+
+### keepalive_pings
+
+Supabase Free Plan project の inactivity pause 回避を目的に、外部 scheduler から `record_keepalive` RPC で更新される軽量 write テーブル。
+
+| カラム | 型 | 説明 |
+|---|---|---|
+| space_id | uuid PK/FK | |
+| last_ping_at | timestamptz | 最後に keep-alive write が成功した日時 |
+| ping_count | bigint | keep-alive 成功回数 |
+| created_at | timestamptz | |
+| updated_at | timestamptz | |
 
 ### admin_invitations
 

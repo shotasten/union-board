@@ -25,7 +25,7 @@
 | `SUPABASE_DB_PASSWORD` | Supabase Dashboard > Project Settings > Database > Database password |
 | `SUPABASE_KEEPALIVE_TOKEN` | keep-alive RPC の任意トークン。DB の `config` に `KEEPALIVE_TOKEN` を設定した場合だけ照合される |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | GCP サービスアカウントの JSON キー全体 |
-| `CLOUDFLARE_API_TOKEN` | Cloudflare Dashboard > My Profile > API Tokens で生成（prd のみ） |
+| `CLOUDFLARE_API_TOKEN` | Cloudflare Dashboard > My Profile > API Tokens で生成（dev / prd） |
 
 ### Variables（非機密の設定値）
 
@@ -40,17 +40,19 @@
 | `VITE_SPACE_ID` | spaces テーブルの UUID | `bb59c8f2-f1e8-427b-9258-73c344dd718c` |
 | `VITE_FUNCTIONS_URL` | Edge Functions のベース URL | `https://vsdwwspusgljyrsvhghz.supabase.co/functions/v1` |
 | `VITE_CAL_IFRAME_SRC` | カレンダー埋め込み iframe の src URL | Google カレンダー「カレンダーを埋め込む」から取得 |
-| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare アカウント ID（prd のみ） | `0c9ba43b348230d5890a6ec495188848` |
+| `CLOUDFLARE_ACCOUNT_ID` | Cloudflare アカウント ID（各 Environment に対象アカウントの値を登録） | dev / prd で異なる値を設定 |
 
 ---
 
 ## Supabase keep-alive
 
-`.github/workflows/keepalive-supabase.yml` で、`dev` / `prd` の Supabase Data API に1日2回アクセスし、`record_keepalive` RPC で `keepalive_pings` に軽量な write を発生させる。
+`cloudflare/keepalive` の Cloudflare Worker を Cron Trigger で実行し、`dev` / `prd` の Supabase Data API に1日2回アクセスする。`record_keepalive` RPC で `keepalive_pings` に軽量な write を発生させるため、GitHub Actions の scheduled workflow の自動無効化に依存しない。
 
 目的は Free Plan project の inactivity pause を避けるための外部 activity。Supabase 公式が inactivity 判定条件の詳細を公開しているわけではないため、これは保証付きの回避策ではない。確実に pause させたくない環境は Pro Plan を使う。
 
-この workflow は各 GitHub Environment の Variables と、任意で Secret を使う。
+Worker は各 GitHub Environment の Variables と Secret を、Supabase の deploy workflow 実行時に Cloudflare Worker Secret へ同期する。
+
+`deploy-dev.yml` は `dev` Worker、`deploy-prd.yml` は `prd` Worker をデプロイする。両方の Environment に `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を登録すること。
 
 | Variable 名 | 用途 |
 |---|---|
@@ -62,7 +64,7 @@
 |---|---|
 | `SUPABASE_KEEPALIVE_TOKEN` | `config` の `KEEPALIVE_TOKEN` に値がある場合だけ RPC で照合する |
 
-`KEEPALIVE_TOKEN` を有効化する場合は、各 Supabase project の SQL Editor で以下を実行し、同じ値を GitHub Environment Secret `SUPABASE_KEEPALIVE_TOKEN` に設定する。
+`KEEPALIVE_TOKEN` を有効化する場合は、各 Supabase project の SQL Editor で以下を実行し、同じ値を GitHub Environment Secret `SUPABASE_KEEPALIVE_TOKEN` に設定する。Supabase の deploy workflow が、この値を Worker Secret に同期する。
 
 ```sql
 insert into config (space_id, key, value)

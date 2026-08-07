@@ -1,0 +1,14 @@
+main = "src/index.ts"
+compatibility_date = "2026-08-08"
+
+[env.dev]
+name = "union-board-keepalive-dev"
+
+[env.dev.triggers]
+crons = ["17 2,14 * * *"]
+
+[env.prd]
+name = "union-board-keepalive-prd"
+
+[env.prd.triggers]
+crons = ["17 2,14 * * *"]

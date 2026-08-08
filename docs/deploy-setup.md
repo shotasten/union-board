@@ -66,7 +66,7 @@ Worker は各 GitHub Environment の Variables と Secret を、専用の keep-a
 |---|---|
 | `SUPABASE_KEEPALIVE_TOKEN` | `config` の `KEEPALIVE_TOKEN` に値がある場合だけ RPC で照合する |
 
-`KEEPALIVE_TOKEN` を有効化する場合は、各 Supabase project の SQL Editor で以下を実行し、同じ値を GitHub Environment Secret `SUPABASE_KEEPALIVE_TOKEN` に設定する。Supabase の deploy workflow が、この値を Worker Secret に同期する。
+`KEEPALIVE_TOKEN` を有効化する場合は、各 Supabase project の SQL Editor で以下を実行し、同じ値を GitHub Environment Secret `SUPABASE_KEEPALIVE_TOKEN` に設定する。keep-alive の deploy workflow が、この値を Worker Secret に同期する。
 
 ```sql
 insert into config (space_id, key, value)

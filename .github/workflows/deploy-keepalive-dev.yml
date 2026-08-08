@@ -7,6 +7,8 @@ on:
     paths:
       - cloudflare/keepalive/**
       - .github/workflows/deploy-keepalive-dev.yml
+      - package.json
+      - package-lock.json
   workflow_dispatch:
 
 permissions:

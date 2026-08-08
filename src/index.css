@@ -59,7 +59,8 @@ body::-webkit-scrollbar-thumb:hover {
   background: white;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
+  /* sticky ヘッダーがページスクロールに追従できるよう、祖先でクリップしない */
+  overflow: visible;
 }
 
 header {

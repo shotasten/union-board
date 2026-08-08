@@ -437,6 +437,27 @@ main {
   }
 }
 
+.attendance-grid-floating-header {
+  display: none;
+  position: fixed;
+  top: 0;
+  overflow: hidden;
+  z-index: 1000;
+  pointer-events: none;
+  background: white;
+  border: 1px solid #e0e0e0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+.attendance-grid-floating-header.visible {
+  display: block;
+}
+
+.attendance-grid-floating-header table {
+  margin: 0;
+  border-radius: 0;
+}
+
 .attendance-grid {
   width: 100%;
   border-collapse: collapse;

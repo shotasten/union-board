@@ -42,6 +42,7 @@ export function AttendanceGrid({
   const containerRef = useRef<HTMLDivElement>(null)
   const topScrollbarRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
+  const stickyHeaderTableRef = useRef<HTMLTableElement>(null)
 
   // Sort events ascending by start date
   const sortedEvents = [...events].sort((a, b) => {
@@ -97,11 +98,18 @@ export function AttendanceGrid({
     const container = containerRef.current
     const topScrollbar = topScrollbarRef.current
     const wrapper = wrapperRef.current
+    const stickyHeaderTable = stickyHeaderTableRef.current
     if (!container || !wrapper) return
 
     const isScrollable = container.scrollWidth > container.clientWidth
     const scrollLeft = container.scrollLeft
     const scrollRight = container.scrollWidth - container.scrollLeft - container.clientWidth
+    const table = container.querySelector('table')
+
+    if (table && stickyHeaderTable) {
+      stickyHeaderTable.style.width = table.offsetWidth + 'px'
+      stickyHeaderTable.style.transform = `translateX(${-container.scrollLeft}px)`
+    }
 
     wrapper.classList.remove('scrollable-left', 'scrollable-right')
 
@@ -179,46 +187,6 @@ export function AttendanceGrid({
     }
   }, [updateScrollIndicators, sortedEvents, sortedMembers])
 
-  // ページスクロール時は、横スクロールコンテナの影響を受けない固定ヘッダーを表示する
-  useEffect(() => {
-    const container = containerRef.current
-    const table = container?.querySelector('table')
-    const wrapper = wrapperRef.current
-    if (!container || !table || !wrapper) return
-
-    const floating = document.createElement('div')
-    floating.className = 'attendance-grid-floating-header'
-    const floatingTable = table.cloneNode(true) as HTMLTableElement
-    floatingTable.querySelector('tbody')?.remove()
-    floating.appendChild(floatingTable)
-    document.body.appendChild(floating)
-
-    const update = () => {
-      const rect = table.getBoundingClientRect()
-      const wrapperRect = wrapper.getBoundingClientRect()
-      const headerHeight = table.tHead?.getBoundingClientRect().height ?? 0
-      const visible = rect.top < 0 && rect.bottom > headerHeight
-      floating.style.left = wrapperRect.left + 'px'
-      floating.style.top = '0px'
-      floating.style.width = wrapperRect.width + 'px'
-      floating.style.height = headerHeight + 'px'
-      floatingTable.style.width = table.getBoundingClientRect().width + 'px'
-      floatingTable.style.transform = 'translateX(' + (-container.scrollLeft) + 'px)'
-      floating.classList.toggle('visible', visible)
-    }
-
-    const onScroll = () => update()
-    window.addEventListener('scroll', onScroll, { passive: true })
-    container.addEventListener('scroll', onScroll)
-    window.addEventListener('resize', onScroll)
-    update()
-    return () => {
-      window.removeEventListener('scroll', onScroll)
-      container.removeEventListener('scroll', onScroll)
-      window.removeEventListener('resize', onScroll)
-      floating.remove()
-    }
-  }, [sortedEvents, sortedMembers])
 
   if (sortedEvents.length === 0) {
     return <p style={{ padding: '20px', textAlign: 'center' }}>イベントがありません</p>
@@ -229,9 +197,10 @@ export function AttendanceGrid({
 <div id="attendance-grid-scrollbar-top" className="attendance-grid-scrollbar-top" ref={topScrollbarRef}>
         <div></div>
       </div>
-      <div id="attendance-grid" className="attendance-grid-container" ref={containerRef}>
+      <div className="attendance-grid-sticky-header">
         <table
-          className="attendance-grid"
+          ref={stickyHeaderTableRef}
+          className="attendance-grid attendance-grid-header-table"
           style={{ writingMode: 'horizontal-tb', textOrientation: 'mixed' } as React.CSSProperties}
         >
           <colgroup>
@@ -358,6 +327,23 @@ export function AttendanceGrid({
               })}
             </tr>
           </thead>
+        </table>
+      </div>
+      <div id="attendance-grid" className="attendance-grid-container" ref={containerRef}>
+        <table
+          className="attendance-grid"
+          style={{ writingMode: 'horizontal-tb', textOrientation: 'mixed' } as React.CSSProperties}
+        >
+          <colgroup>
+            <col style={{ width: '200px' }} />
+            {[0, 1, 2].map(i => (
+              <col key={i} style={{ width: '30px' }} />
+            ))}
+            {sortedMembers.map(m => (
+              <col key={m.userKey} style={{ width: '45px' }} />
+            ))}
+          </colgroup>
+
           <tbody>
             {sortedEvents.map(event => {
               const startDate = new Date(event.start)

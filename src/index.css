@@ -59,7 +59,6 @@ body::-webkit-scrollbar-thumb:hover {
   background: white;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  /* sticky ヘッダーがページスクロールに追従できるよう、祖先でクリップしない */
   overflow: visible;
 }
 
@@ -291,8 +290,6 @@ main {
 /* 表形式UI */
 .table-responsive {
   width: 100%;
-  /* 横スクロールは内側のグリッドコンテナに任せ、
-     position: sticky の縦方向の基準をページから奪わない */
   overflow: visible;
 }
 
@@ -303,8 +300,7 @@ main {
 
 .attendance-grid-container {
   overflow-x: auto;
-  /* 横スクロールは維持しつつ、縦方向の sticky の基準にはしない */
-  overflow-y: clip;
+  overflow-y: visible;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background: white;
@@ -437,25 +433,23 @@ main {
   }
 }
 
-.attendance-grid-floating-header {
-  display: none;
-  position: fixed;
+.attendance-grid-sticky-header {
+  position: sticky;
   top: 0;
+  z-index: 40;
+  width: 100%;
   overflow: hidden;
-  z-index: 1000;
-  pointer-events: none;
   background: white;
   border: 1px solid #e0e0e0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.attendance-grid-floating-header.visible {
-  display: block;
-}
-
-.attendance-grid-floating-header table {
+.attendance-grid-header-table {
   margin: 0;
-  border-radius: 0;
+  transform-origin: left top;
+  will-change: transform;
 }
 
 .attendance-grid {
@@ -572,12 +566,6 @@ main {
   vertical-align: middle;
   writing-mode: horizontal-tb !important;
   text-orientation: mixed !important;
-}
-
-.attendance-grid thead {
-  position: sticky;
-  top: 0;
-  z-index: 20;
 }
 
 .attendance-grid th:first-child {

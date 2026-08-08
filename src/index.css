@@ -302,7 +302,8 @@ main {
 
 .attendance-grid-container {
   overflow-x: auto;
-  overflow-y: visible;
+  /* 横スクロールは維持しつつ、縦方向の sticky の基準にはしない */
+  overflow-y: clip;
   border: 1px solid #e0e0e0;
   border-radius: 8px;
   background: white;

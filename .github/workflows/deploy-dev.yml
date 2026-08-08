@@ -46,34 +46,3 @@ jobs:
         run: supabase functions deploy
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-
-      - name: Setup Node.js for keep-alive Worker secrets
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Install Wrangler CLI for secret sync
-        run: npm install --global wrangler
-
-      - name: Deploy keep-alive Worker (dev)
-        uses: cloudflare/wrangler-action@v4
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          workingDirectory: cloudflare/keepalive
-          command: deploy --env dev
-
-      - name: Sync keep-alive Worker secrets
-        run: |
-          printf '%s' "$SUPABASE_URL" | wrangler secret put SUPABASE_URL --env dev
-          printf '%s' "$SUPABASE_ANON_KEY" | wrangler secret put SUPABASE_ANON_KEY --env dev
-          printf '%s' "$SPACE_ID" | wrangler secret put SPACE_ID --env dev
-          printf '%s' "$SUPABASE_KEEPALIVE_TOKEN" | wrangler secret put SUPABASE_KEEPALIVE_TOKEN --env dev
-        working-directory: cloudflare/keepalive
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
-          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-          SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
-          SPACE_ID: ${{ vars.VITE_SPACE_ID }}
-          SUPABASE_KEEPALIVE_TOKEN: ${{ secrets.SUPABASE_KEEPALIVE_TOKEN }}

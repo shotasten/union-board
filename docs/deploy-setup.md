@@ -6,6 +6,7 @@
 |---|---|---|
 | `deploy-dev.yml` | 手動実行 | Supabase (dev) にマイグレーション・Edge Functions をデプロイ |
 | `deploy-prd.yml` | `main` マージ | Supabase (prd) にマイグレーション・Edge Functions をデプロイ → Cloudflare Pages (prd) にフロントエンドをデプロイ |
+| `deploy-keepalive.yml` | `main` の keep-alive 変更、手動実行 | Cloudflare keep-alive Worker を `dev` / `prd` へデプロイ |
 
 `github.actor == 'shotasten'` 以外のアクターによるプッシュはすべてスキップされます。
 
@@ -50,9 +51,9 @@
 
 目的は Free Plan project の inactivity pause を避けるための外部 activity。Supabase 公式が inactivity 判定条件の詳細を公開しているわけではないため、これは保証付きの回避策ではない。確実に pause させたくない環境は Pro Plan を使う。
 
-Worker は各 GitHub Environment の Variables と Secret を、Supabase の deploy workflow 実行時に Cloudflare Worker Secret へ同期する。
+Worker は各 GitHub Environment の Variables と Secret を、専用の keep-alive deploy workflow 実行時に Cloudflare Worker Secret へ同期する。
 
-`deploy-dev.yml` は `dev` Worker、`deploy-prd.yml` は `prd` Worker をデプロイする。両方の Environment に `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を登録すること。
+`deploy-keepalive.yml` は、`main` に keep-alive 関連ファイルが push された場合は `dev` / `prd` の両方へ自動デプロイする。手動実行では input で `dev` / `prd` / `all` を選択できる。両方の Environment に `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を登録すること。
 
 | Variable 名 | 用途 |
 |---|---|

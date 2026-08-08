@@ -179,6 +179,47 @@ export function AttendanceGrid({
     }
   }, [updateScrollIndicators, sortedEvents, sortedMembers])
 
+  // ページスクロール時は、横スクロールコンテナの影響を受けない固定ヘッダーを表示する
+  useEffect(() => {
+    const container = containerRef.current
+    const table = container?.querySelector('table')
+    const wrapper = wrapperRef.current
+    if (!container || !table || !wrapper) return
+
+    const floating = document.createElement('div')
+    floating.className = 'attendance-grid-floating-header'
+    const floatingTable = table.cloneNode(true) as HTMLTableElement
+    floatingTable.querySelector('tbody')?.remove()
+    floating.appendChild(floatingTable)
+    document.body.appendChild(floating)
+
+    const update = () => {
+      const rect = table.getBoundingClientRect()
+      const wrapperRect = wrapper.getBoundingClientRect()
+      const headerHeight = table.tHead?.getBoundingClientRect().height ?? 0
+      const visible = rect.top < 0 && rect.bottom > headerHeight
+      floating.style.left = wrapperRect.left + 'px'
+      floating.style.top = '0px'
+      floating.style.width = wrapperRect.width + 'px'
+      floating.style.height = headerHeight + 'px'
+      floatingTable.style.width = table.getBoundingClientRect().width + 'px'
+      floatingTable.style.transform = 'translateX(' + (-container.scrollLeft) + 'px)'
+      floating.classList.toggle('visible', visible)
+    }
+
+    const onScroll = () => update()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    container.addEventListener('scroll', onScroll)
+    window.addEventListener('resize', onScroll)
+    update()
+    return () => {
+      window.removeEventListener('scroll', onScroll)
+      container.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+      floating.remove()
+    }
+  }, [sortedEvents, sortedMembers])
+
   if (sortedEvents.length === 0) {
     return <p style={{ padding: '20px', textAlign: 'center' }}>イベントがありません</p>
   }

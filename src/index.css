@@ -290,8 +290,9 @@ main {
 /* 表形式UI */
 .table-responsive {
   width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  /* 横スクロールは内側のグリッドコンテナに任せ、
+     position: sticky の縦方向の基準をページから奪わない */
+  overflow: visible;
 }
 
 .attendance-grid-wrapper {
@@ -548,6 +549,12 @@ main {
   vertical-align: middle;
   writing-mode: horizontal-tb !important;
   text-orientation: mixed !important;
+}
+
+.attendance-grid thead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
 }
 
 .attendance-grid th:first-child {

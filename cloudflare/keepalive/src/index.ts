@@ -6,12 +6,38 @@ interface Env {
 }
 
 export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    const url = new URL(request.url);
+    if (request.method !== "POST" || url.pathname !== "/keepalive") {
+      return new Response("Not Found", { status: 404 });
+    }
+
+    const expectedToken = env.SUPABASE_KEEPALIVE_TOKEN;
+    const authorization = request.headers.get("Authorization");
+    if (!expectedToken || authorization !== `Bearer ${expectedToken}`) {
+      return new Response("Unauthorized", { status: 401 });
+    }
+
+    try {
+      const result = await recordKeepalive(env);
+      return Response.json(result);
+    } catch (error: unknown) {
+      console.error("Supabase keep-alive failed:", error);
+      return Response.json({ success: false, error: "Keep-alive failed" }, { status: 502 });
+    }
+  },
+
   async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
-    ctx.waitUntil(recordKeepalive(env));
+    ctx.waitUntil(
+      recordKeepalive(env).catch((error: unknown) => {
+        console.error("Supabase keep-alive failed:", error);
+        throw error;
+      }),
+    );
   },
 };
 
-async function recordKeepalive(env: Env): Promise<void> {
+async function recordKeepalive(env: Env): Promise<{ success: true; lastPingAt?: string; pingCount?: number }> {
   const response = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/record_keepalive`, {
     method: "POST",
     headers: {
@@ -41,5 +67,5 @@ async function recordKeepalive(env: Env): Promise<void> {
     throw new Error(`Supabase keep-alive RPC rejected the request: ${body.slice(0, 500)}`);
   }
 
-  console.log(`Supabase keep-alive succeeded: ${result.lastPingAt} (${result.pingCount})`);
+  return { success: true, lastPingAt: result.lastPingAt, pingCount: result.pingCount };
 }

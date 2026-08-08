@@ -43,6 +43,7 @@
 | `VITE_FUNCTIONS_URL` | Edge Functions のベース URL | `https://vsdwwspusgljyrsvhghz.supabase.co/functions/v1` |
 | `VITE_CAL_IFRAME_SRC` | カレンダー埋め込み iframe の src URL | Google カレンダー「カレンダーを埋め込む」から取得 |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare アカウント ID（各 Environment に対象アカウントの値を登録） | dev / prd で異なる値を設定 |
+| `KEEPALIVE_WORKER_URL` | 手動 keep-alive 実行対象 Worker の URL | dev / prd で異なる値を設定 |
 
 ---
 
@@ -55,6 +56,8 @@
 Worker は各 GitHub Environment の Variables と Secret を、専用の keep-alive deploy workflow 実行時に Cloudflare Worker Secret へ同期する。
 
 `deploy-keepalive-dev.yml` と `deploy-keepalive-prd.yml` は、`main` に keep-alive 関連ファイルが push された場合に、それぞれの環境へ自動デプロイする。どちらも手動実行できる。両方の Environment に `CLOUDFLARE_API_TOKEN` と `CLOUDFLARE_ACCOUNT_ID` を登録すること。
+
+`run-keepalive.yml` は自動実行せず、手動実行時に `dev` / `prd` を選択して Worker の `/keepalive` endpoint を呼び出す。各 Environment に `KEEPALIVE_WORKER_URL` を登録すること。
 
 | Variable 名 | 用途 |
 |---|---|

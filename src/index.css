@@ -59,7 +59,7 @@ body::-webkit-scrollbar-thumb:hover {
   background: white;
   border-radius: 12px;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-  overflow: hidden;
+  overflow: visible;
 }
 
 header {
@@ -290,8 +290,7 @@ main {
 /* 表形式UI */
 .table-responsive {
   width: 100%;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: visible;
 }
 
 .attendance-grid-wrapper {
@@ -432,6 +431,25 @@ main {
   90% {
     opacity: 1;
   }
+}
+
+.attendance-grid-sticky-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  width: 100%;
+  overflow: hidden;
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.attendance-grid-header-table {
+  margin: 0;
+  transform-origin: left top;
+  will-change: transform;
 }
 
 .attendance-grid {

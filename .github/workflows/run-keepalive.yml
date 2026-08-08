@@ -1,0 +1,54 @@
+name: Run keep-alive
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Keep-alive を実行する環境
+        required: true
+        type: choice
+        options:
+          - dev
+          - prd
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    name: Run keep-alive (${{ inputs.environment }})
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    steps:
+      - name: Call keep-alive endpoint
+        shell: bash
+        env:
+          KEEPALIVE_WORKER_URL: ${{ vars.KEEPALIVE_WORKER_URL }}
+          SUPABASE_KEEPALIVE_TOKEN: ${{ secrets.SUPABASE_KEEPALIVE_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          : "${KEEPALIVE_WORKER_URL:?KEEPALIVE_WORKER_URL is not set}"
+          : "${SUPABASE_KEEPALIVE_TOKEN:?SUPABASE_KEEPALIVE_TOKEN is not set}"
+
+          response_file="${RUNNER_TEMP}/keepalive.json"
+          http_status="$(
+            curl -sS -o "${response_file}" -w "%{http_code}" \
+              -X POST "${KEEPALIVE_WORKER_URL%/}/keepalive" \
+              -H "Authorization: Bearer ${SUPABASE_KEEPALIVE_TOKEN}"
+          )"
+
+          if [[ "${http_status}" -lt 200 || "${http_status}" -ge 300 ]]; then
+            echo "::error::Keep-alive failed (HTTP ${http_status})."
+            sed -n '1,20p' "${response_file}"
+            exit 1
+          fi
+
+          if ! jq -e '.success == true' "${response_file}" >/dev/null; then
+            echo "::error::Keep-alive endpoint returned an unsuccessful response."
+            sed -n '1,20p' "${response_file}"
+            exit 1
+          fi
+
+          jq -r '"Keep-alive succeeded: \(.lastPingAt) (\(.pingCount))"' "${response_file}"

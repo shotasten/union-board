@@ -1,6 +1,11 @@
 main = "src/index.ts"
 compatibility_date = "2026-08-08"
 
+[observability.logs]
+enabled = true
+invocation_logs = false
+persist = true
+
 [env.dev]
 name = "union-board-keepalive-dev"
 

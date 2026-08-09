@@ -31,8 +31,7 @@ const FRONTEND_TO_DB: Record<string, string> = {
 
 // --- Display period filter (matches GAS getEvents() logic) ---
 
-function filterByDisplayPeriod(events: AttendanceEvent[], config: Config): AttendanceEvent[] {
-  const now = new Date();
+export function filterByDisplayPeriod(events: AttendanceEvent[], config: Config, now = new Date()): AttendanceEvent[] {
   let startDate: Date | null = null;
   let endDate: Date | null = null;
   const c = config as unknown as Record<string, string>;
@@ -102,13 +101,18 @@ function toResponse(row: DbResponse): AttendanceResponse {
   };
 }
 
-function toResponsesMap(rows: DbResponse[]): Record<string, AttendanceResponse[]> {
+export function toResponsesMap(rows: DbResponse[]): Record<string, AttendanceResponse[]> {
   const map: Record<string, AttendanceResponse[]> = {};
   for (const row of rows) {
     if (!map[row.event_id]) map[row.event_id] = [];
     map[row.event_id].push(toResponse(row));
   }
   return map;
+}
+
+export function validateMemberInput(userKey: string, part: string, name: string, displayName: string): string | null {
+  if (!userKey || !part || !name || !displayName) return 'userKey, part, name, displayNameは必須です'
+  return null
 }
 
 // --- API ---
@@ -213,7 +217,8 @@ export const api = {
   // ------------------------------------------------------------------
 
   async createMember(userKey: string, part: string, name: string, displayName: string): Promise<{ success: boolean; error?: string }> {
-    if (!userKey || !part || !name || !displayName) return { success: false, error: 'userKey, part, name, displayNameは必須です' };
+    const validationError = validateMemberInput(userKey, part, name, displayName);
+    if (validationError) return { success: false, error: validationError };
     const { error } = await supabase.from('members').upsert(
       { space_id: SPACE_ID, user_key: userKey, part, name, display_name: displayName, updated_at: new Date().toISOString() },
       { onConflict: 'space_id,user_key' },
@@ -223,7 +228,8 @@ export const api = {
   },
 
   async updateMember(userKey: string, part: string, name: string, displayName: string): Promise<{ success: boolean; error?: string }> {
-    if (!userKey || !part || !name || !displayName) return { success: false, error: 'userKey, part, name, displayNameは必須です' };
+    const validationError = validateMemberInput(userKey, part, name, displayName);
+    if (validationError) return { success: false, error: validationError };
     const { error } = await supabase.from('members')
       .update({ part, name, display_name: displayName, updated_at: new Date().toISOString() })
       .eq('space_id', SPACE_ID)

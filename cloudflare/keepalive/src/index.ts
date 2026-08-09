@@ -5,8 +5,9 @@ interface Env {
   SUPABASE_KEEPALIVE_TOKEN?: string;
 }
 
-export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+export type { Env };
+
+export async function handleRequest(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     if (request.method !== "POST" || url.pathname !== "/keepalive") {
       return new Response("Not Found", { status: 404 });
@@ -25,9 +26,14 @@ export default {
       console.error("Supabase keep-alive failed:", error);
       return Response.json({ success: false, error: "Keep-alive failed" }, { status: 502 });
     }
+}
+
+const worker = {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    return handleRequest(request, env);
   },
 
-  async scheduled(_controller: ScheduledController, env: Env, ctx: ExecutionContext): Promise<void> {
+  async scheduled(_controller: unknown, env: Env, ctx: { waitUntil(promise: Promise<unknown>): void }): Promise<void> {
     ctx.waitUntil(
       recordKeepalive(env).catch((error: unknown) => {
         console.error("Supabase keep-alive failed:", error);
@@ -36,6 +42,8 @@ export default {
     );
   },
 };
+
+export default worker;
 
 async function recordKeepalive(env: Env): Promise<{ success: true; lastPingAt?: string; pingCount?: number }> {
   const response = await fetch(`${env.SUPABASE_URL}/rest/v1/rpc/record_keepalive`, {

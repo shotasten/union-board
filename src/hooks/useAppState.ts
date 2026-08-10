@@ -186,7 +186,7 @@ export function useAppState() {
       setEvents(data.events)
       setResponsesMap(data.responsesMap)
       setIsLoading(false)
-    } catch (e) {
+    } catch {
       setIsLoading(false)
       setError('データの取得に失敗しました。ブラウザのコンソールを確認してください。')
     }

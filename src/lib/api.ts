@@ -110,6 +110,29 @@ export function toResponsesMap(rows: DbResponse[]): Record<string, AttendanceRes
   return map;
 }
 
+// PostgREST returns at most 1000 rows per request, so page through all
+// responses with a stable order. Without this, rows past the cap are
+// silently dropped and the newest events appear to lose their responses.
+const RESPONSES_PAGE_SIZE = 1000;
+
+async function fetchAllResponses(): Promise<{ data: DbResponse[]; error: { message: string } | null }> {
+  const rows: DbResponse[] = [];
+  let from = 0;
+  for (;;) {
+    const { data, error } = await supabasePublic
+      .from('responses')
+      .select('*')
+      .eq('space_id', SPACE_ID)
+      .order('id', { ascending: true })
+      .range(from, from + RESPONSES_PAGE_SIZE - 1);
+    if (error) return { data: rows, error };
+    const page = (data as DbResponse[] | null) ?? [];
+    rows.push(...page);
+    if (page.length < RESPONSES_PAGE_SIZE) return { data: rows, error: null };
+    from += RESPONSES_PAGE_SIZE;
+  }
+}
+
 export function validateMemberInput(userKey: string, part: string, name: string, displayName: string): string | null {
   if (!userKey || !part || !name || !displayName) return 'userKey, part, name, displayNameは必須です'
   return null
@@ -132,7 +155,7 @@ export const api = {
       supabasePublic.from('config').select('key,value').eq('space_id', SPACE_ID),
       supabasePublic.from('members').select('*').eq('space_id', SPACE_ID),
       supabasePublic.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: true }),
-      supabasePublic.from('responses').select('*').eq('space_id', SPACE_ID),
+      fetchAllResponses(),
     ]);
 
     const config: Config = { AUTH_MODE: 'anonymous' };
@@ -162,7 +185,7 @@ export const api = {
     const [configResult, eventsResult, responsesResult] = await Promise.all([
       supabasePublic.from('config').select('key,value').eq('space_id', SPACE_ID),
       supabasePublic.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: true }),
-      supabasePublic.from('responses').select('*').eq('space_id', SPACE_ID),
+      fetchAllResponses(),
     ]);
     if (eventsResult.error) return { success: false, events: [], responsesMap: {}, error: eventsResult.error.message };
     if (responsesResult.error) return { success: false, events: [], responsesMap: {}, error: responsesResult.error.message };

@@ -68,7 +68,7 @@ export function MemberEditModal({
       initial[event.id] = {
         status: status,
         comment: comment,
-        hasResponse: true,
+        hasResponse: originalHasResponse,
         originalStatus: status,
         originalComment: comment,
         originalHasResponse: originalHasResponse,

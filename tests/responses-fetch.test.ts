@@ -11,7 +11,6 @@ const state = {
 
 vi.mock('../src/lib/supabase', () => {
   const builder = () => {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const b: any = {
       select: () => b,
       eq: () => b,

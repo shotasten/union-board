@@ -115,7 +115,7 @@ export function toResponsesMap(rows: DbResponse[]): Record<string, AttendanceRes
 // silently dropped and the newest events appear to lose their responses.
 const RESPONSES_PAGE_SIZE = 1000;
 
-async function fetchAllResponses(): Promise<{ data: DbResponse[]; error: { message: string } | null }> {
+export async function fetchAllResponses(): Promise<{ data: DbResponse[]; error: { message: string } | null }> {
   const rows: DbResponse[] = [];
   let from = 0;
   for (;;) {

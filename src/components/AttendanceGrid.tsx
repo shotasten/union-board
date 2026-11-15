@@ -102,6 +102,7 @@ export function AttendanceGrid({
     if (!container || !wrapper) return
 
     const isScrollable = container.scrollWidth > container.clientWidth
+    wrapper.classList.toggle('is-scrollable', isScrollable)
     const scrollLeft = container.scrollLeft
     const scrollRight = container.scrollWidth - container.scrollLeft - container.clientWidth
     const table = container.querySelector('table')
@@ -194,6 +195,7 @@ export function AttendanceGrid({
 
   return (
     <div className="table-responsive attendance-grid-wrapper" ref={wrapperRef}>
+      <p className="attendance-grid-scroll-hint"><span aria-hidden="true">↔</span> スクロールできます</p>
 <div id="attendance-grid-scrollbar-top" className="attendance-grid-scrollbar-top" ref={topScrollbarRef}>
         <div></div>
       </div>

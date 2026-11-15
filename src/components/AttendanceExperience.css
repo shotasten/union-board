@@ -366,7 +366,8 @@ body:has(.board-app) .modal button { font-weight: 700; }
 .board-experience .event-name-clickable { text-decoration: none; }
 
 /* Keep each event compact while retaining comfortable touch targets. */
-.board-editor-event { padding: .5rem 0 .75rem; }
+.board-editor-event { padding: 0 0 .75rem; }
+.board-editor-event + .board-editor-event { margin-block-start: .75rem; }
 .board-editor-event > .board-note { margin: .25rem 0 .5rem; line-height: 1.5; }
 .board-dialog .board-choices button { min-block-size: 44px; padding: 4px; font-size: 1rem; line-height: 1.2; }
 .board-choices small { margin-top: 2px; }

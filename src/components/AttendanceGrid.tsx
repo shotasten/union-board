@@ -245,7 +245,7 @@ export function AttendanceGrid({
                     fontWeight: 'bold',
                     padding: '4px 6px',
                     lineHeight: '1.2',
-                    backgroundColor: '#eef4f6',
+                    backgroundColor: '#f8fafc',
                     color: 'var(--board-ink)',
                     borderLeft: partIndex === 0 ? '1px solid var(--board-line)' : undefined,
                     borderRight: partIndex < partKeys.length - 1 ? '1px solid var(--board-line)' : undefined,
@@ -392,10 +392,11 @@ export function AttendanceGrid({
                 <tr key={event.id}>
                   {/* Event info cell */}
                   <td style={{ verticalAlign: 'top', padding: '6px 8px' }}>
-                    <div
+                    <a
                       className="event-name-clickable"
+                      href={'#event/' + encodeURIComponent(event.id)}
                       style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}
-                      onClick={e => { e.stopPropagation(); onEventClick(event.id) }}
+                      onClick={e => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); e.stopPropagation(); onEventClick(event.id) } }}
                     >
                       <div
                         style={{
@@ -428,7 +429,7 @@ export function AttendanceGrid({
                       <div style={{ fontSize: '0.8rem', color: 'var(--board-muted)', lineHeight: '1.2' }}>
                         {dateStrShort} {timeDisplay}
                       </div>
-                    </div>
+                    </a>
                   </td>
 
                   {/* Status count cells (○△×) */}
@@ -456,13 +457,13 @@ export function AttendanceGrid({
                               fontSize: '1.1rem',
                               fontWeight: 'bold',
                               lineHeight: '1.2',
-                              color: status === '○' ? '#4caf50' : status === '△' ? '#ff9800' : '#f44336',
+                              color: status === '○' ? '#176534' : status === '△' ? '#765000' : 'var(--board-danger-text)',
                             }}
                           >
                             {count}
                           </div>
                         ) : (
-                          <div style={{ fontSize: '0.9rem', color: '#ccc', lineHeight: '1.2' }}>-</div>
+                          <div style={{ fontSize: '0.9rem', color: 'var(--board-muted)', lineHeight: '1.2' }}>-</div>
                         )}
                       </td>
                     )
@@ -491,9 +492,8 @@ export function AttendanceGrid({
                     }
 
                     if (isSelected) {
-                      cellStyle.backgroundColor = '#e8f5e9'
-                      cellStyle.borderLeft = '3px solid #667eea'
-                      cellStyle.borderRight = '3px solid #667eea'
+                      cellStyle.borderLeft = '3px solid var(--board-brand)'
+                      cellStyle.borderRight = '3px solid var(--board-brand)'
                     } else {
                       if (memberIndex === 0) cellStyle.borderLeft = '1px solid #DDDDDD'
                       if (isLastInPart && !isLastPart) cellStyle.borderRight = '1px solid #DDDDDD'

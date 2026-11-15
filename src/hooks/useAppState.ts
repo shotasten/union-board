@@ -356,15 +356,12 @@ export function useAppState() {
     ))
 
     try {
+      const eventIdsWithResponse = await api.getMemberResponseEventIds(userKey)
       const result = await api.updateMember(userKey, newPart, newName, newDisplayName)
       if (result.success) {
         showToast('メンバー情報を更新しました', 'success')
 
         // Fire-and-forget calendar sync for events this member has responded to
-        const eventIdsWithResponse = Object.keys(responsesMapRef.current).filter(eventId => {
-          const resps = responsesMapRef.current[eventId] || []
-          return resps.some(r => r.userKey === userKey)
-        })
         if (eventIdsWithResponse.length > 0) {
           api.syncAttendance(eventIdsWithResponse).then(result => {
             if (result.failed > 0) console.warn('[calendar-sync] syncAttendance failed:', result.errors)
@@ -391,12 +388,6 @@ export function useAppState() {
     const member = membersRef.current.find(m => m.userKey === userKey)
     if (!member) return false
 
-    // Collect event IDs where this member has responses (before deletion)
-    const eventIdsToSync = Object.keys(responsesMapRef.current).filter(eventId => {
-      const resps = responsesMapRef.current[eventId] || []
-      return resps.some(r => r.userKey === userKey)
-    })
-
     // Optimistic update
     setMembers(prev => prev.filter(m => m.userKey !== userKey))
     setResponsesMap(prev => {
@@ -408,6 +399,7 @@ export function useAppState() {
     })
 
     try {
+      const eventIdsToSync = await api.getMemberResponseEventIds(userKey)
       const result = await api.deleteMemberAPI(userKey)
       if (result.success) {
         closeModal('memberDeleteConfirm')

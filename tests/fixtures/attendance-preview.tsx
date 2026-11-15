@@ -1,0 +1,15 @@
+import { StrictMode, useState } from 'react'
+import { createRoot } from 'react-dom/client'
+import { AttendanceExperience } from '../../src/components/AttendanceExperience'
+import { Header } from '../../src/components/Header'
+import type { AttendanceEvent, AttendanceResponse, Member } from '../../src/types/models'
+import '../../src/index.css'
+import '../../src/components/AttendanceExperience.css'
+const stamp = '2026-11-15T00:00:00+09:00'
+const parts = [['Fl',4],['Cl',8],['Sax',3],['Hr',6],['Tp',5],['Tb',6],['Bass',4],['Perc',4]] as const
+const members: Member[] = parts.flatMap(([part,n]) => Array.from({length:n},(_,i) => ({ userKey:part+(i+1),part,name:part==='Tp'&&i===0?'山田':part+(i+1),displayName:part+(i+1),createdAt:stamp,updatedAt:stamp })))
+const days = ['2026-11-21','2026-11-28','2026-12-13','2026-12-19','2026-12-26','2027-01-09','2027-01-23','2027-01-31','2027-02-06','2027-02-14','2027-02-20','2027-02-27']
+const events: AttendanceEvent[] = days.map((day,i)=>({id:'e'+i,title:i===0?'秋合宿':i===8?'リハーサル':i===9?'ゲネプロ':i===11?'第4回定期演奏会':'練習',start:day+(i===0?'T00:00:00':'T13:00:00')+'+09:00',end:(i===0?'2026-11-24T00:00:00':day+'T17:00:00')+'+09:00',isAllDay:i===0,location:i===0?'湯河原温泉 旅館千鶴':i===11?'':'南大沢文化会館 第2練習室',status:'active',createdAt:stamp,updatedAt:stamp}))
+const initial: Record<string,AttendanceResponse[]> = Object.fromEntries(events.map((event,i)=>[event.id,members.map((m,j)=>({eventId:event.id,userKey:m.userKey,status:m.userKey==='Tp1'?(i>=8&&i<=10?'-':'○'):j%7===0?'△':j%5===0?'×':j%3===0?'-':'○',comment:i===2&&j===0?'サンプル：少し遅れて参加します。':'',createdAt:stamp,updatedAt:stamp}))]))
+function Preview(){const [responses,setResponses]=useState(initial);const [admin,setAdmin]=useState(false);const [fail,setFail]=useState(false);const [message,setMessage]=useState('');return <><p style={{padding:8,background:'#fff4d9'}}>UX確認専用。本番への接続はありません。</p><label style={{display:'block',padding:8}}><input type="checkbox" checked={fail} onChange={e=>setFail(e.target.checked)}/>保存失敗を再現</label><p role="status">{message}</p><div id="app-root" className="board-app"><Header isAdmin={admin} onAdminLoginClick={()=>setAdmin(true)} onAdminManageClick={()=>setMessage('管理者管理')} onSyncAllClick={()=>setMessage('同期確認')} onLogoutClick={()=>setAdmin(false)} /><main><AttendanceExperience events={events} members={members} responsesMap={responses} isAdmin={admin} selectedMember={null} localStatusOverrides={{}} storageScope="ux-test-fixture" onMemberClick={name=>setMessage(name+'のメンバー編集')} onEditEvent={()=>setMessage('イベント編集')} onDeleteEvent={()=>setMessage('イベント削除の確認')} onSave={async(key,_name,updates)=>{if(fail)return false;setResponses(prev=>{const next={...prev};for(const update of updates)next[update.eventId]=[...(next[update.eventId]||[]).filter(r=>r.userKey!==key),{...update,userKey:key,createdAt:stamp,updatedAt:stamp}];return next});return true}} /></main></div></>}
+createRoot(document.getElementById('root')!).render(<StrictMode><Preview /></StrictMode>)

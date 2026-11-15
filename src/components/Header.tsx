@@ -10,7 +10,7 @@ export function Header({ isAdmin, onAdminLoginClick, onAdminManageClick, onSyncA
   return (
     <header>
       <div className="header-top">
-        <h1>UnionBoard</h1>
+        <h1><a className="board-brand" href="#schedule" onClick={() => { window.dispatchEvent(new Event('unionboard:home')); window.scrollTo(0, 0) }}><img src="/icon-192.png" alt="" width="32" height="32" /><span>UnionBoard</span></a></h1>
         <div className="header-actions">
           {!isAdmin && (
             <button className="admin-login-btn" onClick={onAdminLoginClick} id="admin-login-btn">

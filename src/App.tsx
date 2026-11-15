@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAppState } from './hooks/useAppState'
 import { Header } from './components/Header'
-import { AttendanceGrid } from './components/AttendanceGrid'
+import { AttendanceExperience } from './components/AttendanceExperience'
 import { LoadingSpinner } from './components/LoadingSpinner'
 import { Toast } from './components/Toast'
 import { FullscreenLoader } from './components/FullscreenLoader'
@@ -123,11 +123,6 @@ export function App() {
     return ok
   }
 
-  // Handle event click: open detail modal
-  const handleEventClick = (eventId: string) => {
-    openModal('eventDetail', { open: true, eventId })
-  }
-
   // Handle edit from event detail modal
   const handleEditFromDetail = (eventId: string) => {
     closeModal('eventDetail')
@@ -153,7 +148,7 @@ export function App() {
 
   return (
     <div id="scale-wrapper">
-      <div id="app-root">
+      <div id="app-root" className="board-app">
         <div className="page-shell">
           <div className="container">
             <Header
@@ -230,38 +225,13 @@ export function App() {
                       </div>
                     </div>
 
-                    {/* Legend */}
-                    <div
-                      id="attendance-legend"
-                      style={{ padding: '10px 0', background: '#e3f2fd', borderRadius: '8px', display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap', fontSize: '0.9rem', marginBottom: '16px', border: '1px solid #bbdefb' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '16px' }}>
-                        <span style={{ display: 'inline-block', width: '24px', height: '24px', backgroundColor: '#c8e6c9', borderRadius: '4px', textAlign: 'center', lineHeight: '24px', fontWeight: 'bold' }}>○</span>
-                        <span>出席</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ display: 'inline-block', width: '24px', height: '24px', backgroundColor: '#fff9c4', borderRadius: '4px', textAlign: 'center', lineHeight: '24px', fontWeight: 'bold' }}>△</span>
-                        <span>遅刻/早退</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ display: 'inline-block', width: '24px', height: '24px', backgroundColor: '#ffcdd2', borderRadius: '4px', textAlign: 'center', lineHeight: '24px', fontWeight: 'bold' }}>×</span>
-                        <span>欠席</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ display: 'inline-block', width: '24px', height: '24px', backgroundColor: '#f5f5f5', borderRadius: '4px', textAlign: 'center', lineHeight: '24px', color: '#999' }}>-</span>
-                        <span>未定</span>
-                      </div>
-                    </div>
-
-                    <AttendanceGrid
-                      events={events}
-                      members={members}
-                      responsesMap={responsesMap}
-                      selectedMember={selectedMember}
-                      isAdmin={isAdmin}
+                    <AttendanceExperience
+                      events={events} members={members} responsesMap={responsesMap}
+                      selectedMember={selectedMember} isAdmin={isAdmin}
                       localStatusOverrides={localStatusOverrides}
-                      onMemberClick={handleMemberClick}
-                      onEventClick={handleEventClick}
+                      storageScope={import.meta.env.VITE_SPACE_ID || 'default'}
+                      onMemberClick={handleMemberClick} onSave={handleBulkUpdateResponses}
+                      onEditEvent={handleEditFromDetail} onDeleteEvent={handleDeleteFromDetail}
                     />
                   </div>
                 </div>

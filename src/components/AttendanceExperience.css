@@ -26,9 +26,10 @@ body:has(.board-app) .modal .calendar-modal-content{width:min(520px,calc(100vw -
 /* Whole-board view: reuse the app palette and keep the event column heading
    aligned with its sticky body column while the member columns move sideways. */
 .board-experience .attendance-grid-scrollbar-top{height:16px;margin-bottom:4px;scrollbar-color:var(--board-brand) #e8eef0}
-.attendance-grid-scroll-hint { display: none; align-items: center; gap: .375rem; margin: 0 0 .375rem; color: #475569; font-size: .75rem; font-weight: 600; }
-.attendance-grid-wrapper.is-scrollable .attendance-grid-scroll-hint { display: flex; }
-.attendance-grid-scroll-hint span { color: #08727b; font-size: 1.125rem; line-height: 1; }
+.attendance-grid-scroll-hint { position: absolute; z-index: 41; top: 120px; left: 50%; display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: .75rem 1rem; border-radius: 10px; background: rgba(15,23,42,.88); color: #fff; font-size: .75rem; font-weight: 700; white-space: nowrap; pointer-events: none; opacity: 0; visibility: hidden; transform: translateX(-50%); transition: opacity .2s, visibility .2s; }
+.attendance-grid-wrapper.is-scrollable:not(.scroll-hint-dismissed) .attendance-grid-scroll-hint { opacity: 1; visibility: visible; }
+.attendance-grid-scroll-hint svg { width: 40px; height: 40px; }
+@media (prefers-reduced-motion: reduce) { .attendance-grid-scroll-hint { transition: none; } }
 .board-experience .attendance-grid-scrollbar-top>div{height:2px}
 .board-experience .attendance-grid-container{border:1px solid var(--board-line);border-top:0;border-radius:0 0 var(--board-radius) var(--board-radius);box-shadow:none;scrollbar-color:var(--board-brand) #e8eef0;overscroll-behavior-x:contain}
 .board-experience .attendance-grid-sticky-header{position:sticky;isolation:isolate;border-color:var(--board-line);border-radius:var(--board-radius) var(--board-radius) 0 0;box-shadow:0 2px 4px #23354d12}

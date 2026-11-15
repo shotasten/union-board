@@ -104,6 +104,7 @@ export function AttendanceGrid({
     const isScrollable = container.scrollWidth > container.clientWidth
     wrapper.classList.toggle('is-scrollable', isScrollable)
     const scrollLeft = container.scrollLeft
+    if (scrollLeft > 1) wrapper.classList.add('scroll-hint-dismissed')
     const scrollRight = container.scrollWidth - container.scrollLeft - container.clientWidth
     const table = container.querySelector('table')
 
@@ -195,7 +196,10 @@ export function AttendanceGrid({
 
   return (
     <div className="table-responsive attendance-grid-wrapper" ref={wrapperRef}>
-      <p className="attendance-grid-scroll-hint"><span aria-hidden="true">↔</span> スクロールできます</p>
+      <div className="attendance-grid-scroll-hint">
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M8 13h32M8 13l5-5m-5 5 5 5m27-5-5-5m5 5-5 5M20 24V15a3 3 0 0 1 6 0v11l1-1a3 3 0 0 1 4 1l1 2a3 3 0 0 1 4 2l1 5-3 5H22l-7-8a3 3 0 0 1 4-4l1 1Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <span>スクロールできます</span>
+      </div>
 <div id="attendance-grid-scrollbar-top" className="attendance-grid-scrollbar-top" ref={topScrollbarRef}>
         <div></div>
       </div>

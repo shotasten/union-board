@@ -155,8 +155,8 @@ export function AttendanceExperience(props: Props) {
       {!props.isLoading && !props.loadError && !events.length && <p className="board-empty">表示期間内に予定はありません。</p>}
       <p className="board-note">参加予定＝○出席＋△遅刻/早退。同時に全員が揃うとは限りません。<br />未回答と未定は「-」で表示します。0件の内訳は「-」です。</p>
     </> : props.isLoading || props.loadError ? null : event ? <>
-      {isAdmin && <div className="board-admin-event"><strong>管理者操作</strong><button onClick={() => onEditEvent(event.id)}>イベント編集</button><button className="board-danger" onClick={() => onDeleteEvent(event.id, event.title)}>削除</button></div>}
       <a className="board-back" href="#schedule" onClick={click => { click.preventDefault(); navigate('') }}>&lt; 予定一覧に戻る</a>
+      {isAdmin && <div className="board-admin-event"><strong>管理者操作</strong><button onClick={() => onEditEvent(event.id)}>イベント編集</button><button className="board-danger" onClick={() => onDeleteEvent(event.id, event.title)}>削除</button></div>}
       <section className="board-summary"><h2>{eventDateLabel(event)} {event.title}</h2><p>{eventTimeLabel(event)}</p><strong>{event.location || '場所未設定'}</strong>{event.description && <p className="board-description">{cleanDescription(event.description)}</p>}
         <div className="board-counts">{RESPONSE_STATUSES.map(s => <span className={'board-answer ' + responseClass(s)} key={s}>{s} {countLabel(tallyAttendance(members, responses)[s])}人</span>)}</div>
         <div className="board-own-response"><span>自分の回答</span>{identity ? <Answer status={status(event.id, identity.userKey)} /> : <span className="board-note">未選択</span>}<button onClick={() => edit(event.id)}>{identity ? '出欠・コメントを変更' : '自分の出欠・コメントを入力'}</button></div>

@@ -166,7 +166,8 @@ export function MemberEditModal({
               <button
                 type="button"
                 onClick={onDeleteMember}
-                style={{ padding: '8px 16px', background: '#f44336', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem' }}
+                className="member-delete-btn"
+                style={{ padding: '8px 16px', borderRadius: '6px', cursor: 'pointer', fontSize: '0.9rem' }}
               >
                 削除
               </button>

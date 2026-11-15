@@ -140,11 +140,11 @@ body:has(.board-app) .modal .form-btn.primary {
 .board-tabs button[aria-selected=true]::after { border-color: var(--board-brand); }
 .board-experience .yes, .board-dialog .yes { background: #d9f5e3; color: #176534; }
 .board-experience .late, .board-dialog .late { background: #fff0c2; color: #765000; }
-.board-experience .no, .board-dialog .no { background: #ffe1e3; color: #9b2e3c; }
+.board-experience .no, .board-dialog .no { background: var(--board-danger-bg); color: var(--board-danger-text); }
 .board-experience .unknown, .board-dialog .unknown { background: #e8f1f4; color: #425d69; }
 .board-experience .attendance-grid .status-attend { background: #d9f5e3; color: #176534; }
 .board-experience .attendance-grid .status-maybe { background: #fff0c2; color: #765000; }
-.board-experience .attendance-grid .status-absent { background: #ffe1e3; color: #9b2e3c; }
+.board-experience .attendance-grid .status-absent { background: var(--board-danger-bg); color: var(--board-danger-text); }
 
 /* One highlighted action introduces the warm accent. */
 .board-experience .board-highlight { background: #ff6b57; border-color: #ff6b57; color: #fff; }
@@ -269,6 +269,8 @@ body:has(.board-app) .modal .admin-login-modal-content { width: 92%; max-inline-
   --board-tint-border: #e2e8f0;
   --board-subtle: #f8fafc;
   --board-subtle-border: #e2e8f0;
+  --board-danger-bg: #ffe1e3;
+  --board-danger-text: #9b2e3c;
 }
 body:has(.board-app), .board-app main, .board-app footer { background: var(--board-canvas); }
 .board-app header { background: #2db0bc; border: 0; box-shadow: none; }
@@ -317,19 +319,26 @@ body:has(.board-app), .board-app main, .board-app footer { background: var(--boa
   border-color: #cbd5e1;
   color: #475569;
 }
-.board-app .main-actions-bar .danger-btn {
-  background: #fff1f2;
-  border: 1px solid #e89ba4;
-  color: #a12838;
-}
 @media (hover: hover) {
   .board-app .main-actions-bar .secondary-btn:not(:disabled):hover {
     background: #f8fafc;
     border-color: #94a3b8;
   }
-  .board-app .main-actions-bar .danger-btn:not(:disabled):hover {
-    background: #ffe4e6;
+}
+.board-app .main-actions-bar .danger-btn,
+.board-experience .board-danger,
+body:has(.board-app) :is(.modal .form-btn.danger, .modal .admin-btn.delete, .modal .member-delete-btn, .confirm-dialog .confirm-btn.danger) {
+  background: var(--board-danger-bg);
+  border: 1px solid #e89ba4;
+  color: var(--board-danger-text);
+}
+@media (hover: hover) {
+  .board-app .main-actions-bar .danger-btn:not(:disabled):hover,
+  .board-experience .board-danger:not(:disabled):hover,
+  body:has(.board-app) :is(.modal .form-btn.danger, .modal .admin-btn.delete, .modal .member-delete-btn, .confirm-dialog .confirm-btn.danger):not(:disabled):hover {
+    background: #ffced2;
     border-color: #c75d6a;
+    color: var(--board-danger-text);
     transform: none;
   }
 }

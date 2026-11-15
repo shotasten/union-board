@@ -35,7 +35,7 @@ body:has(.board-app) .modal .calendar-modal-content{width:min(520px,calc(100vw -
 .board-experience .attendance-grid-sticky-header{position:sticky;isolation:isolate;border-color:var(--board-line);border-radius:var(--board-radius) var(--board-radius) 0 0;box-shadow:0 2px 4px #23354d12}
 .board-experience .attendance-grid th{background:#f2f6f7;color:var(--board-ink);border-bottom:1px solid var(--board-line)}
 .board-experience .attendance-grid th:first-child,.board-experience .attendance-grid-event-heading{background:#eaf6f7;color:var(--board-ink);border-right:1px solid #cde2e4}
-.board-experience .attendance-grid-event-heading{position:absolute;inset:0 auto 0 0;z-index:20;width:200px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--board-line);font-size:.875rem;font-weight:650;pointer-events:none}
+.board-experience .attendance-grid-event-heading{position:absolute;inset:0 auto 0 0;z-index:20;width:var(--board-event-column-width);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--board-line);font-size:.875rem;font-weight:650;pointer-events:none}
 .board-experience .attendance-grid thead tr:first-child th:not(:first-child){background:#eef4f6}
 .board-experience .attendance-grid thead tr:nth-child(2) th{background:#f9fbfc}
 .board-experience .attendance-grid tbody tr:nth-child(even) td:first-child{background:#f4f8f9}
@@ -44,7 +44,7 @@ body:has(.board-app) .modal .calendar-modal-content{width:min(520px,calc(100vw -
 .board-experience .event-name-clickable{color:var(--board-ink);border-radius:6px}
 .board-experience .event-name-clickable::after{color:var(--board-accent)}
 .board-experience .member-name-col a{color:var(--board-accent)!important}
-.board-experience .attendance-grid-wrapper.scrollable-left::before{left:200px;width:18px;background:linear-gradient(to right,#f4f8f9,transparent)}
+.board-experience .attendance-grid-wrapper.scrollable-left::before{left:var(--board-event-column-width);width:18px;background:linear-gradient(to right,#f4f8f9,transparent)}
 .board-experience .attendance-grid-wrapper.scrollable-left::before{z-index:4}
 
 .board-app .member-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-block:0 .75rem}
@@ -364,6 +364,18 @@ body:has(.board-app) .modal button { font-weight: 700; }
 .board-member-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
 .board-member-actions button { font-size: .75rem; }
 .board-experience .event-name-clickable { text-decoration: none; }
+
+/* Keep the event column readable without hiding most of the table on phones. */
+.board-experience { --board-event-column-width: clamp(108px, 33vw, 200px); }
+.board-experience .attendance-grid :is(.attendance-grid-event-header, tbody td:first-child) {
+  width: var(--board-event-column-width);
+  min-width: var(--board-event-column-width);
+  max-width: var(--board-event-column-width);
+}
+@media (max-width: 600px) {
+  .board-experience .event-name-clickable { padding-inline-end: 20px; }
+  .board-experience .event-name-clickable::after { right: 4px; }
+}
 
 /* Keep each event compact while retaining comfortable touch targets. */
 .board-editor-event { padding: 0 0 .75rem; }

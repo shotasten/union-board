@@ -210,7 +210,7 @@ export function AttendanceGrid({
           style={{ writingMode: 'horizontal-tb', textOrientation: 'mixed' } as React.CSSProperties}
         >
           <colgroup>
-            <col style={{ width: '200px' }} />
+            <col style={{ width: 'var(--board-event-column-width)' }} />
             {[0, 1, 2].map(i => (
               <col key={i} style={{ width: '30px' }} />
             ))}
@@ -342,7 +342,7 @@ export function AttendanceGrid({
           style={{ writingMode: 'horizontal-tb', textOrientation: 'mixed' } as React.CSSProperties}
         >
           <colgroup>
-            <col style={{ width: '200px' }} />
+            <col style={{ width: 'var(--board-event-column-width)' }} />
             {[0, 1, 2].map(i => (
               <col key={i} style={{ width: '30px' }} />
             ))}

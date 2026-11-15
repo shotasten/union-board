@@ -146,3 +146,47 @@ body:has(.board-app) .modal .form-btn.primary {
 .board-experience .board-highlight { background: #ff6b57; border-color: #ff6b57; color: #fff; }
 .board-app .member-actions .secondary-btn { background: #e3f4f6; color: #075e67; }
 .board-identity-hint, .board-identity-notice { background: #e3f4f6; }
+
+
+/* Shared palette and hierarchy for the member experience. */
+:root {
+  --board-brand: #2db0bc;
+  --board-accent: #11848e;
+  --board-cta: #ff6b4a;
+  --board-cta-hover: #e85a3a;
+  --board-tint: #e8f7f8;
+  --board-tint-border: #b8e4e8;
+  --board-subtle: #f7fafa;
+  --board-subtle-border: #d5ecee;
+  --board-ink: #1d2e3d;
+  --board-text: #1e2c2e;
+  --board-muted: #475569;
+  --board-line: #cbd5e1;
+}
+.board-app header { background: #fff; border-block-end: 1px solid #e2ecee; }
+.board-app .member-actions .secondary-btn {
+  background: #fff; border-color: #cbd5e1; color: #475569;
+}
+.board-experience .board-identity-badge {
+  background: var(--board-tint); border-color: var(--board-tint-border);
+  color: var(--board-ink); border-radius: 9999px; box-shadow: none;
+}
+.board-experience .board-highlight {
+  background: var(--board-cta); border-color: var(--board-cta); color: #fff; font-weight: 700;
+}
+.board-experience .board-text-action {
+  background: transparent; border-color: transparent; color: var(--board-accent); box-shadow: none;
+}
+.board-identity-hint {
+  background: var(--board-subtle); border: 1px solid var(--board-subtle-border);
+  border-inline-start: 3px solid var(--board-brand); color: var(--board-ink);
+}
+.board-view-tabs button[aria-selected=true], .board-tabs button[aria-selected=true] { color: var(--board-accent); }
+.board-identity-mode > button {
+  background: var(--board-tint) !important; border-color: var(--board-tint-border) !important;
+}
+@media (hover: hover) {
+  .board-app .member-actions .secondary-btn:hover { background: #f8fafc; border-color: #cbd5e1; }
+  .board-experience .board-highlight:not(:disabled):hover { background: var(--board-cta-hover); border-color: var(--board-cta-hover); }
+  .board-experience .board-text-action:not(:disabled):hover { background: var(--board-tint); box-shadow: none; }
+}

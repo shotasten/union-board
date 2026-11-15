@@ -114,8 +114,8 @@ export function AttendanceExperience(props: Props) {
     if (pinned) requestAnimationFrame(() => tabRef.current?.scrollIntoView({ block: 'start' }))
   }
   return <section className="board-experience">
-    <div className="board-person-bar"><div className="board-person-status"><button aria-label={identity ? `選択中: ${identity.name}（${identity.part}）。名前を切り替える` : undefined} aria-describedby={!identity ? 'board-identity-hint' : undefined} className={identity ? 'board-identity-badge' : 'board-primary board-highlight'} onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(identity?.part || ''); setRegistering(false); setRegisterError(''); setChoosing(true) }}>{identity ? <>{identity.name + '（' + identity.part + '）'} <span aria-hidden="true">▾</span></> : '自分の名前を選ぶ'}</button>
-      {identity && <button className="board-text-action" onClick={() => props.onEditMemberInfo(getMemberDisplayName(identity))}>名前・パートを編集</button>}</div>
+    <div className="board-person-bar"><div className="board-person-status"><button aria-label={identity ? `選択中: ${identity.name}（${identity.part}）。名前を切り替える` : undefined} aria-describedby={!identity ? 'board-identity-hint' : undefined} className={identity ? 'board-identity-badge' : 'board-primary board-highlight'} onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(identity?.part || ''); setRegistering(false); setRegisterError(''); setChoosing(true) }}>{identity ? <><svg className="board-person-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span className="board-person-name">{identity.name + '（' + identity.part + '）'}</span><span aria-hidden="true">▾</span></> : '自分の名前を選ぶ'}</button>
+      </div>
       {identity && <button className="board-primary board-highlight board-attendance-action" onClick={() => edit('all')}>出欠を変更</button>}
     </div>
     {!identity && <p id="board-identity-hint" className="board-identity-hint">まずは自分の名前を選ぶと、出欠をすぐに入力できます。閲覧だけなら選択不要です。</p>}
@@ -180,7 +180,7 @@ export function AttendanceExperience(props: Props) {
       <p className="board-note">ログインや本人確認ではありません。共有端末では記憶を外してください。</p>
       {registerError && <p role="alert" className="board-registration-error">{registerError}</p>}
       <div className="board-identity-actions"><button type="submit" className="board-primary" disabled={registerBusy || (registering ? !choicePart || !newName.trim() : !choicePart || !choice)}>{registerBusy ? '登録中…' : registering ? '登録して進む' : 'この名前で進む'}</button></div>
-      {identity && !registering && <div className="board-identity-account-actions"><button type="button" onClick={() => { setChoosing(false); props.onEditMemberInfo(getMemberDisplayName(identity)) }}>名前・パートを編集</button><button type="button" onClick={() => { setIdentityKey(''); try { localStorage.removeItem(identityStorage) } catch { /* memory is optional */ } setChoosing(false) }}>自分の選択を解除</button></div>}
+      {identity && !registering && <div className="board-identity-account-actions"><button className="board-identity-edit" type="button" onClick={() => { setChoosing(false); props.onEditMemberInfo(getMemberDisplayName(identity)) }}>名前・パートを編集</button><button type="button" onClick={() => { setIdentityKey(''); try { localStorage.removeItem(identityStorage) } catch { /* memory is optional */ } setChoosing(false) }}>自分の選択を解除</button></div>}
     </form></BoardDialog>}
     {editor && members.some(m => m.userKey === editor.key) && <ResponseEditor key={editor.key + ':' + editor.scope} member={members.find(m => m.userKey === editor.key)!} events={sortedEvents.filter(e => editor.eventIds.includes(e.id))} responses={Object.values(responsesMap).flat().filter(r => r.userKey === editor.key)} onSave={onSave} onClose={() => setEditor(null)} />}
   </section>

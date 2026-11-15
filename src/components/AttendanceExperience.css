@@ -239,44 +239,16 @@ body:has(.board-app) .modal .admin-login-modal-content { width: 92%; max-inline-
 .board-page-heading .member-actions { margin-inline-start: auto; }
 .board-page-heading h2 { flex-shrink: 0; }
 
-/* Group identity and attendance controls in a single panel. */
-.board-experience .board-person-bar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 12px 24px;
-  padding: 14px;
-  background: #f7fafa;
-  border: 1px solid #d5ecee;
-  border-radius: 12px;
-}
-.board-experience .board-person-status { gap: 8px; }
-.board-experience .board-person-bar button {
-  min-block-size: 40px;
-  min-inline-size: 40px;
-  border-radius: 8px;
-  line-height: 1.4;
-}
-.board-experience .board-person-bar .board-identity-badge {
-  background: #fff;
-  border: 1px solid var(--board-brand);
-  color: var(--board-ink);
-  padding: 8px 14px;
-  font-size: .875rem;
-}
-.board-experience .board-person-bar .board-text-action {
-  background: #fff;
-  border: 1px solid #cbd5e1;
-  color: var(--board-accent);
-  padding: 8px 12px;
-  font-weight: 500;
-}
-.board-experience .board-person-bar .board-highlight { padding: 8px 20px; font-size: .875rem; }
+/* Compact member actions, with the name shrinking before the main action. */
+.board-experience .board-person-bar { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; justify-content: flex-start; gap: 12px; min-width: 0; }
+.board-experience .board-person-status { min-width: 0; flex: 0 1 auto; }
+.board-experience .board-person-bar button { min-block-size: 40px; border-radius: 8px; }
+.board-experience .board-person-bar .board-identity-badge { display: inline-flex; min-width: 0; max-width: 100%; gap: 8px; background: #fff; border: 1px solid var(--board-brand); padding: 8px 14px; color: var(--board-ink); font-size: .875rem; font-weight: 700; }
+.board-person-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-person-icon { width: 18px; height: 18px; flex: none; color: var(--board-brand); }
+.board-experience .board-person-bar .board-attendance-action { flex-shrink: 0; padding: 8px 20px; font-size: .875rem; }
+.board-identity-account-actions { border-block-start: 1px solid var(--board-line); padding-block-start: .75rem; }
+.board-dialog .board-identity-edit { color: var(--board-accent); }
 @media (hover: hover) {
-  .board-experience .board-person-bar .board-identity-badge:not(:disabled):hover,
-  .board-experience .board-person-bar .board-text-action:not(:disabled):hover { background: var(--board-tint); text-decoration: none; }
-}
-@media (max-width: 600px) {
-  .board-experience .board-person-bar { align-items: flex-start; flex-direction: column; }
+  .board-experience .board-person-bar .board-identity-badge:not(:disabled):hover, .board-dialog .board-identity-edit:hover { background: var(--board-tint); }
 }

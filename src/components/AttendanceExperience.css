@@ -283,3 +283,18 @@ body:has(.board-app), .board-app main, .board-app footer { background: var(--boa
 @media (hover: hover) {
   .board-experience .board-person-bar .board-identity-badge:not(:disabled):hover { background: #fff; border-color: var(--board-brand); }
 }
+
+/* Keep the schedule actions consistent and make header controls legible. */
+.board-app .main-actions-bar :is(.primary-btn, .secondary-btn, .danger-btn),
+.board-app .member-actions .secondary-btn {
+  min-height: 44px;
+  padding: .625rem .75rem;
+  font-size: .75rem;
+  font-weight: 600;
+  line-height: 1.4;
+  border-radius: 8px;
+}
+.board-app .icon-action-btn { border-color: #06434a; border-radius: 8px; }
+.board-app .icon-action-btn i { color: #06434a; }
+.board-app .icon-action-btn:hover { background: rgba(255,255,255,.35); }
+.board-experience .board-back { color: #08727b; text-decoration: underline; text-underline-offset: .2em; }

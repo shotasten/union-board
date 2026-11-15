@@ -252,12 +252,3 @@ body:has(.board-app) .modal .admin-login-modal-content { width: 92%; max-inline-
 @media (hover: hover) {
   .board-experience .board-person-bar .board-identity-badge:not(:disabled):hover, .board-dialog .board-identity-edit:hover { background: var(--board-tint); }
 }
-
-
-/* Keep account actions together at the right of the header. */
-.board-app .header-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-.board-header-identity { min-height: 40px; max-width: min(55vw, 280px); }
-.board-header-identity button { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; max-width: 100%; padding: 8px 14px; border: 1px solid var(--board-brand); border-radius: 8px; background: #fff; color: var(--board-ink); font: inherit; font-size: .875rem; font-weight: 700; cursor: pointer; }
-.board-header-identity .board-highlight { background: var(--board-cta); border-color: var(--board-cta); color: #fff; }
-.board-header-identity button:focus-visible { outline: 3px solid var(--board-accent); outline-offset: 3px; }
-@media (hover: hover) { .board-header-identity .board-identity-badge:hover { background: var(--board-tint); } .board-header-identity .board-highlight:hover { background: var(--board-cta-hover); } }

@@ -45,7 +45,6 @@ export function Header({ isAdmin, onAdminLoginClick, onAdminManageClick, onSyncA
               </button>
             </div>
           )}
-          <div id="board-header-identity" className="board-header-identity" />
         </div>
       </div>
       <p>TMU 練習予定・出欠管理アプリ</p>

@@ -5,7 +5,6 @@ import { changedResponses, eventDateLabel, eventTimeLabel, memberResponse, RESPO
 import { BoardDialog } from './BoardDialog'
 import { AttendanceGrid } from './AttendanceGrid'
 import { MemberActions } from './MemberActions'
-import { LoadingSpinner } from './LoadingSpinner'
 import './AttendanceExperience.css'
 
 type Scope = 'all' | 'pending' | string
@@ -18,10 +17,6 @@ interface Props {
   onEditEvent: (id: string) => void; onDeleteEvent: (id: string, title: string) => void
 }
 function readIdentity(key: string) { try { return localStorage.getItem(key) || '' } catch { return '' } }
-type CachedIdentity = { userKey: string; name: string; part: string }
-function readCachedIdentity(key: string, userKey: string): CachedIdentity | null {
-  try { const value = JSON.parse(localStorage.getItem(key + ':display') || 'null'); return value?.userKey === userKey && typeof value.name === 'string' && typeof value.part === 'string' ? value : null } catch { return null }
-}
 function dismissedIdentity(key: string) { try { return sessionStorage.getItem(key) === 'true' } catch { return false } }
 function readTableView() { try { return new URLSearchParams(location.search).get('view') === 'table' } catch { return false } }
 function hashEvent() { try { return location.hash.startsWith('#event/') ? decodeURIComponent(location.hash.slice(7)) : '' } catch { return '' } }
@@ -33,8 +28,7 @@ export function AttendanceExperience(props: Props) {
   const identityStorage = 'unionboard:member:' + props.storageScope
   const [identityKey, setIdentityKey] = useState(() => readIdentity(identityStorage))
   const identity = members.find(m => m.userKey === identityKey)
-  const [cachedIdentity, setCachedIdentity] = useState(() => readCachedIdentity(identityStorage, readIdentity(identityStorage)))
-  const displayIdentity = identity || (props.isLoading || props.loadError ? cachedIdentity : null)
+  const displayIdentity = identity
   const [eventId, setEventId] = useState(hashEvent)
   const [tab, setTab] = useState<'parts' | 'people'>('parts')
   const [partFilter, setPartFilter] = useState('')
@@ -72,17 +66,12 @@ export function AttendanceExperience(props: Props) {
   }, [event])
 
   useEffect(() => {
-    if (props.isLoading || props.loadError || !identityKey) return
-    try {
-      if (!identity) {
-        if (localStorage.getItem(identityStorage) === identityKey) { localStorage.removeItem(identityStorage); localStorage.removeItem(identityStorage + ':display') }
-        setCachedIdentity(null); setIdentityKey(''); return
-      }
-      if (localStorage.getItem(identityStorage) === identityKey) {
-        const value = { userKey: identity.userKey, name: identity.name, part: identity.part }
-        localStorage.setItem(identityStorage + ':display', JSON.stringify(value)); setCachedIdentity(value)
-      }
-    } catch { /* Storage is optional. */ }
+    try { localStorage.removeItem(identityStorage + ':display') } catch { /* Storage is optional. */ }
+  }, [identityStorage])
+  useEffect(() => {
+    if (props.isLoading || props.loadError || !identityKey || identity) return
+    try { if (localStorage.getItem(identityStorage) === identityKey) localStorage.removeItem(identityStorage) } catch { /* Storage is optional. */ }
+    setIdentityKey('')
   }, [props.isLoading, props.loadError, identityKey, identity, identityStorage])
 
   const navigate = (id: string) => {
@@ -105,8 +94,7 @@ export function AttendanceExperience(props: Props) {
   }
   const acceptIdentity = (key: string) => {
     setIdentityKey(key)
-    setCachedIdentity(null)
-    try { if (remember) { localStorage.setItem(identityStorage, key); const member = members.find(m => m.userKey === key); if (member) localStorage.setItem(identityStorage + ':display', JSON.stringify({ userKey: key, name: member.name, part: member.part })) } else { localStorage.removeItem(identityStorage); localStorage.removeItem(identityStorage + ':display') } } catch { /* Selection still works for this visit. */ }
+    try { if (remember) localStorage.setItem(identityStorage, key); else localStorage.removeItem(identityStorage) } catch { /* Selection still works for this visit. */ }
     setChoosing(false); setRegistering(false)
     if (pendingScope) startEditor(key, pendingScope)
     setPendingScope(null)
@@ -154,7 +142,7 @@ export function AttendanceExperience(props: Props) {
         <button id="board-view-tab-table" type="button" role="tab" aria-selected={showTable} aria-controls="board-schedule-panel" tabIndex={showTable ? 0 : -1} onClick={() => selectScheduleView(true)}>全体表</button>
       </div>
       <div id="board-schedule-panel" className="board-schedule-panel" role="tabpanel" aria-labelledby={showTable ? 'board-view-tab-table' : 'board-view-tab-schedule'} tabIndex={0}>
-      {props.isLoading ? <LoadingSpinner /> : props.loadError ? null : showTable ? <AttendanceGrid {...props} onEventClick={navigate} /> : <ul className="board-schedule">{sortedEvents.map(ev => {
+      {props.isLoading || props.loadError ? null : showTable ? <AttendanceGrid {...props} onEventClick={navigate} /> : <ul className="board-schedule">{sortedEvents.map(ev => {
         const counts = tallyAttendance(members, responsesMap[ev.id] || [])
         return <li key={ev.id} className="board-cassette"><a href={'#event/' + encodeURIComponent(ev.id)} onClick={click => { if (!click.metaKey && !click.ctrlKey && !click.shiftKey && !click.altKey) { click.preventDefault(); navigate(ev.id) } }} className="board-event-link">
           <span className="board-event-date"><strong>{eventDateLabel(ev)}</strong><span>{ev.title || '予定'}</span><small>{eventTimeLabel(ev)}</small></span>
@@ -165,7 +153,7 @@ export function AttendanceExperience(props: Props) {
       </div>
       {!props.isLoading && !props.loadError && !events.length && <p className="board-empty">表示期間内に予定はありません。</p>}
       <p className="board-note">参加予定＝○出席＋△遅刻/早退。同時に全員が揃うとは限りません。<br />未回答と未定は「-」で表示します。0件の内訳は「-」です。</p>
-    </> : props.isLoading ? <LoadingSpinner /> : props.loadError ? null : event ? <>
+    </> : props.isLoading || props.loadError ? null : event ? <>
       <a className="board-back" href="#schedule" onClick={click => { click.preventDefault(); navigate('') }}>← 予定一覧</a>
       <section className="board-summary"><h2>{eventDateLabel(event)} {event.title}</h2><p>{eventTimeLabel(event)}</p><strong>{event.location || '場所未設定'}</strong>{event.description && <p className="board-description">{cleanDescription(event.description)}</p>}
         <div className="board-counts">{RESPONSE_STATUSES.map(s => <span className={'board-answer ' + responseClass(s)} key={s}>{s} {countLabel(tallyAttendance(members, responses)[s])}人</span>)}</div>

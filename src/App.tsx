@@ -155,7 +155,7 @@ export function App() {
 
   return (
     <div id="scale-wrapper">
-      <div id="app-root" className="board-app">
+      <div id="app-root" className="board-app" style={isLoading ? { visibility: 'hidden' } : undefined}>
         <div className="page-shell">
           <div className="container">
             <Header
@@ -387,6 +387,7 @@ export function App() {
       {toast && <Toast toast={toast} />}
 
       {/* Fullscreen loader */}
+      {isLoading && <div className="fullscreen-loader active initial-loader" role="status" aria-label="データを読み込み中"><div className="loader-spinner" /></div>}
       {fullscreenLoader && <FullscreenLoader loader={fullscreenLoader} />}
     </div>
   )

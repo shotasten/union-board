@@ -1503,3 +1503,7 @@ footer {
 }
 
 /* レスポンシブデザインは削除 - PCレイアウト固定（1200px）で縮小拡大表示 */
+
+/* Initial loading covers the screen without a message. */
+.initial-loader { background: #fff; backdrop-filter: none; }
+.initial-loader .loader-spinner { border-color: #d5ecee; border-top-color: #2db0bc; margin-bottom: 0; }

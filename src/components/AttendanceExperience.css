@@ -385,3 +385,63 @@ body:has(.board-app) .modal button { font-weight: 700; }
 .board-choices small { margin-top: 2px; }
 .board-editor-event > label { gap: .25rem; margin-block: .5rem 0; }
 .board-dialog .board-editor-event textarea { min-block-size: 44px; padding: .5rem .75rem; resize: vertical; }
+
+/* Keep the clear action alongside each comment without covering its text. */
+.board-comment-input { display: flex; align-items: flex-start; gap: .5rem; margin-block: .5rem 0; }
+.board-dialog .board-comment-input textarea { flex: 1; min-inline-size: 0; }
+.board-dialog .board-comment-input button { flex: none; font-size: 1.25rem; padding: .25rem; }
+
+/* Keep editable text at least 16px to avoid iOS focus zoom. */
+.board-dialog :is(input:not([type="checkbox"]), textarea, select),
+.modal :is(input:not([type="checkbox"]), textarea, select) { font-size: max(16px, 1em); }
+
+/* Keep comment text readable when Safari page zoom is set to 75%. */
+.board-dialog .board-editor-event textarea { font-size: max(16px, 1em); }
+.board-dialog .board-editor-event [data-iphone-safari] textarea { font-size: max(22px, 1em); }
+
+/* Show more of the schedule on a phone while keeping controls easy to tap. */
+@media (max-width: 600px) {
+  .board-app header { padding-block: .5rem; }
+  .board-app header .board-brand { min-block-size: 44px; }
+  .board-app header p { margin-top: 0; font-size: .6875rem; }
+  .board-app main { padding-block: .625rem 1.5rem; }
+  .board-experience .board-person-bar { margin-block-end: .5rem; gap: .5rem; }
+  .board-experience .board-person-bar button { min-block-size: 44px; }
+  .board-page-heading { margin-block: .75rem .5rem; }
+  .board-experience .board-page-heading h2 { font-size: 1.125rem; }
+  .board-view-tabs { margin-block-end: .5rem; }
+  .board-view-tabs button { padding-block: .5rem; }
+  .board-event-link { padding-block: .625rem; }
+  .board-experience .board-self { min-block-size: 54px; }
+  .board-event-count > strong { font-size: 1.25rem; }
+  .board-experience .board-back { margin-block-end: .5rem; }
+  .board-summary, .board-comments { padding: .75rem; margin-bottom: .75rem; }
+  .board-summary h2 { font-size: 1.125rem; }
+  .board-summary p, .board-summary > strong { margin-block: .375rem; }
+  .board-counts { margin-top: .625rem; }
+}
+
+/* Make modal chrome and informational copy more compact on phones. */
+@media (max-width: 600px) {
+  .board-dialog-heading { padding: .5rem .75rem; }
+  .board-dialog-heading h2 { font-size: .9375rem; }
+  .board-dialog-body { padding: .75rem; }
+  .board-dialog-footer { padding: .5rem .75rem; }
+  body:has(.board-app) .modal .modal-content { padding: .75rem; }
+  body:has(.board-app) .modal .modal-header { margin-bottom: .75rem; padding-bottom: .5rem; }
+  body:has(.board-app) .modal .modal-header h2 { font-size: 1rem; }
+  body:has(.board-app) .calendar-info { padding: .75rem; margin-bottom: .75rem; font-size: .8125rem; }
+  body:has(.board-app) .calendar-info ul { line-height: 1.5; }
+  body:has(.board-app) .calendar-hint { margin-top: .75rem; padding: .75rem; }
+  body:has(.board-app) .calendar-add-link { padding: .625rem 1rem; font-size: .875rem; }
+}
+
+@media (max-width: 600px) {
+  .board-identity-notice { padding: .5rem .625rem; margin-bottom: .5rem; line-height: 1.45; }
+  .board-identity-notice p { margin-top: .25rem; }
+  .board-identity-mode { margin-block: .5rem; padding: .375rem .5rem; }
+  .board-identity-form > label { gap: .25rem; margin-block: .5rem; }
+  .board-dialog .board-identity-form :is(select, input:not([type=checkbox])) { padding: .5rem .625rem; }
+  .board-identity-actions { margin-block: .625rem .375rem; }
+  .board-identity-form > .board-note { margin-block: .375rem; }
+}

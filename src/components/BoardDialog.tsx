@@ -11,6 +11,33 @@ export function BoardDialog({ title, onClose, children, busy = false, closeLabel
     return () => dialog.close()
   }, [])
   useEffect(() => { ref.current?.setAttribute('closedby', busy ? 'none' : 'any') }, [busy])
+  useEffect(() => {
+    const dialog = ref.current!
+    const revealComment = () => {
+      const active = document.activeElement
+      if (!(active instanceof HTMLTextAreaElement) || !active.closest('.board-comment-input')) return
+      if (!window.matchMedia('(pointer: coarse)').matches) return
+      requestAnimationFrame(() => {
+        if (document.activeElement !== active) return
+        const body = active.closest<HTMLElement>('.board-dialog-body')
+        if (!body) return
+        const field = active.getBoundingClientRect()
+        const bounds = body.getBoundingClientRect()
+        const viewport = window.visualViewport
+        const visibleTop = Math.max(bounds.top, viewport?.offsetTop ?? 0) + 8
+        const visibleBottom = Math.min(bounds.bottom, viewport ? viewport.offsetTop + viewport.height : window.innerHeight) - 8
+        if (visibleBottom <= visibleTop) return
+        if (field.bottom > visibleBottom) body.scrollTop += field.bottom - visibleBottom
+        else if (field.top < visibleTop) body.scrollTop -= visibleTop - field.top
+      })
+    }
+    dialog.addEventListener('focusin', revealComment)
+    window.visualViewport?.addEventListener('resize', revealComment)
+    return () => {
+      dialog.removeEventListener('focusin', revealComment)
+      window.visualViewport?.removeEventListener('resize', revealComment)
+    }
+  }, [])
   const outsideStart = useRef(false)
   const outside = (event: PointerEvent | MouseEvent) => {
     const rect = ref.current!.getBoundingClientRect()

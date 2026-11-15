@@ -1,3 +1,4 @@
+import { CommentInput } from './CommentInput'
 import { useEffect, useRef, useState } from 'react'
 import type { AttendanceEvent, AttendanceResponse, Member, ResponseStatus } from '../types/models'
 import { sortMembersByPart, getMemberDisplayName, cleanDescription, PART_OPTIONS } from '../lib/utils'
@@ -155,6 +156,7 @@ export function AttendanceExperience(props: Props) {
       <p className="board-note">参加予定＝○出席＋△遅刻/早退。同時に全員が揃うとは限りません。<br />未回答と未定は「-」で表示します。0件の内訳は「-」です。</p>
     </> : props.isLoading || props.loadError ? null : event ? <>
       <a className="board-back" href="#schedule" onClick={click => { click.preventDefault(); navigate('') }}>&lt; 予定一覧に戻る</a>
+      {isAdmin && <div className="board-admin-event"><strong>管理者操作</strong><button onClick={() => onEditEvent(event.id)}>イベント編集</button><button className="board-danger" onClick={() => onDeleteEvent(event.id, event.title)}>削除</button></div>}
       <section className="board-summary"><h2>{eventDateLabel(event)} {event.title}</h2><p>{eventTimeLabel(event)}</p><strong>{event.location || '場所未設定'}</strong>{event.description && <p className="board-description">{cleanDescription(event.description)}</p>}
         <div className="board-counts">{RESPONSE_STATUSES.map(s => <span className={'board-answer ' + responseClass(s)} key={s}>{s} {countLabel(tallyAttendance(members, responses)[s])}人</span>)}</div>
         <div className="board-own-response"><span>自分の回答</span>{identity ? <Answer status={status(event.id, identity.userKey)} /> : <span className="board-note">未選択</span>}<button onClick={() => edit(event.id)}>{identity ? '出欠・コメントを変更' : '自分の出欠・コメントを入力'}</button></div>
@@ -166,7 +168,6 @@ export function AttendanceExperience(props: Props) {
         })}
         {!responses.some(r => members.some(m => m.userKey === r.userKey) && r.comment?.trim()) && <p className="board-note">まだコメントはありません。</p>}
       </section>
-      {isAdmin && <div className="board-admin-event"><strong>管理者操作</strong><button onClick={() => onEditEvent(event.id)}>イベント編集</button><button className="board-danger" onClick={() => onDeleteEvent(event.id, event.title)}>削除</button></div>}
       <div ref={tabRef} className="board-tabs" role="tablist" aria-label="出欠内訳" onKeyDown={key => {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(key.key)) return
         key.preventDefault(); const next = key.key === 'Home' ? 'parts' : key.key === 'End' ? 'people' : tab === 'parts' ? 'people' : 'parts'
@@ -210,5 +211,5 @@ function ResponseEditor({ member, events, responses, onSave, onClose }: { member
     catch { setError('保存できませんでした。入力内容を保持しています。') }
     finally { setBusy(false) }
   }
-  return <BoardDialog title={member.name + '（' + member.part + '）の出欠'} onClose={close} busy={busy}><div className="board-dialog-body">{!events.length && <p>入力対象の日程はありません。</p>}{events.map(e => <fieldset className="board-editor-event" key={e.id}><legend>{eventDateLabel(e)} {e.title}</legend><p className="board-note">{e.location || '場所未設定'}<br />{eventTimeLabel(e)}</p><div className="board-choices">{RESPONSE_STATUSES.map(s => <button key={s} disabled={busy} className={responseClass(s)} aria-pressed={draft[e.id].status === s} onClick={() => setDraft(prev => ({ ...prev, [e.id]: { ...prev[e.id], status: s } }))}>{s}<small>{RESPONSE_LABELS[s]}</small></button>)}</div><label><textarea aria-label="コメント（任意）" placeholder="コメント（任意）" rows={1} disabled={busy} value={draft[e.id].comment} onChange={input => setDraft(prev => ({ ...prev, [e.id]: { ...prev[e.id], comment: input.target.value } }))} /></label></fieldset>)}</div>{error && <div className="toast error board-dialog-toast" role="alert">{error}</div>}<div className="board-dialog-footer"><span role="status">{updates.length + '件変更'}</span><button disabled={busy} onClick={close}>取消</button><button className="board-primary" disabled={busy || !updates.length} onClick={save}>{busy ? '保存中…' : '保存'}</button></div></BoardDialog>
+  return <BoardDialog title={member.name + '（' + member.part + '）の出欠'} onClose={close} busy={busy}><div className="board-dialog-body">{!events.length && <p>入力対象の日程はありません。</p>}{events.map(e => <fieldset className="board-editor-event" key={e.id}><legend>{eventDateLabel(e)} {e.title}</legend><p className="board-note">{e.location || '場所未設定'}<br />{eventTimeLabel(e)}</p><div className="board-choices">{RESPONSE_STATUSES.map(s => <button key={s} disabled={busy} className={responseClass(s)} aria-pressed={draft[e.id].status === s} onClick={() => setDraft(prev => ({ ...prev, [e.id]: { ...prev[e.id], status: s } }))}>{s}<small>{RESPONSE_LABELS[s]}</small></button>)}</div><CommentInput value={draft[e.id].comment} disabled={busy} onChange={comment => setDraft(prev => ({ ...prev, [e.id]: { ...prev[e.id], comment } }))} /></fieldset>)}</div>{error && <div className="toast error board-dialog-toast" role="alert">{error}</div>}<div className="board-dialog-footer"><span role="status">{updates.length + '件変更'}</span><button disabled={busy} onClick={close}>取消</button><button className="board-primary" disabled={busy || !updates.length} onClick={save}>{busy ? '保存中…' : '保存'}</button></div></BoardDialog>
 }

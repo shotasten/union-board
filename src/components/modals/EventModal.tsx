@@ -280,7 +280,7 @@ export function EventModal({ open, eventId, events, onClose, onCreate, onUpdate 
             </label>
           </div>
           <div className="form-group">
-            <label htmlFor="event-start">開始日時 <span style={{ color: 'red' }}>*</span></label>
+            <label htmlFor={form.isAllDay ? "event-start-date" : "event-start"}>開始日時 <span style={{ color: 'red' }}>*</span></label>
             {!form.isAllDay ? (
               <input
                 type="datetime-local"
@@ -300,7 +300,7 @@ export function EventModal({ open, eventId, events, onClose, onCreate, onUpdate 
             )}
           </div>
           <div className="form-group">
-            <label htmlFor="event-end">終了日時 <span style={{ color: 'red' }}>*</span></label>
+            <label htmlFor={form.isAllDay ? "event-end-date" : "event-end"}>終了日時 <span style={{ color: 'red' }}>*</span></label>
             {!form.isAllDay ? (
               <input
                 type="datetime-local"

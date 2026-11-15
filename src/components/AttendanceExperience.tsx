@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { AttendanceEvent, AttendanceResponse, Member, ResponseStatus } from '../types/models'
 import { sortMembersByPart, getMemberDisplayName, cleanDescription, PART_OPTIONS } from '../lib/utils'
 import { changedResponses, eventDateLabel, eventTimeLabel, memberResponse, RESPONSE_LABELS, RESPONSE_STATUSES, responseClass, tallyAttendance } from '../lib/attendance'
@@ -30,6 +31,8 @@ function Answer({ status }: { status: ResponseStatus }) { return <span className
 
 export function AttendanceExperience(props: Props) {
   const { events, members, responsesMap, isAdmin, onMemberClick, onSave, onEditEvent, onDeleteEvent } = props
+  const [headerIdentityTarget, setHeaderIdentityTarget] = useState<HTMLElement | null>(null)
+  useEffect(() => { setHeaderIdentityTarget(document.getElementById('board-header-identity')) }, [])
   const identityStorage = 'unionboard:member:' + props.storageScope
   const [identityKey, setIdentityKey] = useState(() => readIdentity(identityStorage))
   const identity = members.find(m => m.userKey === identityKey)
@@ -136,10 +139,10 @@ export function AttendanceExperience(props: Props) {
     if (pinned) requestAnimationFrame(() => tabRef.current?.scrollIntoView({ block: 'start' }))
   }
   return <section className="board-experience">
-    <div className="board-person-bar"><div className="board-person-status"><button disabled={props.isLoading || props.loadError} aria-label={displayIdentity ? `選択中: ${displayIdentity.name}（${displayIdentity.part}）。名前を切り替える` : undefined} aria-describedby={!identity ? 'board-identity-hint' : undefined} className={displayIdentity ? 'board-identity-badge' : 'board-primary board-highlight'} onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(identity?.part || ''); setRegistering(false); setRegisterError(''); setChoosing(true) }}>{displayIdentity ? <><svg className="board-person-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span className="board-person-name">{displayIdentity.name + '（' + displayIdentity.part + '）'}</span><span aria-hidden="true">▾</span></> : '自分の名前を選ぶ'}</button>
-      </div>
-      {displayIdentity && <button disabled={props.isLoading || props.loadError} className="board-primary board-highlight board-attendance-action" onClick={() => edit('all')}>出欠を変更</button>}
-    </div>
+    {!props.isLoading && !props.loadError && headerIdentityTarget && createPortal(
+      <button disabled={props.isLoading || props.loadError} aria-label={displayIdentity ? `選択中: ${displayIdentity.name}（${displayIdentity.part}）。名前を切り替える` : undefined} aria-describedby={!identity ? 'board-identity-hint' : undefined} className={displayIdentity ? 'board-identity-badge' : 'board-primary board-highlight'} onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(identity?.part || ''); setRegistering(false); setRegisterError(''); setChoosing(true) }}>{displayIdentity ? <><svg className="board-person-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span className="board-person-name">{displayIdentity.name + '（' + displayIdentity.part + '）'}</span><span aria-hidden="true">▾</span></> : '自分の名前を選ぶ'}</button>, headerIdentityTarget
+    )}
+    {!props.isLoading && !props.loadError && identity && <div className="board-person-bar"><button className="board-primary board-highlight board-attendance-action" onClick={() => edit('all')}>出欠を変更</button></div>}
     {!displayIdentity && !props.isLoading && !props.loadError && <p id="board-identity-hint" className="board-identity-hint">まずは自分の名前を選ぶと、出欠をすぐに入力できます。閲覧だけなら選択不要です。</p>}
     {!eventId ? <>
       <div className="board-page-heading"><h2>予定一覧</h2><MemberActions onCalendar={props.onCalendar} onReload={props.onReload} loading={props.isLoading} /></div>

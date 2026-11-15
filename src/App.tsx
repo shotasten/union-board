@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAppState } from './hooks/useAppState'
 import { Header } from './components/Header'
+import { MemberActions } from './components/MemberActions'
 import { AttendanceExperience } from './components/AttendanceExperience'
 import { LoadingSpinner } from './components/LoadingSpinner'
 import { Toast } from './components/Toast'
@@ -171,31 +172,7 @@ export function App() {
                       className="main-actions-bar"
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}
                     >
-                      <div className="left-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                        <button
-                          className="member-register-btn primary-btn"
-                          onClick={() => openModal('memberRegister', true)}
-                        >
-                          メンバー登録
-                        </button>
-                        <button
-                          className="add-to-calendar-btn secondary-btn"
-                          id="add-to-calendar-btn"
-                          onClick={handleAddToCalendarClick}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                        >
-                          <i className="fas fa-calendar-plus"></i>
-                          <span>カレンダーに追加</span>
-                        </button>
-                        <button
-                          className="reload-btn secondary-btn"
-                          id="reload-btn"
-                          onClick={reloadEvents}
-                        >
-                          <i className="fas fa-rotate"></i>
-                          <span>最新表示</span>
-                        </button>
-                      </div>
+                      <MemberActions onRegister={() => openModal('memberRegister', true)} onCalendar={handleAddToCalendarClick} onReload={reloadEvents} />
                       <div className="right-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                         {isAdmin && (
                           <>
@@ -231,6 +208,7 @@ export function App() {
                       localStatusOverrides={localStatusOverrides}
                       storageScope={import.meta.env.VITE_SPACE_ID || 'default'}
                       onMemberClick={handleMemberClick} onSave={handleBulkUpdateResponses}
+                      onRegisterMember={() => openModal('memberRegister', true)}
                       onEditEvent={handleEditFromDetail} onDeleteEvent={handleDeleteFromDetail}
                     />
                   </div>

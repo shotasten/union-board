@@ -252,3 +252,34 @@ body:has(.board-app) .modal .admin-login-modal-content { width: 92%; max-inline-
 @media (hover: hover) {
   .board-experience .board-person-bar .board-identity-badge:not(:disabled):hover, .board-dialog .board-identity-edit:hover { background: var(--board-tint); }
 }
+
+
+/* Brand header, neutral canvas, and one coral attendance action. */
+:root {
+  --board-canvas: #f8fafc;
+  --board-ink: #0f172a;
+  --board-text: #0f172a;
+  --board-muted: #64748b;
+  --board-line: #e2e8f0;
+  --board-tint: #f8fafc;
+  --board-tint-border: #e2e8f0;
+  --board-subtle: #f8fafc;
+  --board-subtle-border: #e2e8f0;
+}
+body:has(.board-app), .board-app main, .board-app footer { background: var(--board-canvas); }
+.board-app header { background: #2db0bc; border: 0; box-shadow: none; }
+.board-app .board-brand { color: #fff; font-weight: 800; letter-spacing: -.025em; }
+.board-app header p { color: rgba(255,255,255,.88); }
+.board-app .admin-login-btn { background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.5); color: #fff; border-radius: 8px; }
+.board-app .admin-login-btn:hover { background: rgba(255,255,255,.25); color: #fff; border-color: rgba(255,255,255,.7); }
+.board-experience .board-person-bar .board-identity-badge { background: #fff; border-color: #cbd5e1; }
+.board-identity-hint, .board-identity-notice { background: #fff; border-color: var(--board-line); }
+.board-identity-hint { border-inline-start-color: var(--board-brand); }
+.board-experience .attendance-grid th:first-child, .board-experience .attendance-grid-event-heading { background: #f8fafc; border-color: var(--board-line); }
+.board-experience .attendance-grid thead tr:first-child th:not(:first-child), .board-experience .attendance-grid thead tr:nth-child(2) th { background: #f8fafc; }
+.board-experience .attendance-grid tbody tr:nth-child(even) td:first-child { background: #f8fafc; }
+.board-experience .attendance-grid-wrapper.scrollable-left::before { background: linear-gradient(to right,#f8fafc,transparent); }
+.board-cassette:has(.board-event-link:hover) { background: #f8fafc; }
+@media (hover: hover) {
+  .board-experience .board-person-bar .board-identity-badge:not(:disabled):hover { background: #fff; border-color: var(--board-brand); }
+}

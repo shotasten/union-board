@@ -159,7 +159,7 @@ export function AttendanceExperience(props: Props) {
       <p className="board-note">ログインや本人確認ではありません。共有端末では記憶を外してください。</p>
       {registerError && <p role="alert" className="board-registration-error">{registerError}</p>}
       <div className="board-identity-actions"><button type="submit" className="board-primary" disabled={registerBusy || (registering ? !choicePart || !newName.trim() : !choice)}>{registerBusy ? '登録中…' : registering ? '登録して進む' : 'この名前で進む'}</button></div>
-      {identity && !registering && <><button type="button" onClick={() => { setChoosing(false); onMemberClick(getMemberDisplayName(identity)) }}>名前・パートを編集</button><button type="button" onClick={() => { setIdentityKey(''); try { localStorage.removeItem(identityStorage) } catch { /* memory is optional */ } setChoosing(false) }}>自分の選択を解除</button></>}
+      {identity && !registering && <div className="board-identity-account-actions"><button type="button" onClick={() => { setChoosing(false); onMemberClick(getMemberDisplayName(identity)) }}>名前・パートを編集</button><button type="button" onClick={() => { setIdentityKey(''); try { localStorage.removeItem(identityStorage) } catch { /* memory is optional */ } setChoosing(false) }}>自分の選択を解除</button></div>}
     </form></BoardDialog>}
     {editor && members.some(m => m.userKey === editor.key) && <ResponseEditor key={editor.key + ':' + editor.scope} member={members.find(m => m.userKey === editor.key)!} events={sortedEvents.filter(e => editor.eventIds.includes(e.id))} responses={Object.values(responsesMap).flat().filter(r => r.userKey === editor.key)} onSave={onSave} onClose={() => setEditor(null)} />}
   </section>

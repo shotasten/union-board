@@ -79,7 +79,7 @@ export function MemberEditModal({ open, memberKey, members, events, responsesMap
           <legend>{eventDateLabel(event)} {event.title}</legend>
           <p className="board-note">{event.location || '場所未設定'}<br />{eventTimeLabel(event)}</p>
           <div className="board-choices">{RESPONSE_STATUSES.map(status => <button type="button" key={status} disabled={busy} className={responseClass(status)} aria-pressed={entry.status === status} onClick={() => setDraft(prev => ({ ...prev, [event.id]: { ...prev[event.id], status, hasResponse: true } }))}>{status}<small>{RESPONSE_LABELS[status]}</small></button>)}</div>
-          <label>コメント（任意）<textarea rows={1} disabled={busy} value={entry.comment} onChange={input => setDraft(prev => ({ ...prev, [event.id]: { ...prev[event.id], comment: input.target.value } }))} /></label>
+          <label><textarea aria-label="コメント（任意）" placeholder="コメント（任意）" rows={1} disabled={busy} value={entry.comment} onChange={input => setDraft(prev => ({ ...prev, [event.id]: { ...prev[event.id], comment: input.target.value } }))} /></label>
         </fieldset>
       })}
       {error && <p role="alert" className="board-registration-error">{error}</p>}

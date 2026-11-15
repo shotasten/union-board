@@ -207,3 +207,12 @@ body:has(.board-app) .calendar-hint { margin-top: 20px; padding: 12px; backgroun
 body:has(.board-app) .calendar-hint p { margin: 0; font-size: .85rem; line-height: 1.5; }
 body:has(.board-app) .calendar-modal-content .form-btn.secondary { background: #fff; border: 1px solid #cbd5e1; color: #475569; }
 body:has(.board-app) .calendar-modal-content .form-btn.secondary:hover { background: #f8fafc; }
+
+
+/* A softer header edge and a single identity control. */
+.board-app header { border-block-end: 1px solid #cbe7ea; box-shadow: 0 2px 6px rgba(45, 176, 188, .06); }
+.board-person-pill { display: inline-flex; gap: 12px; padding: 4px 6px 4px 16px; background: var(--board-tint); border: 1px solid var(--board-tint-border); border-radius: 9999px; max-width: 100%; }
+.board-experience .board-person-pill .board-identity-badge { background: transparent; border: 0; border-radius: 0; padding: 4px 0; min-inline-size: 0; box-shadow: none; font-size: .875rem; font-weight: 500; overflow-wrap: anywhere; }
+.board-experience .board-person-pill .board-text-action { background: #fff; border: 1px solid var(--board-tint-border); border-radius: 9999px; padding: 4px 12px; font-size: .75rem; font-weight: 500; }
+@media (hover: hover) { .board-experience .board-person-pill .board-text-action:not(:disabled):hover { background: #d5ecee; } }
+body:has(.board-app) .modal .admin-login-modal-content { width: calc(100% - 24px); max-width: 400px; margin-inline: auto; }

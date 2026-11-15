@@ -14,6 +14,14 @@ body:has(.board-app) .modal .modal-content{border:1px solid var(--board-line);bo
 
 .board-dialog:modal{overscroll-behavior:contain}.board-dialog::backdrop{overflow:hidden;overscroll-behavior:contain}
 
+/* Keep the optional browse action visibly actionable while secondary to identity setup. */
+.board-dialog .board-browse-only{display:block;width:100%;min-height:44px;margin-top:.5rem;padding:.625rem .75rem;border:1px solid #c8dce0;border-radius:8px;background:#fff;color:var(--board-accent);font-size:.8125rem;font-weight:550;text-align:center}
+.board-dialog .board-browse-only:hover{background:#f2fafb}
+.board-dialog .board-browse-only:active{background:#e5f5f6}
+.board-dialog .board-browse-only{border:1px solid #c8dce0!important;background:#fff!important;color:var(--board-accent)!important}
+.board-dialog .board-browse-only:hover{background:#f2fafb!important}
+.board-dialog .board-browse-only:active{background:#e5f5f6!important}
+
 .board-app .member-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-block:0 .75rem}
 
 .board-identity-form>label{display:flex;flex-direction:column;gap:.5rem;margin-block:1rem;font-size:.8125rem}.board-identity-form input:not([type=checkbox]){font:inherit;font-size:1rem;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;min-height:44px;width:100%}.board-identity-form>.board-checkbox{flex-direction:row}.board-register-link{color:var(--board-accent)!important;font-size:.8125rem!important}.board-identity-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-block:1rem}.board-registration-error{color:#a73b48;font-size:.8125rem;line-height:1.6}

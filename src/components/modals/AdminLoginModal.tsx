@@ -23,7 +23,7 @@ export function AdminLoginModal({ open, onClose, session, isAdmin, onLoginClick,
 
   return (
     <div className="modal" style={{ display: 'block' }} onClick={handleBackdropClick}>
-      <div className="modal-content admin-login-modal-content">
+      <div className="modal-content admin-login-modal-content" style={{ maxWidth: '400px', width: '92%' }}>
         <div className="modal-header">
           <h2>管理者ログイン</h2>
           <button className="close-btn" onClick={onClose}>&times;</button>

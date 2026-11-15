@@ -209,10 +209,19 @@ body:has(.board-app) .calendar-modal-content .form-btn.secondary { background: #
 body:has(.board-app) .calendar-modal-content .form-btn.secondary:hover { background: #f8fafc; }
 
 
-/* A softer header edge and a single identity control. */
-.board-app header { border-block-end: 1px solid #cbe7ea; box-shadow: 0 2px 6px rgba(45, 176, 188, .06); }
-.board-person-pill { display: inline-flex; gap: 12px; padding: 4px 6px 4px 16px; background: var(--board-tint); border: 1px solid var(--board-tint-border); border-radius: 9999px; max-width: 100%; }
-.board-experience .board-person-pill .board-identity-badge { background: transparent; border: 0; border-radius: 0; padding: 4px 0; min-inline-size: 0; box-shadow: none; font-size: .875rem; font-weight: 500; overflow-wrap: anywhere; }
-.board-experience .board-person-pill .board-text-action { background: #fff; border: 1px solid var(--board-tint-border); border-radius: 9999px; padding: 4px 12px; font-size: .75rem; font-weight: 500; }
-@media (hover: hover) { .board-experience .board-person-pill .board-text-action:not(:disabled):hover { background: #d5ecee; } }
-body:has(.board-app) .modal .admin-login-modal-content { width: calc(100% - 24px); max-width: 400px; margin-inline: auto; }
+/* Brand emphasis and member action spacing. */
+.board-app header { border-block-end: 1.5px solid var(--board-brand); box-shadow: 0 2px 6px rgba(45, 176, 188, .06); }
+.board-brand { color: var(--board-accent); }
+.board-page-heading h2 { border-inline-start: 4px solid var(--board-brand); padding-inline-start: 10px; }
+.board-view-tabs button[aria-selected=true] { color: var(--board-brand); }
+.board-app .admin-login-btn { display: inline-flex; align-items: center; justify-content: center; min-height: 32px; height: 32px; padding: 0 14px; line-height: 1; font-weight: 500; }
+.board-person-bar { display: flex; flex-direction: column; align-items: flex-start; gap: 16px; }
+.board-person-status { gap: 12px; max-width: 100%; }
+.board-experience .board-identity-badge { display: inline-flex; align-items: center; gap: 8px; background: var(--board-tint); border: 1px solid #2db0bc66; border-radius: 9999px; padding: 8px 16px; color: var(--board-ink); font-size: .875rem; font-weight: 700; overflow-wrap: anywhere; transition: background-color .15s; }
+.board-experience .board-text-action { background: transparent; border: 0; padding: 4px 8px; font-size: .75rem; }
+.board-attendance-action { margin-block-start: 0; }
+@media (hover: hover) {
+  .board-experience .board-identity-badge:not(:disabled):hover { background: #d4f0f2; box-shadow: none; }
+  .board-experience .board-text-action:not(:disabled):hover { background: transparent; text-decoration: underline; box-shadow: none; }
+}
+body:has(.board-app) .modal .admin-login-modal-content { width: 92%; max-width: 400px; margin-inline: auto; }

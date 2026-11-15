@@ -129,7 +129,8 @@ body:has(.board-app) .modal .form-btn {
 body:has(.board-app) .modal .form-btn.primary {
   background: var(--board-brand);
   border-color: var(--board-brand);
-  color: #102f36;
+  color: #092a30;
+  font-weight: 700;
 }
 .board-view-tabs button[aria-selected=true]::after,
 .board-tabs button[aria-selected=true]::after { border-color: var(--board-brand); }

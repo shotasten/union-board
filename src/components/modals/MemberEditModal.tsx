@@ -71,7 +71,6 @@ export function MemberEditModal({ open, memberKey, members, events, responsesMap
         <button type="button" disabled={busy} onClick={onEditMemberInfo}>名前・パートを編集</button>
         <button type="button" className="board-danger" disabled={busy} onClick={onDeleteMember}>メンバーを削除</button>
       </div>
-      <p className="board-note">表示 {sortedEvents.length}件。変更した回答・コメントだけを保存します。</p>
       {!sortedEvents.length && <p>入力対象の日程はありません。</p>}
       {sortedEvents.map(event => {
         const entry = draft[event.id]

@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useAppState } from './hooks/useAppState'
 import { Header } from './components/Header'
-import { MemberActions } from './components/MemberActions'
 import { AttendanceExperience } from './components/AttendanceExperience'
 import { LoadingSpinner } from './components/LoadingSpinner'
 import { Toast } from './components/Toast'
@@ -176,11 +175,10 @@ export function App() {
                 <div id="events-container" style={{ display: 'block' }}>
                   <div id="grid-view" style={{ display: 'block' }}>
                     {/* Main actions bar */}
-                    <div
+                    {isAdmin && <div
                       className="main-actions-bar"
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}
                     >
-                      <MemberActions onCalendar={handleAddToCalendarClick} onReload={reloadEvents} />
                       <div className="right-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                         {isAdmin && (
                           <>
@@ -208,9 +206,10 @@ export function App() {
                           </>
                         )}
                       </div>
-                    </div>
+                    </div>}
 
                     <AttendanceExperience
+                      onCalendar={handleAddToCalendarClick} onReload={reloadEvents}
                       events={events} members={members} responsesMap={responsesMap}
                       selectedMember={selectedMember} isAdmin={isAdmin}
                       localStatusOverrides={localStatusOverrides}

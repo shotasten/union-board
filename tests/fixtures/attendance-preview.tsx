@@ -2,7 +2,6 @@ import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { AttendanceExperience } from '../../src/components/AttendanceExperience'
 import { Header } from '../../src/components/Header'
-import { MemberActions } from '../../src/components/MemberActions'
 import { MemberInfoEditModal } from '../../src/components/modals/MemberInfoEditModal'
 import type { AttendanceEvent, AttendanceResponse, Member } from '../../src/types/models'
 import '../../src/index.css'
@@ -31,8 +30,8 @@ function Preview() {
     <div id="app-root" className="board-app">
       <Header isAdmin={admin} onAdminLoginClick={()=>setAdmin(true)} onAdminManageClick={()=>setMessage('管理者管理')} onSyncAllClick={()=>setMessage('同期確認')} onLogoutClick={()=>setAdmin(false)} />
       <main>
-        <MemberActions onCalendar={()=>setMessage('確認用画面ではカレンダーに接続しません')} onReload={()=>setMessage('確認用データを表示しています')} />
         <AttendanceExperience
+          onCalendar={()=>setMessage('確認用画面ではカレンダーに接続しません')} onReload={()=>setMessage('確認用データを表示しています')}
           onRegisterMember={async(part,name)=>{if(fail)return null;if(members.some(m=>m.part===part&&m.name===name))return null;const member={userKey:crypto.randomUUID(),part,name,displayName:part+name,createdAt:stamp,updatedAt:stamp};setMembers(prev=>[...prev,member]);setMessage('サンプルメンバーを登録しました（この画面内のみ）');return member}}
           events={events} members={members} responsesMap={responses} isAdmin={admin} selectedMember={null} localStatusOverrides={{}} storageScope="ux-test-fixture"
           onMemberClick={name=>setMessage(name+'のメンバー出欠表示')} onEditMemberInfo={editInfo}

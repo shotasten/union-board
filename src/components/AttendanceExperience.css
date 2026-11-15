@@ -233,3 +233,8 @@ body:has(.board-app) .modal .admin-login-modal-content { width: 92%; max-inline-
 .board-person-bar { flex-direction: row; align-items: center; gap: 8px 16px; margin-block: 0 .75rem; }
 .board-person-status { gap: 4px 8px; }
 .board-attendance-action { margin: 0; }
+
+/* Align schedule utilities with the schedule heading. */
+.board-page-heading { flex-wrap: wrap; gap: .5rem 1rem; }
+.board-page-heading .member-actions { margin-inline-start: auto; }
+.board-page-heading h2 { flex-shrink: 0; }

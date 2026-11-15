@@ -4,10 +4,12 @@ import { sortMembersByPart, getMemberDisplayName, cleanDescription, PART_OPTIONS
 import { changedResponses, eventDateLabel, eventTimeLabel, memberResponse, RESPONSE_LABELS, RESPONSE_STATUSES, responseClass, tallyAttendance } from '../lib/attendance'
 import { BoardDialog } from './BoardDialog'
 import { AttendanceGrid } from './AttendanceGrid'
+import { MemberActions } from './MemberActions'
 import './AttendanceExperience.css'
 
 type Scope = 'all' | 'pending' | string
 interface Props {
+  onCalendar: () => void; onReload: () => void
   events: AttendanceEvent[]; members: Member[]; responsesMap: Record<string, AttendanceResponse[]>; isAdmin: boolean
   selectedMember: string | null; localStatusOverrides: Record<string, Record<string, ResponseStatus>>
   storageScope: string; onRegisterMember: (part: string, name: string) => Promise<Member | null>; onMemberClick: (name: string) => void; onEditMemberInfo: (name: string) => void
@@ -118,7 +120,7 @@ export function AttendanceExperience(props: Props) {
     </div>
     {!identity && <p id="board-identity-hint" className="board-identity-hint">まずは自分の名前を選ぶと、出欠をすぐに入力できます。閲覧だけなら選択不要です。</p>}
     {!eventId ? <>
-      <div className="board-page-heading"><h2>予定一覧</h2><span>{events.length}件</span></div>
+      <div className="board-page-heading"><h2>予定一覧</h2><MemberActions onCalendar={props.onCalendar} onReload={props.onReload} /></div>
       <div className="board-view-tabs" role="tablist" aria-label="予定の表示方法" onKeyDown={key => {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(key.key)) return
         key.preventDefault()

@@ -31,34 +31,18 @@ const FRONTEND_TO_DB: Record<string, string> = {
 
 // --- Display period filter (matches GAS getEvents() logic) ---
 
+export function getDisplayPeriod(config: Config, now = new Date()): { start: Date | null; end: Date | null } {
+  const start = config.SHOW_ALL_EVENTS === 'true'
+    ? (config.DISPLAY_START_DATE ? new Date(config.DISPLAY_START_DATE) : null)
+    : now;
+  const end = config.DISPLAY_END_DATE ? new Date(config.DISPLAY_END_DATE) : null;
+  if (end) end.setHours(23, 59, 59, 999);
+  return { start, end };
+}
+
 export function filterByDisplayPeriod(events: AttendanceEvent[], config: Config, now = new Date()): AttendanceEvent[] {
-  let startDate: Date | null = null;
-  let endDate: Date | null = null;
-  const c = config as unknown as Record<string, string>;
-
-  const showAll = c['SHOW_ALL_EVENTS'] === 'true';
-  if (!showAll) {
-    startDate = now;
-  } else {
-    const s = c['DISPLAY_START_DATE'];
-    if (s) startDate = new Date(s);
-  }
-
-  const e = c['DISPLAY_END_DATE'];
-  if (e) {
-    endDate = new Date(e);
-    endDate.setHours(23, 59, 59, 999);
-  }
-
-  if (!startDate && !endDate) return events;
-
-  return events.filter((ev) => {
-    const evStart = new Date(ev.start);
-    const evEnd = new Date(ev.end);
-    if (startDate && evEnd < startDate) return false;
-    if (endDate && evStart > endDate) return false;
-    return true;
-  });
+  const { start, end } = getDisplayPeriod(config, now);
+  return events.filter(ev => (!start || new Date(ev.end) >= start) && (!end || new Date(ev.start) <= end));
 }
 
 // --- Converters ---
@@ -115,22 +99,52 @@ export function toResponsesMap(rows: DbResponse[]): Record<string, AttendanceRes
 // silently dropped and the newest events appear to lose their responses.
 const RESPONSES_PAGE_SIZE = 1000;
 
-export async function fetchAllResponses(): Promise<{ data: DbResponse[]; error: { message: string } | null }> {
+export async function fetchAllResponses(eventIds?: string[]): Promise<{ data: DbResponse[]; error: { message: string } | null }> {
   const rows: DbResponse[] = [];
-  let from = 0;
-  for (;;) {
-    const { data, error } = await supabasePublic
-      .from('responses')
-      .select('*')
-      .eq('space_id', SPACE_ID)
-      .order('id', { ascending: true })
-      .range(from, from + RESPONSES_PAGE_SIZE - 1);
-    if (error) return { data: rows, error };
-    const page = (data as DbResponse[] | null) ?? [];
-    rows.push(...page);
-    if (page.length < RESPONSES_PAGE_SIZE) return { data: rows, error: null };
-    from += RESPONSES_PAGE_SIZE;
+  // Keep URLs bounded even for large schedules. An empty list requires no request.
+  const batches = eventIds ? Array.from({ length: Math.ceil(eventIds.length / 100) }, (_, i) => eventIds.slice(i * 100, i * 100 + 100)) : [undefined];
+  for (const batch of batches) {
+    let from = 0;
+    for (;;) {
+      let query = supabasePublic.from('responses').select('*').eq('space_id', SPACE_ID);
+      if (batch) query = query.in('event_id', batch);
+      const { data, error } = await query.order('id', { ascending: true }).range(from, from + RESPONSES_PAGE_SIZE - 1);
+      if (error) return { data: rows, error };
+      const page = (data as DbResponse[] | null) ?? [];
+      rows.push(...page);
+      if (page.length < RESPONSES_PAGE_SIZE) break;
+      from += RESPONSES_PAGE_SIZE;
+    }
   }
+  return { data: rows, error: null };
+}
+
+async function fetchDisplayData(config: Config) {
+  const { start, end } = getDisplayPeriod(config);
+  const rows: DbEvent[] = [];
+  for (let from = 0;; from += 1000) {
+    let query = supabasePublic.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted');
+    if (start) query = query.gte('end_at', start.toISOString());
+    if (end) query = query.lte('start_at', end.toISOString());
+    const { data, error } = await query.order('start_at', { ascending: true }).order('id', { ascending: true }).range(from, from + 999);
+    if (error) throw new Error(error.message);
+    const page = (data as DbEvent[] | null) ?? [];
+    rows.push(...page);
+    if (page.length < 1000) break;
+  }
+  const responses = await fetchAllResponses(rows.map(row => row.id));
+  if (responses.error) throw new Error(responses.error.message);
+  return { events: rows.map(toEvent), responsesMap: toResponsesMap(responses.data) };
+}
+
+async function fetchConfig(): Promise<Config> {
+  const { data, error } = await supabasePublic.from('config').select('key,value').eq('space_id', SPACE_ID);
+  if (error) throw new Error(error.message);
+  const config: Config = { AUTH_MODE: 'anonymous' };
+  (data as DbConfig[] | null)?.forEach(({ key, value }) => {
+    (config as unknown as Record<string, string>)[key] = value;
+  });
+  return config;
 }
 
 export function validateMemberInput(userKey: string, part: string, name: string, displayName: string): string | null {
@@ -151,29 +165,13 @@ export const api = {
     events: AttendanceEvent[];
     responsesMap: Record<string, AttendanceResponse[]>;
   }> {
-    const [configResult, membersResult, eventsResult, responsesResult] = await Promise.all([
-      supabasePublic.from('config').select('key,value').eq('space_id', SPACE_ID),
+    const [config, membersResult] = await Promise.all([
+      fetchConfig(),
       supabasePublic.from('members').select('*').eq('space_id', SPACE_ID),
-      supabasePublic.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: true }),
-      fetchAllResponses(),
     ]);
-
-    const config: Config = { AUTH_MODE: 'anonymous' };
-    (configResult.data as DbConfig[] | null)?.forEach(({ key, value }) => {
-      (config as unknown as Record<string, string>)[key] = value;
-    });
-
-    const events = filterByDisplayPeriod(
-      (eventsResult.data as DbEvent[] | null)?.map(toEvent) ?? [],
-      config,
-    );
-
-    return {
-      config,
-      members: (membersResult.data as DbMember[] | null)?.map(toMember) ?? [],
-      events,
-      responsesMap: toResponsesMap((responsesResult.data as DbResponse[] | null) ?? []),
-    };
+    if (membersResult.error) throw new Error(membersResult.error.message);
+    const display = await fetchDisplayData(config);
+    return { config, members: (membersResult.data as DbMember[] | null)?.map(toMember) ?? [], ...display };
   },
 
   async getAllEventsWithResponses(): Promise<{
@@ -182,25 +180,23 @@ export const api = {
     responsesMap: Record<string, AttendanceResponse[]>;
     error?: string;
   }> {
-    const [configResult, eventsResult, responsesResult] = await Promise.all([
-      supabasePublic.from('config').select('key,value').eq('space_id', SPACE_ID),
-      supabasePublic.from('events').select('*').eq('space_id', SPACE_ID).neq('status', 'deleted').order('start_at', { ascending: true }),
-      fetchAllResponses(),
-    ]);
-    if (eventsResult.error) return { success: false, events: [], responsesMap: {}, error: eventsResult.error.message };
-    if (responsesResult.error) return { success: false, events: [], responsesMap: {}, error: responsesResult.error.message };
+    try {
+      return { success: true, ...await fetchDisplayData(await fetchConfig()) };
+    } catch (error) {
+      return { success: false, events: [], responsesMap: {}, error: error instanceof Error ? error.message : '取得に失敗しました' };
+    }
+  },
 
-    const config: Config = { AUTH_MODE: 'anonymous' };
-    (configResult.data as DbConfig[] | null)?.forEach(({ key, value }) => {
-      (config as unknown as Record<string, string>)[key] = value;
-    });
-
-    const events = filterByDisplayPeriod((eventsResult.data as DbEvent[]).map(toEvent), config);
-    return {
-      success: true,
-      events,
-      responsesMap: toResponsesMap((responsesResult.data as DbResponse[]) ?? []),
-    };
+  async getMemberResponseEventIds(userKey: string): Promise<string[]> {
+    const ids: string[] = [];
+    for (let from = 0;; from += 1000) {
+      const { data, error } = await supabasePublic.from('responses').select('event_id').eq('space_id', SPACE_ID)
+        .eq('user_key', userKey).order('id', { ascending: true }).range(from, from + 999);
+      if (error) throw new Error(error.message);
+      const page = (data as Array<{ event_id: string }> | null) ?? [];
+      ids.push(...page.map(row => row.event_id));
+      if (page.length < 1000) return ids;
+    }
   },
 
   async getMembers(): Promise<Member[]> {

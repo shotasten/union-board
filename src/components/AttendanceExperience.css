@@ -336,3 +336,11 @@ body:has(.board-app), .board-app main, .board-app footer { background: var(--boa
 .board-app .icon-action-btn i { color: #fff; }
 .board-app .icon-action-btn:hover { background: #06434a; border-color: #06434a; }
 .board-experience .board-back { color: #08727b; text-decoration: underline; text-underline-offset: .2em; }
+
+.board-app :is(.main-actions-bar button, .member-actions button, .admin-login-btn),
+.board-experience button,
+.board-experience .board-person-bar button,
+.board-experience .board-person-bar :is(.board-identity-badge, .board-attendance-action),
+.board-experience :is(.board-view-tabs button, .board-tabs button),
+.board-dialog button,
+body:has(.board-app) .modal button { font-weight: 700; }

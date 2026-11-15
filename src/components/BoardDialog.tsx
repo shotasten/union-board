@@ -11,6 +11,26 @@ export function BoardDialog({ title, onClose, children, busy = false, closeLabel
     return () => dialog.close()
   }, [])
   useEffect(() => { ref.current?.setAttribute('closedby', busy ? 'none' : 'any') }, [busy])
+  useEffect(() => {
+    const dialog = ref.current!
+    const revealComment = () => {
+      const active = document.activeElement
+      if (!(active instanceof HTMLTextAreaElement) || !active.closest('.board-comment-input')) return
+      if (!window.matchMedia('(pointer: coarse)').matches) return
+      requestAnimationFrame(() => {
+        if (document.activeElement !== active) return
+        const body = active.closest<HTMLElement>('.board-dialog-body')
+        if (!body) return
+        body.scrollTop += active.getBoundingClientRect().top - body.getBoundingClientRect().top
+      })
+    }
+    dialog.addEventListener('focusin', revealComment)
+    window.visualViewport?.addEventListener('resize', revealComment)
+    return () => {
+      dialog.removeEventListener('focusin', revealComment)
+      window.visualViewport?.removeEventListener('resize', revealComment)
+    }
+  }, [])
   const outsideStart = useRef(false)
   const outside = (event: PointerEvent | MouseEvent) => {
     const rect = ref.current!.getBoundingClientRect()

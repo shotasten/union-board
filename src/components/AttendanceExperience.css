@@ -396,7 +396,8 @@ body:has(.board-app) .modal button { font-weight: 700; }
 .modal :is(input:not([type="checkbox"]), textarea, select) { font-size: max(16px, 1em); }
 
 /* Keep comment text readable when Safari page zoom is set to 75%. */
-.board-dialog .board-editor-event textarea { font-size: max(22px, 1em); }
+.board-dialog .board-editor-event textarea { font-size: max(16px, 1em); }
+.board-dialog .board-editor-event [data-iphone-safari] textarea { font-size: max(22px, 1em); }
 
 /* Show more of the schedule on a phone while keeping controls easy to tap. */
 @media (max-width: 600px) {
@@ -418,4 +419,19 @@ body:has(.board-app) .modal button { font-weight: 700; }
   .board-summary h2 { font-size: 1.125rem; }
   .board-summary p, .board-summary > strong { margin-block: .375rem; }
   .board-counts { margin-top: .625rem; }
+}
+
+/* Make modal chrome and informational copy more compact on phones. */
+@media (max-width: 600px) {
+  .board-dialog-heading { padding: .5rem .75rem; }
+  .board-dialog-heading h2 { font-size: .9375rem; }
+  .board-dialog-body { padding: .75rem; }
+  .board-dialog-footer { padding: .5rem .75rem; }
+  body:has(.board-app) .modal .modal-content { padding: .75rem; }
+  body:has(.board-app) .modal .modal-header { margin-bottom: .75rem; padding-bottom: .5rem; }
+  body:has(.board-app) .modal .modal-header h2 { font-size: 1rem; }
+  body:has(.board-app) .calendar-info { padding: .75rem; margin-bottom: .75rem; font-size: .8125rem; }
+  body:has(.board-app) .calendar-info ul { line-height: 1.5; }
+  body:has(.board-app) .calendar-hint { margin-top: .75rem; padding: .75rem; }
+  body:has(.board-app) .calendar-add-link { padding: .625rem 1rem; font-size: .875rem; }
 }

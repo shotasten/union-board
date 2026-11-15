@@ -178,7 +178,7 @@ export function App() {
                     {/* Main actions bar */}
                     <div
                       className="main-actions-bar"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}
                     >
                       <MemberActions onCalendar={handleAddToCalendarClick} onReload={reloadEvents} />
                       <div className="right-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>

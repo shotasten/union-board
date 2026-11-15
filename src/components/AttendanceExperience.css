@@ -26,12 +26,16 @@ body:has(.board-app) .modal .calendar-modal-content{width:min(520px,calc(100vw -
 /* Whole-board view: reuse the app palette and keep the event column heading
    aligned with its sticky body column while the member columns move sideways. */
 .board-experience .attendance-grid-scrollbar-top{height:16px;margin-bottom:4px;scrollbar-color:var(--board-brand) #e8eef0}
+.attendance-grid-scroll-hint { position: absolute; z-index: 41; top: 120px; left: 50%; display: flex; flex-direction: column; align-items: center; gap: .25rem; padding: .75rem 1rem; border-radius: 10px; background: rgba(15,23,42,.88); color: #fff; font-size: .75rem; font-weight: 700; white-space: nowrap; pointer-events: none; opacity: 0; visibility: hidden; transform: translateX(-50%); transition: opacity .2s, visibility .2s; }
+.attendance-grid-wrapper.is-scrollable:not(.scroll-hint-dismissed) .attendance-grid-scroll-hint { opacity: 1; visibility: visible; }
+.attendance-grid-scroll-hint svg { width: 40px; height: 40px; }
+@media (prefers-reduced-motion: reduce) { .attendance-grid-scroll-hint { transition: none; } }
 .board-experience .attendance-grid-scrollbar-top>div{height:2px}
 .board-experience .attendance-grid-container{border:1px solid var(--board-line);border-top:0;border-radius:0 0 var(--board-radius) var(--board-radius);box-shadow:none;scrollbar-color:var(--board-brand) #e8eef0;overscroll-behavior-x:contain}
 .board-experience .attendance-grid-sticky-header{position:sticky;isolation:isolate;border-color:var(--board-line);border-radius:var(--board-radius) var(--board-radius) 0 0;box-shadow:0 2px 4px #23354d12}
 .board-experience .attendance-grid th{background:#f2f6f7;color:var(--board-ink);border-bottom:1px solid var(--board-line)}
 .board-experience .attendance-grid th:first-child,.board-experience .attendance-grid-event-heading{background:#eaf6f7;color:var(--board-ink);border-right:1px solid #cde2e4}
-.board-experience .attendance-grid-event-heading{position:absolute;inset:0 auto 0 0;z-index:20;width:200px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--board-line);font-size:.875rem;font-weight:650;pointer-events:none}
+.board-experience .attendance-grid-event-heading{position:absolute;inset:0 auto 0 0;z-index:20;width:var(--board-event-column-width);display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--board-line);font-size:.875rem;font-weight:650;pointer-events:none}
 .board-experience .attendance-grid thead tr:first-child th:not(:first-child){background:#eef4f6}
 .board-experience .attendance-grid thead tr:nth-child(2) th{background:#f9fbfc}
 .board-experience .attendance-grid tbody tr:nth-child(even) td:first-child{background:#f4f8f9}
@@ -40,7 +44,7 @@ body:has(.board-app) .modal .calendar-modal-content{width:min(520px,calc(100vw -
 .board-experience .event-name-clickable{color:var(--board-ink);border-radius:6px}
 .board-experience .event-name-clickable::after{color:var(--board-accent)}
 .board-experience .member-name-col a{color:var(--board-accent)!important}
-.board-experience .attendance-grid-wrapper.scrollable-left::before{left:200px;width:18px;background:linear-gradient(to right,#f4f8f9,transparent)}
+.board-experience .attendance-grid-wrapper.scrollable-left::before{left:var(--board-event-column-width);width:18px;background:linear-gradient(to right,#f4f8f9,transparent)}
 .board-experience .attendance-grid-wrapper.scrollable-left::before{z-index:4}
 
 .board-app .member-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-block:0 .75rem}
@@ -136,11 +140,12 @@ body:has(.board-app) .modal .form-btn.primary {
 .board-tabs button[aria-selected=true]::after { border-color: var(--board-brand); }
 .board-experience .yes, .board-dialog .yes { background: #d9f5e3; color: #176534; }
 .board-experience .late, .board-dialog .late { background: #fff0c2; color: #765000; }
-.board-experience .no, .board-dialog .no { background: #ffe1e3; color: #9b2e3c; }
+.board-experience .no, .board-dialog .no { background: var(--board-danger-bg); color: var(--board-danger-text); }
 .board-experience .unknown, .board-dialog .unknown { background: #e8f1f4; color: #425d69; }
 .board-experience .attendance-grid .status-attend { background: #d9f5e3; color: #176534; }
 .board-experience .attendance-grid .status-maybe { background: #fff0c2; color: #765000; }
-.board-experience .attendance-grid .status-absent { background: #ffe1e3; color: #9b2e3c; }
+.board-experience .attendance-grid .status-absent { background: var(--board-danger-bg); color: var(--board-danger-text); }
+.board-experience .attendance-grid :is(.status-none, .status-unregistered) { background: #e8f1f4; color: #425d69; }
 
 /* One highlighted action introduces the warm accent. */
 .board-experience .board-highlight { background: #ff6b57; border-color: #ff6b57; color: #fff; }
@@ -265,6 +270,8 @@ body:has(.board-app) .modal .admin-login-modal-content { width: 92%; max-inline-
   --board-tint-border: #e2e8f0;
   --board-subtle: #f8fafc;
   --board-subtle-border: #e2e8f0;
+  --board-danger-bg: #ffe1e3;
+  --board-danger-text: #9b2e3c;
 }
 body:has(.board-app), .board-app main, .board-app footer { background: var(--board-canvas); }
 .board-app header { background: #2db0bc; border: 0; box-shadow: none; }
@@ -283,3 +290,98 @@ body:has(.board-app), .board-app main, .board-app footer { background: var(--boa
 @media (hover: hover) {
   .board-experience .board-person-bar .board-identity-badge:not(:disabled):hover { background: #fff; border-color: var(--board-brand); }
 }
+
+/* Keep the schedule actions consistent and make header controls legible. */
+.board-app .main-actions-bar :is(.primary-btn, .secondary-btn, .danger-btn),
+.board-app .member-actions .secondary-btn,
+.board-experience .board-person-bar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 116px;
+  min-width: 116px;
+  min-height: 40px;
+  min-block-size: 40px;
+  padding: .5rem .5rem;
+  font-size: .75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+.board-experience .board-person-bar :is(.board-identity-badge, .board-attendance-action) {
+  padding: .5rem .5rem;
+  font-size: .75rem;
+  font-weight: 500;
+}
+.board-experience .board-person-bar .board-identity-badge { width: auto; min-width: 0; }
+.board-app .main-actions-bar .secondary-btn {
+  background: #fff;
+  border-color: #cbd5e1;
+  color: #475569;
+}
+@media (hover: hover) {
+  .board-app .main-actions-bar .secondary-btn:not(:disabled):hover {
+    background: #f8fafc;
+    border-color: #94a3b8;
+  }
+}
+.board-app .main-actions-bar .danger-btn,
+.board-experience .board-danger,
+.board-dialog .board-danger,
+body:has(.board-app) :is(.modal .form-btn.danger, .modal .admin-btn.delete, .modal .member-delete-btn, .confirm-dialog .confirm-btn.danger) {
+  background: var(--board-danger-bg);
+  border: 1px solid #e89ba4;
+  color: var(--board-danger-text);
+}
+@media (hover: hover) {
+  .board-app .main-actions-bar .danger-btn:not(:disabled):hover,
+  .board-experience .board-danger:not(:disabled):hover,
+  .board-dialog .board-danger:not(:disabled):hover,
+  body:has(.board-app) :is(.modal .form-btn.danger, .modal .admin-btn.delete, .modal .member-delete-btn, .confirm-dialog .confirm-btn.danger):not(:disabled):hover {
+    background: #ffced2;
+    border-color: #c75d6a;
+    color: var(--board-danger-text);
+    transform: none;
+  }
+}
+.board-app .icon-action-btn { background: #075e67; border-color: #075e67; border-radius: 8px; }
+.board-app .icon-action-btn i { color: #fff; }
+.board-app .icon-action-btn:hover { background: #06434a; border-color: #06434a; }
+.board-experience .board-back { color: #08727b; font-weight: 700; text-decoration: none; border-radius: 8px; padding-inline: .5rem; margin-inline-start: -.5rem; }
+@media (hover: hover) {
+  .board-experience .board-back:hover { background: #e5f5f6; color: #075e67; }
+}
+
+.board-app :is(.main-actions-bar button, .member-actions button, .admin-login-btn),
+.board-experience button,
+.board-experience .board-person-bar button,
+.board-experience .board-person-bar :is(.board-identity-badge, .board-attendance-action),
+.board-experience :is(.board-view-tabs button, .board-tabs button),
+.board-dialog button,
+body:has(.board-app) .modal button { font-weight: 700; }
+
+.board-member-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1rem; }
+.board-member-actions button { font-size: .75rem; }
+.board-experience .event-name-clickable { text-decoration: none; }
+
+/* Keep the event column readable without hiding most of the table on phones. */
+.board-experience { --board-event-column-width: clamp(108px, 33vw, 200px); }
+.board-experience .attendance-grid :is(.attendance-grid-event-header, tbody td:first-child) {
+  width: var(--board-event-column-width);
+  min-width: var(--board-event-column-width);
+  max-width: var(--board-event-column-width);
+}
+@media (max-width: 600px) {
+  .board-experience .event-name-clickable { padding-inline-end: 20px; }
+  .board-experience .event-name-clickable::after { right: 4px; }
+}
+
+/* Keep each event compact while retaining comfortable touch targets. */
+.board-editor-event { padding: 0 0 .75rem; }
+.board-editor-event + .board-editor-event { margin-block-start: .75rem; }
+.board-editor-event > .board-note { margin: .25rem 0 .5rem; line-height: 1.5; }
+.board-dialog .board-choices button { min-block-size: 44px; padding: 4px; font-size: 1rem; line-height: 1.2; }
+.board-choices small { margin-top: 2px; }
+.board-editor-event > label { gap: .25rem; margin-block: .5rem 0; }
+.board-dialog .board-editor-event textarea { min-block-size: 44px; padding: .5rem .75rem; resize: vertical; }

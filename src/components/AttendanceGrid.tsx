@@ -102,7 +102,9 @@ export function AttendanceGrid({
     if (!container || !wrapper) return
 
     const isScrollable = container.scrollWidth > container.clientWidth
+    wrapper.classList.toggle('is-scrollable', isScrollable)
     const scrollLeft = container.scrollLeft
+    if (scrollLeft > 1) wrapper.classList.add('scroll-hint-dismissed')
     const scrollRight = container.scrollWidth - container.scrollLeft - container.clientWidth
     const table = container.querySelector('table')
 
@@ -194,6 +196,10 @@ export function AttendanceGrid({
 
   return (
     <div className="table-responsive attendance-grid-wrapper" ref={wrapperRef}>
+      <div className="attendance-grid-scroll-hint">
+        <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M8 13h32M8 13l5-5m-5 5 5 5m27-5-5-5m5 5-5 5M20 24V15a3 3 0 0 1 6 0v11l1-1a3 3 0 0 1 4 1l1 2a3 3 0 0 1 4 2l1 5-3 5H22l-7-8a3 3 0 0 1 4-4l1 1Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+        <span>スクロールできます</span>
+      </div>
 <div id="attendance-grid-scrollbar-top" className="attendance-grid-scrollbar-top" ref={topScrollbarRef}>
         <div></div>
       </div>
@@ -204,7 +210,7 @@ export function AttendanceGrid({
           style={{ writingMode: 'horizontal-tb', textOrientation: 'mixed' } as React.CSSProperties}
         >
           <colgroup>
-            <col style={{ width: '200px' }} />
+            <col style={{ width: 'var(--board-event-column-width)' }} />
             {[0, 1, 2].map(i => (
               <col key={i} style={{ width: '30px' }} />
             ))}
@@ -239,7 +245,7 @@ export function AttendanceGrid({
                     fontWeight: 'bold',
                     padding: '4px 6px',
                     lineHeight: '1.2',
-                    backgroundColor: '#eef4f6',
+                    backgroundColor: '#f8fafc',
                     color: 'var(--board-ink)',
                     borderLeft: partIndex === 0 ? '1px solid var(--board-line)' : undefined,
                     borderRight: partIndex < partKeys.length - 1 ? '1px solid var(--board-line)' : undefined,
@@ -336,7 +342,7 @@ export function AttendanceGrid({
           style={{ writingMode: 'horizontal-tb', textOrientation: 'mixed' } as React.CSSProperties}
         >
           <colgroup>
-            <col style={{ width: '200px' }} />
+            <col style={{ width: 'var(--board-event-column-width)' }} />
             {[0, 1, 2].map(i => (
               <col key={i} style={{ width: '30px' }} />
             ))}
@@ -386,10 +392,11 @@ export function AttendanceGrid({
                 <tr key={event.id}>
                   {/* Event info cell */}
                   <td style={{ verticalAlign: 'top', padding: '6px 8px' }}>
-                    <div
+                    <a
                       className="event-name-clickable"
+                      href={'#event/' + encodeURIComponent(event.id)}
                       style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}
-                      onClick={e => { e.stopPropagation(); onEventClick(event.id) }}
+                      onClick={e => { if (!e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) { e.preventDefault(); e.stopPropagation(); onEventClick(event.id) } }}
                     >
                       <div
                         style={{
@@ -422,7 +429,7 @@ export function AttendanceGrid({
                       <div style={{ fontSize: '0.8rem', color: 'var(--board-muted)', lineHeight: '1.2' }}>
                         {dateStrShort} {timeDisplay}
                       </div>
-                    </div>
+                    </a>
                   </td>
 
                   {/* Status count cells (○△×) */}
@@ -450,13 +457,13 @@ export function AttendanceGrid({
                               fontSize: '1.1rem',
                               fontWeight: 'bold',
                               lineHeight: '1.2',
-                              color: status === '○' ? '#4caf50' : status === '△' ? '#ff9800' : '#f44336',
+                              color: status === '○' ? '#176534' : status === '△' ? '#765000' : 'var(--board-danger-text)',
                             }}
                           >
                             {count}
                           </div>
                         ) : (
-                          <div style={{ fontSize: '0.9rem', color: '#ccc', lineHeight: '1.2' }}>-</div>
+                          <div style={{ fontSize: '0.9rem', color: 'var(--board-muted)', lineHeight: '1.2' }}>-</div>
                         )}
                       </td>
                     )
@@ -485,9 +492,8 @@ export function AttendanceGrid({
                     }
 
                     if (isSelected) {
-                      cellStyle.backgroundColor = '#e8f5e9'
-                      cellStyle.borderLeft = '3px solid #667eea'
-                      cellStyle.borderRight = '3px solid #667eea'
+                      cellStyle.borderLeft = '3px solid var(--board-brand)'
+                      cellStyle.borderRight = '3px solid var(--board-brand)'
                     } else {
                       if (memberIndex === 0) cellStyle.borderLeft = '1px solid #DDDDDD'
                       if (isLastInPart && !isLastPart) cellStyle.borderRight = '1px solid #DDDDDD'

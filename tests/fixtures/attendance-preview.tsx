@@ -2,8 +2,12 @@ import { StrictMode, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { AttendanceExperience } from '../../src/components/AttendanceExperience'
 import { Header } from '../../src/components/Header'
+import { AdminActions } from '../../src/components/AdminActions'
 import { MemberInfoEditModal } from '../../src/components/modals/MemberInfoEditModal'
-import type { AttendanceEvent, AttendanceResponse, Member } from '../../src/types/models'
+import { MemberEditModal } from '../../src/components/modals/MemberEditModal'
+import { MemberDeleteConfirmModal } from '../../src/components/modals/MemberDeleteConfirmModal'
+import { getMemberDisplayName } from '../../src/lib/utils'
+import type { AttendanceEvent, AttendanceResponse, Member, ResponseStatus } from '../../src/types/models'
 import '../../src/index.css'
 import '../../src/components/AttendanceExperience.css'
 const stamp = '2026-11-15T00:00:00+09:00'
@@ -19,6 +23,13 @@ function Preview() {
   const [fail, setFail] = useState(false)
   const [message, setMessage] = useState('')
   const [infoKey, setInfoKey] = useState<string | null>(null)
+  const [memberKey, setMemberKey] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const saveResponses = async (key: string, _name: string, updates: Array<{ eventId: string; status: ResponseStatus; comment: string }>) => {
+    if (fail) return false
+    setResponses(prev => { const next = { ...prev }; for (const update of updates) next[update.eventId] = [...(next[update.eventId] || []).filter(r => r.userKey !== key), { ...update, userKey: key, createdAt: stamp, updatedAt: stamp }]; return next })
+    return true
+  }
   const editInfo = (displayName: string) => {
     const member = members.find(m => m.displayName === displayName || m.part + m.name === displayName)
     if (member) setInfoKey(member.userKey)
@@ -30,21 +41,24 @@ function Preview() {
     <div id="app-root" className="board-app">
       <Header isAdmin={admin} onAdminLoginClick={()=>setAdmin(true)} onAdminManageClick={()=>setMessage('管理者管理')} onSyncAllClick={()=>setMessage('同期確認')} onLogoutClick={()=>setAdmin(false)} />
       <main>
+        {admin && <AdminActions onDisplayPeriod={()=>setMessage('表示期間を設定')} onCleanup={()=>setMessage('新年度リセット')} onCreateEvent={()=>setMessage('イベント登録')} />}
         <AttendanceExperience
           onCalendar={()=>setMessage('確認用画面ではカレンダーに接続しません')} onReload={()=>setMessage('確認用データを表示しています')}
           onRegisterMember={async(part,name)=>{if(fail)return null;if(members.some(m=>m.part===part&&m.name===name))return null;const member={userKey:crypto.randomUUID(),part,name,displayName:part+name,createdAt:stamp,updatedAt:stamp};setMembers(prev=>[...prev,member]);setMessage('サンプルメンバーを登録しました（この画面内のみ）');return member}}
-          events={events} members={members} responsesMap={responses} isAdmin={admin} selectedMember={null} localStatusOverrides={{}} storageScope="ux-test-fixture"
-          onMemberClick={name=>setMessage(name+'のメンバー出欠表示')} onEditMemberInfo={editInfo}
+          events={events} members={members} responsesMap={responses} isAdmin={admin} selectedMember={members.find(m => m.userKey === memberKey) ? getMemberDisplayName(members.find(m => m.userKey === memberKey)!) : null} localStatusOverrides={{}} storageScope="ux-test-fixture"
+          onMemberClick={name=>setMemberKey(members.find(m=>getMemberDisplayName(m)===name)?.userKey || null)} onEditMemberInfo={editInfo}
           onEditEvent={()=>setMessage('イベント編集')} onDeleteEvent={()=>setMessage('イベント削除の確認')}
-          onSave={async(key,_name,updates)=>{if(fail)return false;setResponses(prev=>{const next={...prev};for(const update of updates)next[update.eventId]=[...(next[update.eventId]||[]).filter(r=>r.userKey!==key),{...update,userKey:key,createdAt:stamp,updatedAt:stamp}];return next}) ;return true}}
+          onSave={saveResponses}
         />
       </main>
     </div>
+    <MemberEditModal open={Boolean(memberKey)} memberKey={memberKey} members={members} events={events} responsesMap={responses} onClose={()=>setMemberKey(null)} onSave={saveResponses} onEditMemberInfo={()=>setInfoKey(memberKey)} onDeleteMember={()=>setDeleting(true)} />
     <MemberInfoEditModal
       open={Boolean(infoKey)} member={members.find(m => m.userKey === infoKey) || null}
       onClose={() => setInfoKey(null)}
       onSave={async(key,part,name)=>{if(fail)return false;setMembers(prev=>prev.map(m=>m.userKey===key?{...m,part,name,displayName:part+name,updatedAt:stamp}:m));setMessage('サンプルメンバー情報を更新しました（この画面内のみ）');return true}}
     />
+    <MemberDeleteConfirmModal open={deleting} memberKey={memberKey} memberName={getMemberDisplayName(members.find(m=>m.userKey===memberKey) || { part:'', name:'' } as Member)} onClose={()=>setDeleting(false)} onConfirm={async key=>{if(fail)return false;setMembers(prev=>prev.filter(m=>m.userKey!==key));setResponses(prev=>Object.fromEntries(Object.entries(prev).map(([id,rows])=>[id,rows.filter(r=>r.userKey!==key)])));setMemberKey(null);setMessage('サンプルメンバーを削除しました（この画面内のみ）');return true}} />
   </>
 }
 createRoot(document.getElementById('root')!).render(<StrictMode><Preview /></StrictMode>)

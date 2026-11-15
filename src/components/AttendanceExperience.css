@@ -394,3 +394,6 @@ body:has(.board-app) .modal button { font-weight: 700; }
 /* Keep editable text at least 16px to avoid iOS focus zoom. */
 .board-dialog :is(input:not([type="checkbox"]), textarea, select),
 .modal :is(input:not([type="checkbox"]), textarea, select) { font-size: max(16px, 1em); }
+
+/* Keep comment text readable when Safari page zoom is set to 75%. */
+.board-dialog .board-editor-event textarea { font-size: max(22px, 1em); }

@@ -15,7 +15,7 @@ export function Header({ isAdmin, onAdminLoginClick, onAdminManageClick, onSyncA
         <div className="header-actions">
           {!isAdmin && (
             <button className="admin-login-btn" onClick={onAdminLoginClick} id="admin-login-btn">
-              🔐 管理者ログイン
+              管理者ログイン
             </button>
           )}
           {isAdmin && (

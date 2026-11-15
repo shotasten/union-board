@@ -112,8 +112,9 @@ export function AttendanceExperience(props: Props) {
     if (pinned) requestAnimationFrame(() => tabRef.current?.scrollIntoView({ block: 'start' }))
   }
   return <section className="board-experience">
-    <div className="board-person-bar"><button aria-describedby={!identity ? 'board-identity-hint' : undefined} className={identity ? 'board-identity-badge' : 'board-primary board-highlight'} onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(''); setRegistering(false); setRegisterError(''); setChoosing(true) }}>{identity ? identity.name + '（' + identity.part + '）' : '自分の名前を選ぶ'}</button>
-      {identity && <><button className="board-primary board-highlight" onClick={() => edit('all')}>出欠を変更</button><button className="board-text-action" onClick={() => props.onEditMemberInfo(getMemberDisplayName(identity))}>名前・パートを編集</button></>}
+    <div className="board-person-bar"><div className="board-person-status"><button aria-describedby={!identity ? 'board-identity-hint' : undefined} className={identity ? 'board-identity-badge' : 'board-primary board-highlight'} onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(''); setRegistering(false); setRegisterError(''); setChoosing(true) }}>{identity ? identity.name + '（' + identity.part + '）' : '自分の名前を選ぶ'}</button>
+      {identity && <button className="board-text-action" onClick={() => props.onEditMemberInfo(getMemberDisplayName(identity))}>名前・パートを編集</button>}</div>
+      {identity && <button className="board-primary board-highlight board-attendance-action" onClick={() => edit('all')}>出欠を変更</button>}
     </div>
     {!identity && <p id="board-identity-hint" className="board-identity-hint">まずは自分の名前を選ぶと、出欠をすぐに入力できます。閲覧だけなら選択不要です。</p>}
     {!eventId ? <>

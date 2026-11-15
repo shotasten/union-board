@@ -190,3 +190,20 @@ body:has(.board-app) .modal .form-btn.primary {
   .board-experience .board-highlight:not(:disabled):hover { background: var(--board-cta-hover); border-color: var(--board-cta-hover); }
   .board-experience .board-text-action:not(:disabled):hover { background: var(--board-tint); box-shadow: none; }
 }
+
+
+/* Header, member actions, and calendar subscription share the brand palette. */
+.board-app header { background: linear-gradient(180deg, #e4f5f6 0%, #f4fafa 100%); border-block-end: 2px solid var(--board-brand); }
+.board-app .admin-login-btn { font-size: 12px; min-height: 44px; padding: 6px 12px; border-radius: 9999px; background: rgba(255,255,255,.85); border: 1px solid var(--board-tint-border); color: var(--board-accent); }
+.board-person-bar { display: block; }
+.board-person-status { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
+.board-attendance-action { margin-block-start: 14px; }
+body:has(.board-app) .calendar-info { background: var(--board-subtle); border: 1px solid var(--board-subtle-border); color: var(--board-ink); padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+body:has(.board-app) .calendar-info ul { margin: 0; padding-left: 20px; line-height: 1.8; color: var(--board-ink); }
+body:has(.board-app) .calendar-add-link { display: inline-block; padding: 14px 28px; background: var(--board-accent); color: #fff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 1rem; }
+body:has(.board-app) .calendar-add-link:hover { background: #0e6f78; }
+body:has(.board-app) .calendar-add-link:focus-visible { outline: 3px solid var(--board-brand); outline-offset: 3px; }
+body:has(.board-app) .calendar-hint { margin-top: 20px; padding: 12px; background: var(--board-tint); border-left: 4px solid var(--board-brand); border-radius: 6px; color: var(--board-ink); }
+body:has(.board-app) .calendar-hint p { margin: 0; font-size: .85rem; line-height: 1.5; }
+body:has(.board-app) .calendar-modal-content .form-btn.secondary { background: #fff; border: 1px solid #cbd5e1; color: #475569; }
+body:has(.board-app) .calendar-modal-content .form-btn.secondary:hover { background: #f8fafc; }

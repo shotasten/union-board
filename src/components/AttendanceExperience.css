@@ -289,14 +289,25 @@ body:has(.board-app), .board-app main, .board-app footer { background: var(--boa
 
 /* Keep the schedule actions consistent and make header controls legible. */
 .board-app .main-actions-bar :is(.primary-btn, .secondary-btn, .danger-btn),
-.board-app .member-actions .secondary-btn {
+.board-app .member-actions .secondary-btn,
+.board-experience .board-person-bar button {
+  width: 116px;
+  min-width: 116px;
   min-height: 44px;
-  padding: .625rem .75rem;
+  min-block-size: 44px;
+  padding: .625rem .5rem;
   font-size: .75rem;
   font-weight: 600;
   line-height: 1.4;
   border-radius: 8px;
+  white-space: nowrap;
 }
+.board-experience .board-person-bar :is(.board-identity-badge, .board-attendance-action) {
+  padding: .625rem .5rem;
+  font-size: .75rem;
+  font-weight: 600;
+}
+.board-experience .board-person-bar .board-identity-badge { width: auto; min-width: 0; }
 .board-app .icon-action-btn { border-color: #06434a; border-radius: 8px; }
 .board-app .icon-action-btn i { color: #06434a; }
 .board-app .icon-action-btn:hover { background: rgba(255,255,255,.35); }

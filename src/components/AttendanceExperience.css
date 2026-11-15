@@ -291,6 +291,9 @@ body:has(.board-app), .board-app main, .board-app footer { background: var(--boa
 .board-app .main-actions-bar :is(.primary-btn, .secondary-btn, .danger-btn),
 .board-app .member-actions .secondary-btn,
 .board-experience .board-person-bar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   width: 116px;
   min-width: 116px;
   min-height: 40px;

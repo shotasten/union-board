@@ -317,14 +317,18 @@ body:has(.board-app), .board-app main, .board-app footer { background: var(--boa
   color: #475569;
 }
 .board-app .main-actions-bar .danger-btn {
-  background: #fff;
-  border: 1px solid #cbd5e1;
-  color: #a33240;
+  background: #fff1f2;
+  border: 1px solid #e89ba4;
+  color: #a12838;
 }
 @media (hover: hover) {
-  .board-app .main-actions-bar :is(.secondary-btn, .danger-btn):not(:disabled):hover {
+  .board-app .main-actions-bar .secondary-btn:not(:disabled):hover {
     background: #f8fafc;
     border-color: #94a3b8;
+  }
+  .board-app .main-actions-bar .danger-btn:not(:disabled):hover {
+    background: #ffe4e6;
+    border-color: #c75d6a;
     transform: none;
   }
 }

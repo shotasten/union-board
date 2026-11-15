@@ -1,5 +1,7 @@
 # 開き方
 
+> 最新：[v4・タブを統合した予定カセット](../v4/index.html)／[説明](../v4/README.md)
+
 既存の試作用サーバーが動いていれば [v3を開く](http://localhost:8765/v3/)。
 
 [設計資料](./DESIGN.md) ／ [検証記録](./VALIDATION.md)

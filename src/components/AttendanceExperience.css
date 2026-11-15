@@ -31,7 +31,7 @@ body:has(.board-app) .modal .calendar-modal-content{width:min(520px,calc(100vw -
 .attendance-grid-scroll-hint svg { width: 40px; height: 40px; }
 @media (prefers-reduced-motion: reduce) { .attendance-grid-scroll-hint { transition: none; } }
 .board-experience .attendance-grid-scrollbar-top>div{height:2px}
-.board-experience .attendance-grid-container{border:1px solid var(--board-line);border-top:0;border-radius:0 0 var(--board-radius) var(--board-radius);box-shadow:none;scrollbar-color:var(--board-brand) #e8eef0;overscroll-behavior-x:contain}
+.board-experience .attendance-grid-container{border:1px solid var(--board-line);border-top:0;border-radius:0 0 var(--board-radius) var(--board-radius);box-shadow:none;scrollbar-color:var(--board-brand) #e8eef0}
 .board-experience .attendance-grid-sticky-header{position:sticky;isolation:isolate;border-color:var(--board-line);border-radius:var(--board-radius) var(--board-radius) 0 0;box-shadow:0 2px 4px #23354d12}
 .board-experience .attendance-grid th{background:#f2f6f7;color:var(--board-ink);border-bottom:1px solid var(--board-line)}
 .board-experience .attendance-grid th:first-child,.board-experience .attendance-grid-event-heading{background:#eaf6f7;color:var(--board-ink);border-right:1px solid #cde2e4}

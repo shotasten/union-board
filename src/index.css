@@ -972,29 +972,24 @@ main {
   position: fixed;
   top: 20px;
   right: 20px;
-  padding: 15px 20px;
-  border-radius: 6px;
-  color: white;
-  font-weight: bold;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 14px 18px;
+  border: 1px solid #b8e4e8;
+  border-left: 4px solid #2db0bc;
+  border-radius: 8px;
+  color: #1d2e3d;
+  background: #e8f7f8;
+  font-weight: 600;
+  line-height: 1.5;
   z-index: 10000;
-  /* モーダル（z-index: 2000）より上に表示 */
   animation: slideIn 0.3s ease-out;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-  background: #2196F3;
-  /* デフォルト背景色（info用） */
+  box-shadow: 0 4px 16px rgba(29, 46, 61, .16);
 }
-
-.toast.success {
-  background: #4caf50;
-}
-
-.toast.error {
-  background: #f44336;
-}
-
-.toast.info {
-  background: #2196F3;
-}
+.toast.success { background: #e5f7ec; border-color: #b4dfc3; border-left-color: #25844b; color: #175a34; }
+.toast.error { background: #fff0ed; border-color: #f4c1b7; border-left-color: #d64b30; color: #832b1c; }
+.toast.info { background: #e8f7f8; border-color: #b8e4e8; border-left-color: #2db0bc; color: #1d2e3d; }
+.toast.warning { background: #fff6df; border-color: #eddaa5; border-left-color: #a87000; color: #704b00; }
+.board-dialog .board-dialog-toast { position: absolute; top: 76px; right: 12px; left: 12px; max-width: none; }
 
 @keyframes slideIn {
   from {

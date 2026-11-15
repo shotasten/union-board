@@ -285,7 +285,7 @@ export function useAppState() {
   }, [closeModal, showToast])
 
   // ===== Member registration =====
-  const handleRegisterMember = useCallback(async (part: string, name: string): Promise<boolean> => {
+  const handleRegisterMember = useCallback(async (part: string, name: string, onRegistered?: (member: Member) => void): Promise<boolean> => {
     const displayName = part + name
     const isDuplicate = membersRef.current.some(m => m.part === part && m.name === name)
     if (isDuplicate) {
@@ -309,6 +309,7 @@ export function useAppState() {
     try {
       const result = await api.createMember(userKey, part, name, displayName)
       if (result.success) {
+        onRegistered?.(newMember)
         closeModal('memberRegister')
         showToast('メンバーを登録しました', 'success')
         return true

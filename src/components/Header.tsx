@@ -9,12 +9,13 @@ interface Props {
 export function Header({ isAdmin, onAdminLoginClick, onAdminManageClick, onSyncAllClick, onLogoutClick }: Props) {
   return (
     <header>
+      <div className="header-inner">
       <div className="header-top">
-        <h1>UnionBoard</h1>
+        <h1><a className="board-brand" href="#schedule" onClick={() => { window.dispatchEvent(new Event('unionboard:home')); window.scrollTo(0, 0) }}><span>UnionBoard</span></a></h1>
         <div className="header-actions">
           {!isAdmin && (
             <button className="admin-login-btn" onClick={onAdminLoginClick} id="admin-login-btn">
-              🔐 管理者ログイン
+              管理者ログイン
             </button>
           )}
           {isAdmin && (
@@ -47,6 +48,7 @@ export function Header({ isAdmin, onAdminLoginClick, onAdminManageClick, onSyncA
         </div>
       </div>
       <p>TMU 練習予定・出欠管理アプリ</p>
+      </div>
     </header>
   )
 }

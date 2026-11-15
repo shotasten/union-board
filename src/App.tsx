@@ -1,8 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAppState } from './hooks/useAppState'
 import { Header } from './components/Header'
-import { AttendanceGrid } from './components/AttendanceGrid'
-import { LoadingSpinner } from './components/LoadingSpinner'
+import { AttendanceExperience } from './components/AttendanceExperience'
 import { Toast } from './components/Toast'
 import { FullscreenLoader } from './components/FullscreenLoader'
 import { getMemberDisplayName } from './lib/utils'
@@ -14,7 +13,7 @@ import { SyncConfirmModal } from './components/modals/SyncConfirmModal'
 import { EventModal } from './components/modals/EventModal'
 import { EventDetailModal } from './components/modals/EventDetailModal'
 import { DeleteConfirmModal } from './components/modals/DeleteConfirmModal'
-import { MemberRegisterModal } from './components/modals/MemberRegisterModal'
+import type { Member } from './types/models'
 import { MemberEditModal } from './components/modals/MemberEditModal'
 import { MemberInfoEditModal } from './components/modals/MemberInfoEditModal'
 import { MemberDeleteConfirmModal } from './components/modals/MemberDeleteConfirmModal'
@@ -70,6 +69,7 @@ export function App() {
   } = useAppState()
 
   const [adminManageRefresh, setAdminManageRefresh] = useState(0)
+  const [directInfoMemberKey, setDirectInfoMemberKey] = useState<string | null>(null)
   const bumpAdminManageRefresh = () => setAdminManageRefresh(n => n + 1)
 
   useEffect(() => {
@@ -89,6 +89,13 @@ export function App() {
 
     setSelectedMember(displayName)
     openModal('memberEdit', { open: true, memberKey: member.userKey })
+  }
+
+  const handleDirectMemberInfoEdit = (displayName: string) => {
+    const member = members.find(m => getMemberDisplayName(m) === displayName)
+    if (!member) return
+    setDirectInfoMemberKey(member.userKey)
+    openModal('memberInfoEdit', true)
   }
 
   // Handle member edit modal close
@@ -123,11 +130,6 @@ export function App() {
     return ok
   }
 
-  // Handle event click: open detail modal
-  const handleEventClick = (eventId: string) => {
-    openModal('eventDetail', { open: true, eventId })
-  }
-
   // Handle edit from event detail modal
   const handleEditFromDetail = (eventId: string) => {
     closeModal('eventDetail')
@@ -153,7 +155,7 @@ export function App() {
 
   return (
     <div id="scale-wrapper">
-      <div id="app-root">
+      <div id="app-root" className="board-app" style={isLoading ? { visibility: 'hidden' } : undefined}>
         <div className="page-shell">
           <div className="container">
             <Header
@@ -165,42 +167,15 @@ export function App() {
             />
 
             <main>
-              {isLoading && <LoadingSpinner />}
               {error && <div className="error">{error}</div>}
 
-              {!isLoading && (
                 <div id="events-container" style={{ display: 'block' }}>
                   <div id="grid-view" style={{ display: 'block' }}>
                     {/* Main actions bar */}
-                    <div
+                    {isAdmin && <div
                       className="main-actions-bar"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}
+                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}
                     >
-                      <div className="left-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                        <button
-                          className="member-register-btn primary-btn"
-                          onClick={() => openModal('memberRegister', true)}
-                        >
-                          メンバー登録
-                        </button>
-                        <button
-                          className="add-to-calendar-btn secondary-btn"
-                          id="add-to-calendar-btn"
-                          onClick={handleAddToCalendarClick}
-                          style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                        >
-                          <i className="fas fa-calendar-plus"></i>
-                          <span>カレンダーに追加</span>
-                        </button>
-                        <button
-                          className="reload-btn secondary-btn"
-                          id="reload-btn"
-                          onClick={reloadEvents}
-                        >
-                          <i className="fas fa-rotate"></i>
-                          <span>最新表示</span>
-                        </button>
-                      </div>
                       <div className="right-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                         {isAdmin && (
                           <>
@@ -228,44 +203,20 @@ export function App() {
                           </>
                         )}
                       </div>
-                    </div>
+                    </div>}
 
-                    {/* Legend */}
-                    <div
-                      id="attendance-legend"
-                      style={{ padding: '10px 0', background: '#e3f2fd', borderRadius: '8px', display: 'flex', gap: '20px', alignItems: 'center', flexWrap: 'wrap', fontSize: '0.9rem', marginBottom: '16px', border: '1px solid #bbdefb' }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginLeft: '16px' }}>
-                        <span style={{ display: 'inline-block', width: '24px', height: '24px', backgroundColor: '#c8e6c9', borderRadius: '4px', textAlign: 'center', lineHeight: '24px', fontWeight: 'bold' }}>○</span>
-                        <span>出席</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ display: 'inline-block', width: '24px', height: '24px', backgroundColor: '#fff9c4', borderRadius: '4px', textAlign: 'center', lineHeight: '24px', fontWeight: 'bold' }}>△</span>
-                        <span>遅刻/早退</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ display: 'inline-block', width: '24px', height: '24px', backgroundColor: '#ffcdd2', borderRadius: '4px', textAlign: 'center', lineHeight: '24px', fontWeight: 'bold' }}>×</span>
-                        <span>欠席</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                        <span style={{ display: 'inline-block', width: '24px', height: '24px', backgroundColor: '#f5f5f5', borderRadius: '4px', textAlign: 'center', lineHeight: '24px', color: '#999' }}>-</span>
-                        <span>未定</span>
-                      </div>
-                    </div>
-
-                    <AttendanceGrid
-                      events={events}
-                      members={members}
-                      responsesMap={responsesMap}
-                      selectedMember={selectedMember}
-                      isAdmin={isAdmin}
+                    <AttendanceExperience
+                      isLoading={isLoading} loadError={Boolean(error)} onCalendar={handleAddToCalendarClick} onReload={reloadEvents}
+                      events={events} members={members} responsesMap={responsesMap}
+                      selectedMember={selectedMember} isAdmin={isAdmin}
                       localStatusOverrides={localStatusOverrides}
-                      onMemberClick={handleMemberClick}
-                      onEventClick={handleEventClick}
+                      storageScope={import.meta.env.VITE_SPACE_ID || 'default'}
+                      onMemberClick={handleMemberClick} onEditMemberInfo={handleDirectMemberInfoEdit} onSave={handleBulkUpdateResponses}
+                      onRegisterMember={async (part, name) => { let registered: Member | null = null; const ok = await handleRegisterMember(part, name, member => { registered = member }); return ok ? registered : null }}
+                      onEditEvent={handleEditFromDetail} onDeleteEvent={handleDeleteFromDetail}
                     />
                   </div>
                 </div>
-              )}
             </main>
 
             <footer>
@@ -344,11 +295,6 @@ export function App() {
         onConfirm={handleDeleteEvent}
       />
 
-      <MemberRegisterModal
-        open={modals.memberRegister}
-        onClose={() => closeModal('memberRegister')}
-        onRegister={handleRegisterMember}
-      />
 
       <MemberEditModal
         open={modals.memberEdit.open}
@@ -364,8 +310,8 @@ export function App() {
 
       <MemberInfoEditModal
         open={modals.memberInfoEdit}
-        member={editingMember}
-        onClose={() => closeModal('memberInfoEdit')}
+        member={directInfoMemberKey ? members.find(m => m.userKey === directInfoMemberKey) ?? null : editingMember}
+        onClose={() => { closeModal('memberInfoEdit'); setDirectInfoMemberKey(null) }}
         onSave={handleSaveMemberInfo}
       />
 
@@ -441,6 +387,7 @@ export function App() {
       {toast && <Toast toast={toast} />}
 
       {/* Fullscreen loader */}
+      {isLoading && <div className="fullscreen-loader active initial-loader" role="status" aria-label="データを読み込み中"><div className="loader-spinner" /></div>}
       {fullscreenLoader && <FullscreenLoader loader={fullscreenLoader} />}
     </div>
   )

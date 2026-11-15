@@ -6,7 +6,7 @@ interface Props {
 
 export function Toast({ toast }: Props) {
   return (
-    <div className={`toast ${toast.type}`}>
+    <div className={`toast ${toast.type}`} role={toast.type === 'error' ? 'alert' : 'status'}>
       {toast.message}
     </div>
   )

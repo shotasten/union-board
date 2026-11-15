@@ -19,6 +19,7 @@
 
 - [セットアップ手順](docs/setup.md)
 - [仕様書](docs/spec.md)
+- [スマホ向け出欠UX・確認方法](docs/mobile-ux.md)
 - [デプロイセットアップ](docs/deploy-setup.md)
 
 ---

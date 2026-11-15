@@ -143,6 +143,6 @@ body:has(.board-app) .modal .form-btn.primary {
 .board-experience .attendance-grid .status-absent { background: #ffe1e3; color: #9b2e3c; }
 
 /* One highlighted action introduces the warm accent. */
-.board-experience .board-highlight { background: #ff6b57; border-color: #ff6b57; color: #1b3238; }
+.board-experience .board-highlight { background: #ff6b57; border-color: #ff6b57; color: #fff; }
 .board-app .member-actions .secondary-btn { background: #e3f4f6; color: #075e67; }
 .board-identity-hint, .board-identity-notice { background: #e3f4f6; }

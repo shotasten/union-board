@@ -21,7 +21,14 @@ export function BoardDialog({ title, onClose, children, busy = false, closeLabel
         if (document.activeElement !== active) return
         const body = active.closest<HTMLElement>('.board-dialog-body')
         if (!body) return
-        body.scrollTop += active.getBoundingClientRect().top - body.getBoundingClientRect().top
+        const field = active.getBoundingClientRect()
+        const bounds = body.getBoundingClientRect()
+        const viewport = window.visualViewport
+        const visibleTop = Math.max(bounds.top, viewport?.offsetTop ?? 0) + 8
+        const visibleBottom = Math.min(bounds.bottom, viewport ? viewport.offsetTop + viewport.height : window.innerHeight) - 8
+        if (visibleBottom <= visibleTop) return
+        if (field.bottom > visibleBottom) body.scrollTop += field.bottom - visibleBottom
+        else if (field.top < visibleTop) body.scrollTop -= visibleTop - field.top
       })
     }
     dialog.addEventListener('focusin', revealComment)

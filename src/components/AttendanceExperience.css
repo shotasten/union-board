@@ -435,3 +435,13 @@ body:has(.board-app) .modal button { font-weight: 700; }
   body:has(.board-app) .calendar-hint { margin-top: .75rem; padding: .75rem; }
   body:has(.board-app) .calendar-add-link { padding: .625rem 1rem; font-size: .875rem; }
 }
+
+@media (max-width: 600px) {
+  .board-identity-notice { padding: .5rem .625rem; margin-bottom: .5rem; line-height: 1.45; }
+  .board-identity-notice p { margin-top: .25rem; }
+  .board-identity-mode { margin-block: .5rem; padding: .375rem .5rem; }
+  .board-identity-form > label { gap: .25rem; margin-block: .5rem; }
+  .board-dialog .board-identity-form :is(select, input:not([type=checkbox])) { padding: .5rem .625rem; }
+  .board-identity-actions { margin-block: .625rem .375rem; }
+  .board-identity-form > .board-note { margin-block: .375rem; }
+}

@@ -77,11 +77,8 @@ body:has(.board-app) .modal .calendar-modal-content{width:min(520px,calc(100vw -
   --board-shadow: 0 2px 8px rgba(35, 53, 77, .07), 0 10px 24px rgba(35, 53, 77, .04);
   --board-control-shadow: 0 1px 3px rgba(35, 53, 77, .12);
 }
-.board-app header {
-  background: #fff;
-  border-block-end-color: var(--board-line);
-  box-shadow: 0 2px 12px rgba(35, 53, 77, .06);
-}
+.board-app main { background: #fff; }
+.board-app header { border-block-start: 0; }
 .board-app footer { background: #fff; }
 .board-schedule,
 .board-summary,

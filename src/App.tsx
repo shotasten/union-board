@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useAppState } from './hooks/useAppState'
 import { Header } from './components/Header'
+import { AdminActions } from './components/AdminActions'
 import { AttendanceExperience } from './components/AttendanceExperience'
 import { Toast } from './components/Toast'
 import { FullscreenLoader } from './components/FullscreenLoader'
@@ -172,38 +173,7 @@ export function App() {
                 <div id="events-container" style={{ display: 'block' }}>
                   <div id="grid-view" style={{ display: 'block' }}>
                     {/* Main actions bar */}
-                    {isAdmin && <div
-                      className="main-actions-bar"
-                      style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}
-                    >
-                      <div className="right-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                        {isAdmin && (
-                          <>
-                            <button
-                              id="display-period-edit-btn"
-                              className="secondary-btn"
-                              onClick={() => openModal('displayPeriod', true)}
-                            >
-                              表示期間を設定
-                            </button>
-                            <button
-                              id="cleanup-members-responses-btn"
-                              className="danger-btn"
-                              onClick={() => openModal('cleanupMembersResponses', true)}
-                            >
-                              新年度リセット
-                            </button>
-                            <button
-                              className="admin-feature primary-btn create-event-btn"
-                              id="create-event-btn"
-                              onClick={() => openModal('event', { open: true, eventId: null })}
-                            >
-                              イベント登録
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </div>}
+                    {isAdmin && <AdminActions onDisplayPeriod={() => openModal('displayPeriod', true)} onCleanup={() => openModal('cleanupMembersResponses', true)} onCreateEvent={() => openModal('event', { open: true, eventId: null })} />}
 
                     <AttendanceExperience
                       isLoading={isLoading} loadError={Boolean(error)} onCalendar={handleAddToCalendarClick} onReload={reloadEvents}

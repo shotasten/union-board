@@ -30,8 +30,8 @@ jobs:
 
       - name: Set Supabase secrets
         run: |
-          supabase secrets set GOOGLE_SERVICE_ACCOUNT_JSON="$GOOGLE_SERVICE_ACCOUNT_JSON"
-          supabase secrets set GOOGLE_CALENDAR_ID="$GOOGLE_CALENDAR_ID"
+          supabase secrets set --yes GOOGLE_SERVICE_ACCOUNT_JSON="$GOOGLE_SERVICE_ACCOUNT_JSON"
+          supabase secrets set --yes GOOGLE_CALENDAR_ID="$GOOGLE_CALENDAR_ID"
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}

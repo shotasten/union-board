@@ -26,7 +26,7 @@ body:has(.board-app) .modal .modal-content{border:1px solid var(--board-line);bo
 .board-identity-actions>button{width:100%;min-height:48px;font-weight:600}
 .board-identity-account-actions{display:flex;flex-wrap:wrap;gap:var(--board-gap);margin-block-start:.5rem}
 #app-root.board-app header{padding-inline:0}
-.board-app .header-inner{width:min(100%,var(--board-content-max,60rem));margin-inline:auto;padding-inline:.75rem}
+.board-app .header-inner{width:100%;max-inline-size:none;margin-inline:0;padding-inline:.75rem}
 
 /* The app and component preview share the same desktop reading width. */
 :root{--board-content-max:60rem}#app-root.board-app{max-inline-size:none;margin-inline:0}.board-app .container{max-width:none}.board-app main{max-inline-size:var(--board-content-max);margin-inline:auto}.board-app header{padding-inline:max(.75rem,calc((100% - var(--board-content-max))/2 + .75rem))}.board-app footer{padding-inline:max(.75rem,calc((100% - var(--board-content-max))/2 + .75rem))}.board-identity-hint{font-size:.8125rem;color:var(--board-accent);line-height:1.7;margin-block:.25rem 1rem;padding:.75rem 1rem;border-inline-start:3px solid var(--board-brand);background:#eaf6f7;border-radius:0 8px 8px 0}.board-identity-notice{padding:.875rem;background:#eaf6f7;border-radius:8px;margin-bottom:1rem;font-size:.8125rem;line-height:1.7}.board-identity-notice strong{font-weight:600;color:var(--board-ink)}.board-identity-notice p{margin-top:.375rem;color:var(--board-muted)}.board-dialog .board-browse-only{width:100%;background:transparent;color:var(--board-muted);border-color:transparent;margin-top:.25rem}

@@ -160,8 +160,18 @@ export function AttendanceGrid({
       updateScrollIndicators()
     }
 
+    const onPageScroll = () => {
+      const wrapper = wrapperRef.current
+      if (!wrapper) return
+      const bounds = wrapper.getBoundingClientRect()
+      if (bounds.top < window.innerHeight && bounds.bottom > 0) {
+        wrapper.classList.add('scroll-hint-dismissed')
+      }
+    }
+
     container.addEventListener('scroll', onContainerScroll)
     topScrollbar?.addEventListener('scroll', onTopScrollbarScroll)
+    window.addEventListener('scroll', onPageScroll, { passive: true })
 
     let resizeTimer: ReturnType<typeof setTimeout>
     const onResize = () => {
@@ -185,6 +195,7 @@ export function AttendanceGrid({
       clearTimeout(resizeTimer)
       container.removeEventListener('scroll', onContainerScroll)
       topScrollbar?.removeEventListener('scroll', onTopScrollbarScroll)
+      window.removeEventListener('scroll', onPageScroll)
       window.removeEventListener('resize', onResize)
     }
   }, [updateScrollIndicators, sortedEvents, sortedMembers])

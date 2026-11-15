@@ -55,7 +55,7 @@ export function MemberInfoEditModal({ open, member, onClose, onSave }: Props) {
       {error && <p role="alert" className="board-registration-error">{error}</p>}
     </div>
     <div className="board-dialog-footer">
-      <span>{error ? '内容を保持しています' : '出欠・コメントはこの画面では変更しません'}</span>
+      {error && <span>内容を保持しています</span>}
       <button disabled={busy} onClick={onClose}>キャンセル</button>
       <button className="board-primary" disabled={busy || !part || !name.trim() || !hasChanged} onClick={() => void save()}>{busy ? '保存中…' : '保存'}</button>
     </div>

@@ -397,3 +397,25 @@ body:has(.board-app) .modal button { font-weight: 700; }
 
 /* Keep comment text readable when Safari page zoom is set to 75%. */
 .board-dialog .board-editor-event textarea { font-size: max(22px, 1em); }
+
+/* Show more of the schedule on a phone while keeping controls easy to tap. */
+@media (max-width: 600px) {
+  .board-app header { padding-block: .5rem; }
+  .board-app header .board-brand { min-block-size: 44px; }
+  .board-app header p { margin-top: 0; font-size: .6875rem; }
+  .board-app main { padding-block: .625rem 1.5rem; }
+  .board-experience .board-person-bar { margin-block-end: .5rem; gap: .5rem; }
+  .board-experience .board-person-bar button { min-block-size: 44px; }
+  .board-page-heading { margin-block: .75rem .5rem; }
+  .board-experience .board-page-heading h2 { font-size: 1.125rem; }
+  .board-view-tabs { margin-block-end: .5rem; }
+  .board-view-tabs button { padding-block: .5rem; }
+  .board-event-link { padding-block: .625rem; }
+  .board-experience .board-self { min-block-size: 54px; }
+  .board-event-count > strong { font-size: 1.25rem; }
+  .board-experience .board-back { margin-block-end: .5rem; }
+  .board-summary, .board-comments { padding: .75rem; margin-bottom: .75rem; }
+  .board-summary h2 { font-size: 1.125rem; }
+  .board-summary p, .board-summary > strong { margin-block: .375rem; }
+  .board-counts { margin-top: .625rem; }
+}

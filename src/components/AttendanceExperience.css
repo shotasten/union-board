@@ -70,3 +70,57 @@ body:has(.board-app) .modal .calendar-modal-content{width:min(520px,calc(100vw -
 
 /* The app and component preview share the same desktop reading width. */
 #app-root.board-app{max-inline-size:none;margin-inline:0}.board-app .container{max-width:none}.board-app main{max-inline-size:var(--board-content-max);margin-inline:auto}.board-identity-hint{font-size:.8125rem;color:var(--board-accent);line-height:1.7;margin-block:.25rem 1rem;padding:.75rem 1rem;border-inline-start:3px solid var(--board-brand);background:#eaf6f7;border-radius:0 8px 8px 0}.board-identity-notice{padding:.875rem;background:#eaf6f7;border-radius:8px;margin-bottom:1rem;font-size:.8125rem;line-height:1.7}.board-identity-notice strong{font-weight:600;color:var(--board-ink)}.board-identity-notice p{margin-top:.375rem;color:var(--board-muted)}.board-dialog .board-browse-only{width:100%;background:transparent;color:var(--board-muted);border-color:transparent;margin-top:.25rem}
+
+/* White surfaces keep the schedule calm; elevation distinguishes interactive areas. */
+:root {
+  --board-canvas: #fff;
+  --board-shadow: 0 2px 8px rgba(35, 53, 77, .07), 0 10px 24px rgba(35, 53, 77, .04);
+  --board-control-shadow: 0 1px 3px rgba(35, 53, 77, .12);
+}
+.board-app header {
+  background: #fff;
+  border-block-end-color: var(--board-line);
+  box-shadow: 0 2px 12px rgba(35, 53, 77, .06);
+}
+.board-app footer { background: #fff; }
+.board-schedule,
+.board-summary,
+.board-comments,
+.board-part-list,
+.board-roster section,
+.board-identity-mode {
+  box-shadow: var(--board-shadow);
+}
+.board-experience .attendance-grid-container {
+  box-shadow: var(--board-shadow);
+}
+.board-roster h3,
+.board-own-response,
+.board-admin-event { background: #fff; }
+.board-admin-event { border-color: var(--board-line); }
+.board-experience .attendance-grid th:first-child,
+.board-experience .attendance-grid-event-heading { background: #f5fafb; }
+.board-experience .attendance-grid tbody tr:nth-child(even) td:first-child { background: #fafcfc; }
+.board-app :is(.primary-btn, .secondary-btn, .danger-btn, .admin-login-btn),
+.board-experience button,
+.board-dialog button,
+body:has(.board-app) .modal .form-btn {
+  box-shadow: var(--board-control-shadow);
+}
+.board-experience :is(.board-tabs button, .board-view-tabs button, .board-part-row dt button, .board-roster li button) {
+  box-shadow: none;
+}
+.board-app .member-actions .secondary-btn {
+  background: #fff;
+  border-color: #b8d8db;
+}
+@media (hover: hover) {
+  .board-experience button:not(:disabled):hover,
+  .board-app :is(.primary-btn, .secondary-btn, .danger-btn):not(:disabled):hover {
+    box-shadow: 0 3px 8px rgba(35, 53, 77, .15);
+  }
+  .board-experience :is(.board-tabs button, .board-view-tabs button, .board-part-row dt button, .board-roster li button):hover {
+    box-shadow: none;
+    background-color: #f5fafb;
+  }
+}

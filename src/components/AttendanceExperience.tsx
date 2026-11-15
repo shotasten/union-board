@@ -16,6 +16,7 @@ interface Props {
 }
 function readIdentity(key: string) { try { return localStorage.getItem(key) || '' } catch { return '' } }
 function dismissedIdentity(key: string) { try { return sessionStorage.getItem(key) === 'true' } catch { return false } }
+function readTableView() { try { return new URLSearchParams(location.search).get('view') === 'table' } catch { return false } }
 function hashEvent() { try { return location.hash.startsWith('#event/') ? decodeURIComponent(location.hash.slice(7)) : '' } catch { return '' } }
 const countLabel = (value: number) => value || '-'
 function Answer({ status }: { status: ResponseStatus }) { return <span className={'board-answer ' + responseClass(status)}>{status}<span className="board-answer-label">{RESPONSE_LABELS[status]}</span></span> }
@@ -28,7 +29,7 @@ export function AttendanceExperience(props: Props) {
   const [eventId, setEventId] = useState(hashEvent)
   const [tab, setTab] = useState<'parts' | 'people'>('parts')
   const [partFilter, setPartFilter] = useState('')
-  const [showTable, setShowTable] = useState(false)
+  const [showTable, setShowTable] = useState(readTableView)
   const dismissalStorage = 'unionboard:identity-dismissed:' + props.storageScope
   const [choosing, setChoosing] = useState(() => !identity && !dismissedIdentity(dismissalStorage))
   const [choice, setChoice] = useState(identityKey)
@@ -50,7 +51,7 @@ export function AttendanceExperience(props: Props) {
 
   useEffect(() => {
     const navigate = () => { setEventId(hashEvent()); setTab('parts'); setPartFilter('') }
-    const home = () => { listScroll.current = 0; setEventId(''); setShowTable(false) }; window.addEventListener('unionboard:home', home)
+    const home = () => { listScroll.current = 0; setEventId(''); setShowTable(readTableView()) }; window.addEventListener('unionboard:home', home)
     window.addEventListener('hashchange', navigate)
     window.addEventListener('popstate', navigate)
     return () => { window.removeEventListener('unionboard:home', home); window.removeEventListener('hashchange', navigate); window.removeEventListener('popstate', navigate) }
@@ -64,6 +65,12 @@ export function AttendanceExperience(props: Props) {
   const navigate = (id: string) => {
     if (!eventId) listScroll.current = window.scrollY
     location.hash = id ? 'event/' + encodeURIComponent(id) : 'schedule'
+  }
+  const selectScheduleView = (table: boolean) => {
+    setShowTable(table)
+    const url = new URL(location.href)
+    url.searchParams.set('view', table ? 'table' : 'schedule')
+    history.replaceState(history.state, '', url)
   }
   const startEditor = (key: string, scope: Scope) => {
     const scoped = sortedEvents.filter(e => scope === 'all' || scope === 'pending' ? scope !== 'pending' || status(e.id, key) === '-' : e.id === scope)
@@ -111,7 +118,17 @@ export function AttendanceExperience(props: Props) {
     {!identity && <p id="board-identity-hint" className="board-identity-hint">まずは自分の名前を選ぶと、出欠をすぐに入力できます。閲覧だけなら選択不要です。</p>}
     {!eventId ? <>
       <div className="board-page-heading"><h2>予定一覧</h2><span>{events.length}件</span></div>
-      <div className="board-view-tools"><button aria-pressed={showTable} onClick={() => setShowTable(v => !v)}>{showTable ? '予定一覧に戻る' : '日程 × メンバーの全体表'}</button></div>
+      <div className="board-view-tabs" role="tablist" aria-label="予定の表示方法" onKeyDown={key => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(key.key)) return
+        key.preventDefault()
+        const nextTable = key.key === 'Home' ? false : key.key === 'End' ? true : !showTable
+        selectScheduleView(nextTable)
+        requestAnimationFrame(() => document.getElementById(nextTable ? 'board-view-tab-table' : 'board-view-tab-schedule')?.focus({ preventScroll: true }))
+      }}>
+        <button id="board-view-tab-schedule" type="button" role="tab" aria-selected={!showTable} aria-controls="board-schedule-panel" tabIndex={showTable ? -1 : 0} onClick={() => selectScheduleView(false)}>日程別</button>
+        <button id="board-view-tab-table" type="button" role="tab" aria-selected={showTable} aria-controls="board-schedule-panel" tabIndex={showTable ? 0 : -1} onClick={() => selectScheduleView(true)}>全体表</button>
+      </div>
+      <div id="board-schedule-panel" className="board-schedule-panel" role="tabpanel" aria-labelledby={showTable ? 'board-view-tab-table' : 'board-view-tab-schedule'} tabIndex={0}>
       {showTable ? <AttendanceGrid {...props} onEventClick={navigate} /> : <ul className="board-schedule">{sortedEvents.map(ev => {
         const counts = tallyAttendance(members, responsesMap[ev.id] || [])
         return <li key={ev.id} className="board-cassette"><a href={'#event/' + encodeURIComponent(ev.id)} onClick={click => { if (!click.metaKey && !click.ctrlKey && !click.shiftKey && !click.altKey) { click.preventDefault(); navigate(ev.id) } }} className="board-event-link">
@@ -120,6 +137,7 @@ export function AttendanceExperience(props: Props) {
           <span className="board-event-count"><small>参加予定</small><strong>{counts['○'] + counts['△']}<small>人</small></strong><span>○{countLabel(counts['○'])} · △{countLabel(counts['△'])}</span></span>
         </a><button className="board-self" aria-label={eventDateLabel(ev) + ' 自分の出欠を編集'} onClick={() => edit(ev.id)}><small>自分</small>{identity ? <span className={'board-self-mark ' + responseClass(status(ev.id, identity.userKey))}>{status(ev.id, identity.userKey)}</span> : <span>未選択</span>}<small>変更</small></button></li>
       })}</ul>}
+      </div>
       {!events.length && <p className="board-empty">表示期間内に予定はありません。</p>}
       <p className="board-note">参加予定＝○出席＋△遅刻/早退。同時に全員が揃うとは限りません。<br />未回答と未定は「-」で表示します。0件の内訳は「-」です。</p>
     </> : event ? <>

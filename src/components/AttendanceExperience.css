@@ -44,6 +44,15 @@ body:has(.board-app) .modal .calendar-modal-content{width:min(520px,calc(100vw -
 .board-experience .attendance-grid-wrapper.scrollable-left::before{z-index:4}
 
 .board-app .member-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-block:0 .75rem}
+.board-app .member-actions{flex-wrap:nowrap}
+.board-app .member-actions .secondary-btn{flex:0 0 auto;background:#e4f3f4;border:1px solid #91cbd0;color:#075e67;font-weight:600;white-space:nowrap}
+.board-app .member-actions .secondary-btn:hover{background:#d5edef;border-color:var(--board-accent)}
+.board-view-tabs{display:flex;gap:.25rem;align-items:center;border-bottom:1px solid var(--board-line);margin:0 0 .75rem}
+.board-view-tabs button{position:relative;min-height:44px;border:0;border-radius:8px 8px 0 0;background:transparent;color:var(--board-muted);padding:.625rem .875rem;font-size:.8125rem}
+.board-view-tabs button[aria-selected=true]{color:var(--board-ink);font-weight:650}
+.board-view-tabs button[aria-selected=true]::after{content:"";position:absolute;inset:auto .5rem -1px;border-bottom:3px solid var(--board-accent)}
+.board-view-tabs button:focus-visible{outline:3px solid var(--board-accent);outline-offset:2px}
+.board-schedule-panel:focus{outline:none}
 
 .board-identity-form>label{display:flex;flex-direction:column;gap:.5rem;margin-block:1rem;font-size:.8125rem}.board-identity-form input:not([type=checkbox]){font:inherit;font-size:1rem;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;min-height:44px;width:100%}.board-identity-form>.board-checkbox{flex-direction:row}.board-register-link{color:var(--board-accent)!important;font-size:.8125rem!important}.board-identity-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-block:1rem}.board-registration-error{color:#a73b48;font-size:.8125rem;line-height:1.6}
 

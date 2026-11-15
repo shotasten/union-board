@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { AttendanceEvent, AttendanceResponse, Member, ResponseStatus } from '../types/models'
-import { sortMembersByPart, getMemberDisplayName, cleanDescription } from '../lib/utils'
+import { sortMembersByPart, getMemberDisplayName, cleanDescription, PART_OPTIONS } from '../lib/utils'
 import { changedResponses, eventDateLabel, eventTimeLabel, memberResponse, RESPONSE_LABELS, RESPONSE_STATUSES, responseClass, tallyAttendance } from '../lib/attendance'
 import { BoardDialog } from './BoardDialog'
 import { AttendanceGrid } from './AttendanceGrid'
@@ -10,7 +10,7 @@ type Scope = 'all' | 'pending' | string
 interface Props {
   events: AttendanceEvent[]; members: Member[]; responsesMap: Record<string, AttendanceResponse[]>; isAdmin: boolean
   selectedMember: string | null; localStatusOverrides: Record<string, Record<string, ResponseStatus>>
-  storageScope: string; onRegisterMember: () => void; onMemberClick: (name: string) => void
+  storageScope: string; onRegisterMember: (part: string, name: string) => Promise<Member | null>; onMemberClick: (name: string) => void
   onSave: (key: string, name: string, updates: Array<{ eventId: string; status: ResponseStatus; comment: string }>) => Promise<boolean>
   onEditEvent: (id: string) => void; onDeleteEvent: (id: string, title: string) => void
 }
@@ -32,6 +32,10 @@ export function AttendanceExperience(props: Props) {
   const [choice, setChoice] = useState(identityKey)
   const [remember, setRemember] = useState(() => !!readIdentity(identityStorage))
   const [choicePart, setChoicePart] = useState('')
+  const [registering, setRegistering] = useState(false)
+  const [newName, setNewName] = useState('')
+  const [registerBusy, setRegisterBusy] = useState(false)
+  const [registerError, setRegisterError] = useState('')
   const [pendingScope, setPendingScope] = useState<Scope | null>(null)
   const [editor, setEditor] = useState<{ key: string; scope: Scope; eventIds: string[] } | null>(null)
   const listScroll = useRef(0)
@@ -65,15 +69,28 @@ export function AttendanceExperience(props: Props) {
   }
   const edit = (scope: Scope) => {
     if (identity) startEditor(identity.userKey, scope)
-    else { setChoice(''); setChoicePart(''); setPendingScope(scope); setChoosing(true) }
+    else { setChoice(''); setChoicePart(''); setRegistering(false); setRegisterError(''); setPendingScope(scope); setChoosing(true) }
   }
-  const choose = () => {
-    if (!members.some(m => m.userKey === choice)) return
-    setIdentityKey(choice)
-    try { if (remember) localStorage.setItem(identityStorage, choice); else localStorage.removeItem(identityStorage) } catch { /* Selection still works for this visit. */ }
-    setChoosing(false)
-    if (pendingScope) startEditor(choice, pendingScope)
+  const acceptIdentity = (key: string) => {
+    setIdentityKey(key)
+    try { if (remember) localStorage.setItem(identityStorage, key); else localStorage.removeItem(identityStorage) } catch { /* Selection still works for this visit. */ }
+    setChoosing(false); setRegistering(false)
+    if (pendingScope) startEditor(key, pendingScope)
     setPendingScope(null)
+  }
+  const choose = () => { if (members.some(m => m.userKey === choice)) acceptIdentity(choice) }
+  const registerIdentity = async () => {
+    const name = newName.trim()
+    if (!choicePart || !name || registerBusy) return
+    const existing = members.find(m => m.part === choicePart && m.name === name)
+    if (existing) { setChoice(existing.userKey); setRegistering(false); setRegisterError('この名前は登録済みです。名前を選んで進んでください。'); return }
+    setRegisterBusy(true); setRegisterError('')
+    try {
+      const member = await props.onRegisterMember(choicePart, name)
+      if (member) { setNewName(''); acceptIdentity(member.userKey) }
+      else setRegisterError('登録できませんでした。入力内容を確認し、もう一度お試しください。')
+    } catch { setRegisterError('登録できませんでした。入力内容は保持しています。') }
+    finally { setRegisterBusy(false) }
   }
   const switchTab = (next: 'parts' | 'people') => {
     const pinned = (tabRef.current?.getBoundingClientRect().top || 0) <= 1
@@ -82,7 +99,7 @@ export function AttendanceExperience(props: Props) {
   }
   const pending = identity ? events.filter(e => status(e.id, identity.userKey) === '-').length : 0
   return <section className="board-experience">
-    <div className="board-person-bar"><button onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(''); setChoosing(true) }}>{identity ? identity.name + '（' + identity.part + '） 変更' : '自分を選ぶ'}</button>
+    <div className="board-person-bar"><button className={!identity ? 'board-primary' : undefined} onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(''); setRegistering(false); setRegisterError(''); setChoosing(true) }}>{identity ? identity.name + '（' + identity.part + '）' : '自分の名前を選ぶ'}</button>
       {identity && <><button className="board-primary" onClick={() => edit(pending ? 'pending' : 'all')}>{pending ? '未定 ' + pending + '件を入力' : '出欠を変更'}</button><button onClick={() => edit('all')}>まとめて変更</button><button onClick={() => onMemberClick(getMemberDisplayName(identity))}>名前・パートを編集</button></>}
     </div>
     {!eventId ? <>
@@ -125,7 +142,16 @@ export function AttendanceExperience(props: Props) {
         return <section key={part}><h3>{part} <small>{group.length}人</small><span>○{countLabel(counts['○'])} · △{countLabel(counts['△'])}</span></h3><ul>{group.map(member => <li key={member.userKey}><button onClick={() => onMemberClick(getMemberDisplayName(member))}><span>{member.name}</span><Answer status={status(event.id, member.userKey)} /></button></li>)}</ul></section>
       })}</div></div>
     </> : <p>この日程は現在の表示期間にありません。<a href="#schedule">予定一覧へ戻る</a></p>}
-    {choosing && <BoardDialog title="自分のメンバー情報を選ぶ" onClose={() => { setChoosing(false); setPendingScope(null) }}><div className="board-dialog-body"><p className="board-note">ログインではなく回答先の選択です。本人確認や他人の編集防止にはなりません。</p><label>パート<select value={choicePart} onChange={e => { setChoicePart(e.target.value); setChoice('') }}><option value="">全パート</option>{[...groups.keys()].map(p => <option key={p}>{p}</option>)}</select></label><label>名前<select value={choice} onChange={e => setChoice(e.target.value)}><option value="">選んでください</option>{members.filter(m => !choicePart || m.part === choicePart).map(m => <option key={m.userKey} value={m.userKey}>{m.name}（{m.part}）</option>)}</select></label><label className="board-checkbox"><input type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} />この端末で覚える</label><p className="board-note">共有端末では外してください。記憶するのは回答対象だけです。</p><button onClick={() => { setChoosing(false); setPendingScope(null); props.onRegisterMember() }}>未登録の方はメンバー登録へ</button><button className="board-primary" disabled={!choice} onClick={choose}>この人を選ぶ</button>{identity && <button onClick={() => { setIdentityKey(''); try { localStorage.removeItem(identityStorage) } catch { /* memory is optional */ } setChoosing(false) }}>自分の選択を解除</button>}</div></BoardDialog>}
+    {choosing && <BoardDialog title="あなたの名前は？" busy={registerBusy} onClose={() => { if (!registerBusy) { setChoosing(false); setPendingScope(null) } }}><form className="board-dialog-body board-identity-form" onSubmit={submit => { submit.preventDefault(); if (registering) void registerIdentity(); else choose() }}>
+      <p className="board-note">パートと名前を選んでください。名前がなければ、この画面で登録できます。</p>
+      <label>パート<select disabled={registerBusy} value={choicePart} onChange={e => { setChoicePart(e.target.value); setChoice(''); setRegisterError('') }}><option value="">{registering ? 'パートを選んでください' : '全パート'}</option>{(registering ? PART_OPTIONS.map(p => p.value) : [...groups.keys()]).map(p => <option key={p}>{p}</option>)}</select></label>
+      {registering ? <><label>名前<input autoFocus disabled={registerBusy} value={newName} maxLength={50} placeholder="例：山田" onChange={e => setNewName(e.target.value)} /></label><p className="board-note">名前はメンバー全員に公開されます。フルネームの入力は控えてください。</p></> : <><label>名前<select value={choice} onChange={e => { setChoice(e.target.value); setRegisterError('') }}><option value="">選んでください</option>{members.filter(m => !choicePart || m.part === choicePart).map(m => <option key={m.userKey} value={m.userKey}>{m.name}（{m.part}）</option>)}</select></label><button type="button" className="board-register-link" onClick={() => { setRegistering(true); setRegisterError('') }}>名前を登録する</button></>}
+      <label className="board-checkbox"><input disabled={registerBusy} type="checkbox" checked={remember} onChange={e => setRemember(e.target.checked)} />この端末で覚える</label>
+      <p className="board-note">ログインや本人確認ではありません。共有端末では記憶を外してください。</p>
+      {registerError && <p role="alert" className="board-registration-error">{registerError}</p>}
+      <div className="board-identity-actions"><button type="submit" className="board-primary" disabled={registerBusy || (registering ? !choicePart || !newName.trim() : !choice)}>{registerBusy ? '登録中…' : registering ? '登録して進む' : 'この名前で進む'}</button>{registering && <button type="button" disabled={registerBusy} onClick={() => { setRegistering(false); setRegisterError('') }}>登録済みの名前から選ぶ</button>}</div>
+      {identity && !registering && <><button type="button" onClick={() => { setChoosing(false); onMemberClick(getMemberDisplayName(identity)) }}>名前・パートを編集</button><button type="button" onClick={() => { setIdentityKey(''); try { localStorage.removeItem(identityStorage) } catch { /* memory is optional */ } setChoosing(false) }}>自分の選択を解除</button></>}
+    </form></BoardDialog>}
     {editor && members.some(m => m.userKey === editor.key) && <ResponseEditor key={editor.key + ':' + editor.scope} member={members.find(m => m.userKey === editor.key)!} events={sortedEvents.filter(e => editor.eventIds.includes(e.id))} responses={Object.values(responsesMap).flat().filter(r => r.userKey === editor.key)} onSave={onSave} onClose={() => setEditor(null)} />}
   </section>
 }

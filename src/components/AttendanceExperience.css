@@ -15,3 +15,5 @@ body:has(.board-app) .modal .modal-content{border:1px solid var(--board-line);bo
 body:has(.board-dialog[open]){overflow:hidden}
 
 .board-app .member-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-block:0 .75rem}
+
+.board-identity-form>label{display:flex;flex-direction:column;gap:.5rem;margin-block:1rem;font-size:.8125rem}.board-identity-form input:not([type=checkbox]){font:inherit;font-size:1rem;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;min-height:44px;width:100%}.board-identity-form>.board-checkbox{flex-direction:row}.board-register-link{color:var(--board-accent)!important;font-size:.8125rem!important}.board-identity-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-block:1rem}.board-registration-error{color:#a73b48;font-size:.8125rem;line-height:1.6}

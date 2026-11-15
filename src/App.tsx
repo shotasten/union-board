@@ -15,7 +15,7 @@ import { SyncConfirmModal } from './components/modals/SyncConfirmModal'
 import { EventModal } from './components/modals/EventModal'
 import { EventDetailModal } from './components/modals/EventDetailModal'
 import { DeleteConfirmModal } from './components/modals/DeleteConfirmModal'
-import { MemberRegisterModal } from './components/modals/MemberRegisterModal'
+import type { Member } from './types/models'
 import { MemberEditModal } from './components/modals/MemberEditModal'
 import { MemberInfoEditModal } from './components/modals/MemberInfoEditModal'
 import { MemberDeleteConfirmModal } from './components/modals/MemberDeleteConfirmModal'
@@ -172,7 +172,7 @@ export function App() {
                       className="main-actions-bar"
                       style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}
                     >
-                      <MemberActions onRegister={() => openModal('memberRegister', true)} onCalendar={handleAddToCalendarClick} onReload={reloadEvents} />
+                      <MemberActions onCalendar={handleAddToCalendarClick} onReload={reloadEvents} />
                       <div className="right-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                         {isAdmin && (
                           <>
@@ -208,7 +208,7 @@ export function App() {
                       localStatusOverrides={localStatusOverrides}
                       storageScope={import.meta.env.VITE_SPACE_ID || 'default'}
                       onMemberClick={handleMemberClick} onSave={handleBulkUpdateResponses}
-                      onRegisterMember={() => openModal('memberRegister', true)}
+                      onRegisterMember={async (part, name) => { let registered: Member | null = null; const ok = await handleRegisterMember(part, name, member => { registered = member }); return ok ? registered : null }}
                       onEditEvent={handleEditFromDetail} onDeleteEvent={handleDeleteFromDetail}
                     />
                   </div>
@@ -292,11 +292,6 @@ export function App() {
         onConfirm={handleDeleteEvent}
       />
 
-      <MemberRegisterModal
-        open={modals.memberRegister}
-        onClose={() => closeModal('memberRegister')}
-        onRegister={handleRegisterMember}
-      />
 
       <MemberEditModal
         open={modals.memberEdit.open}

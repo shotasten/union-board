@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useAppState } from './hooks/useAppState'
 import { Header } from './components/Header'
 import { AttendanceExperience } from './components/AttendanceExperience'
-import { LoadingSpinner } from './components/LoadingSpinner'
 import { Toast } from './components/Toast'
 import { FullscreenLoader } from './components/FullscreenLoader'
 import { getMemberDisplayName } from './lib/utils'
@@ -168,10 +167,8 @@ export function App() {
             />
 
             <main>
-              {isLoading && <LoadingSpinner />}
               {error && <div className="error">{error}</div>}
 
-              {!isLoading && (
                 <div id="events-container" style={{ display: 'block' }}>
                   <div id="grid-view" style={{ display: 'block' }}>
                     {/* Main actions bar */}
@@ -209,7 +206,7 @@ export function App() {
                     </div>}
 
                     <AttendanceExperience
-                      onCalendar={handleAddToCalendarClick} onReload={reloadEvents}
+                      isLoading={isLoading} loadError={Boolean(error)} onCalendar={handleAddToCalendarClick} onReload={reloadEvents}
                       events={events} members={members} responsesMap={responsesMap}
                       selectedMember={selectedMember} isAdmin={isAdmin}
                       localStatusOverrides={localStatusOverrides}
@@ -220,7 +217,6 @@ export function App() {
                     />
                   </div>
                 </div>
-              )}
             </main>
 
             <footer>

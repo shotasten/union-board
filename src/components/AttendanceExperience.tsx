@@ -5,11 +5,12 @@ import { changedResponses, eventDateLabel, eventTimeLabel, memberResponse, RESPO
 import { BoardDialog } from './BoardDialog'
 import { AttendanceGrid } from './AttendanceGrid'
 import { MemberActions } from './MemberActions'
+import { LoadingSpinner } from './LoadingSpinner'
 import './AttendanceExperience.css'
 
 type Scope = 'all' | 'pending' | string
 interface Props {
-  onCalendar: () => void; onReload: () => void
+  onCalendar: () => void; onReload: () => void; isLoading?: boolean; loadError?: boolean
   events: AttendanceEvent[]; members: Member[]; responsesMap: Record<string, AttendanceResponse[]>; isAdmin: boolean
   selectedMember: string | null; localStatusOverrides: Record<string, Record<string, ResponseStatus>>
   storageScope: string; onRegisterMember: (part: string, name: string) => Promise<Member | null>; onMemberClick: (name: string) => void; onEditMemberInfo: (name: string) => void
@@ -17,6 +18,10 @@ interface Props {
   onEditEvent: (id: string) => void; onDeleteEvent: (id: string, title: string) => void
 }
 function readIdentity(key: string) { try { return localStorage.getItem(key) || '' } catch { return '' } }
+type CachedIdentity = { userKey: string; name: string; part: string }
+function readCachedIdentity(key: string, userKey: string): CachedIdentity | null {
+  try { const value = JSON.parse(localStorage.getItem(key + ':display') || 'null'); return value?.userKey === userKey && typeof value.name === 'string' && typeof value.part === 'string' ? value : null } catch { return null }
+}
 function dismissedIdentity(key: string) { try { return sessionStorage.getItem(key) === 'true' } catch { return false } }
 function readTableView() { try { return new URLSearchParams(location.search).get('view') === 'table' } catch { return false } }
 function hashEvent() { try { return location.hash.startsWith('#event/') ? decodeURIComponent(location.hash.slice(7)) : '' } catch { return '' } }
@@ -28,12 +33,14 @@ export function AttendanceExperience(props: Props) {
   const identityStorage = 'unionboard:member:' + props.storageScope
   const [identityKey, setIdentityKey] = useState(() => readIdentity(identityStorage))
   const identity = members.find(m => m.userKey === identityKey)
+  const [cachedIdentity, setCachedIdentity] = useState(() => readCachedIdentity(identityStorage, readIdentity(identityStorage)))
+  const displayIdentity = identity || (props.isLoading || props.loadError ? cachedIdentity : null)
   const [eventId, setEventId] = useState(hashEvent)
   const [tab, setTab] = useState<'parts' | 'people'>('parts')
   const [partFilter, setPartFilter] = useState('')
   const [showTable, setShowTable] = useState(readTableView)
   const dismissalStorage = 'unionboard:identity-dismissed:' + props.storageScope
-  const [choosing, setChoosing] = useState(() => !identity && !dismissedIdentity(dismissalStorage))
+  const [choosing, setChoosing] = useState(() => !identityKey && !dismissedIdentity(dismissalStorage))
   const [choice, setChoice] = useState(identityKey)
   const [remember, setRemember] = useState(true)
   const [choicePart, setChoicePart] = useState('')
@@ -64,6 +71,20 @@ export function AttendanceExperience(props: Props) {
     document.title = label + ' | UnionBoard'
   }, [event])
 
+  useEffect(() => {
+    if (props.isLoading || props.loadError || !identityKey) return
+    try {
+      if (!identity) {
+        if (localStorage.getItem(identityStorage) === identityKey) { localStorage.removeItem(identityStorage); localStorage.removeItem(identityStorage + ':display') }
+        setCachedIdentity(null); setIdentityKey(''); return
+      }
+      if (localStorage.getItem(identityStorage) === identityKey) {
+        const value = { userKey: identity.userKey, name: identity.name, part: identity.part }
+        localStorage.setItem(identityStorage + ':display', JSON.stringify(value)); setCachedIdentity(value)
+      }
+    } catch { /* Storage is optional. */ }
+  }, [props.isLoading, props.loadError, identityKey, identity, identityStorage])
+
   const navigate = (id: string) => {
     if (!eventId) listScroll.current = window.scrollY
     location.hash = id ? 'event/' + encodeURIComponent(id) : 'schedule'
@@ -84,7 +105,8 @@ export function AttendanceExperience(props: Props) {
   }
   const acceptIdentity = (key: string) => {
     setIdentityKey(key)
-    try { if (remember) localStorage.setItem(identityStorage, key); else localStorage.removeItem(identityStorage) } catch { /* Selection still works for this visit. */ }
+    setCachedIdentity(null)
+    try { if (remember) { localStorage.setItem(identityStorage, key); const member = members.find(m => m.userKey === key); if (member) localStorage.setItem(identityStorage + ':display', JSON.stringify({ userKey: key, name: member.name, part: member.part })) } else { localStorage.removeItem(identityStorage); localStorage.removeItem(identityStorage + ':display') } } catch { /* Selection still works for this visit. */ }
     setChoosing(false); setRegistering(false)
     if (pendingScope) startEditor(key, pendingScope)
     setPendingScope(null)
@@ -114,13 +136,13 @@ export function AttendanceExperience(props: Props) {
     if (pinned) requestAnimationFrame(() => tabRef.current?.scrollIntoView({ block: 'start' }))
   }
   return <section className="board-experience">
-    <div className="board-person-bar"><div className="board-person-status"><button aria-label={identity ? `選択中: ${identity.name}（${identity.part}）。名前を切り替える` : undefined} aria-describedby={!identity ? 'board-identity-hint' : undefined} className={identity ? 'board-identity-badge' : 'board-primary board-highlight'} onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(identity?.part || ''); setRegistering(false); setRegisterError(''); setChoosing(true) }}>{identity ? <><svg className="board-person-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span className="board-person-name">{identity.name + '（' + identity.part + '）'}</span><span aria-hidden="true">▾</span></> : '自分の名前を選ぶ'}</button>
+    <div className="board-person-bar"><div className="board-person-status"><button disabled={props.isLoading || props.loadError} aria-label={displayIdentity ? `選択中: ${displayIdentity.name}（${displayIdentity.part}）。名前を切り替える` : undefined} aria-describedby={!identity ? 'board-identity-hint' : undefined} className={displayIdentity ? 'board-identity-badge' : 'board-primary board-highlight'} onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(identity?.part || ''); setRegistering(false); setRegisterError(''); setChoosing(true) }}>{displayIdentity ? <><svg className="board-person-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0"/></svg><span className="board-person-name">{displayIdentity.name + '（' + displayIdentity.part + '）'}</span><span aria-hidden="true">▾</span></> : '自分の名前を選ぶ'}</button>
       </div>
-      {identity && <button className="board-primary board-highlight board-attendance-action" onClick={() => edit('all')}>出欠を変更</button>}
+      {displayIdentity && <button disabled={props.isLoading || props.loadError} className="board-primary board-highlight board-attendance-action" onClick={() => edit('all')}>出欠を変更</button>}
     </div>
-    {!identity && <p id="board-identity-hint" className="board-identity-hint">まずは自分の名前を選ぶと、出欠をすぐに入力できます。閲覧だけなら選択不要です。</p>}
+    {!displayIdentity && !props.isLoading && !props.loadError && <p id="board-identity-hint" className="board-identity-hint">まずは自分の名前を選ぶと、出欠をすぐに入力できます。閲覧だけなら選択不要です。</p>}
     {!eventId ? <>
-      <div className="board-page-heading"><h2>予定一覧</h2><MemberActions onCalendar={props.onCalendar} onReload={props.onReload} /></div>
+      <div className="board-page-heading"><h2>予定一覧</h2><MemberActions onCalendar={props.onCalendar} onReload={props.onReload} loading={props.isLoading} /></div>
       <div className="board-view-tabs" role="tablist" aria-label="予定の表示方法" onKeyDown={key => {
         if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(key.key)) return
         key.preventDefault()
@@ -132,7 +154,7 @@ export function AttendanceExperience(props: Props) {
         <button id="board-view-tab-table" type="button" role="tab" aria-selected={showTable} aria-controls="board-schedule-panel" tabIndex={showTable ? 0 : -1} onClick={() => selectScheduleView(true)}>全体表</button>
       </div>
       <div id="board-schedule-panel" className="board-schedule-panel" role="tabpanel" aria-labelledby={showTable ? 'board-view-tab-table' : 'board-view-tab-schedule'} tabIndex={0}>
-      {showTable ? <AttendanceGrid {...props} onEventClick={navigate} /> : <ul className="board-schedule">{sortedEvents.map(ev => {
+      {props.isLoading ? <LoadingSpinner /> : props.loadError ? null : showTable ? <AttendanceGrid {...props} onEventClick={navigate} /> : <ul className="board-schedule">{sortedEvents.map(ev => {
         const counts = tallyAttendance(members, responsesMap[ev.id] || [])
         return <li key={ev.id} className="board-cassette"><a href={'#event/' + encodeURIComponent(ev.id)} onClick={click => { if (!click.metaKey && !click.ctrlKey && !click.shiftKey && !click.altKey) { click.preventDefault(); navigate(ev.id) } }} className="board-event-link">
           <span className="board-event-date"><strong>{eventDateLabel(ev)}</strong><span>{ev.title || '予定'}</span><small>{eventTimeLabel(ev)}</small></span>
@@ -141,9 +163,9 @@ export function AttendanceExperience(props: Props) {
         </a><button className="board-self" aria-label={eventDateLabel(ev) + ' 自分の出欠を編集'} onClick={() => edit(ev.id)}><small>自分</small>{identity ? <span className={'board-self-mark ' + responseClass(status(ev.id, identity.userKey))}>{status(ev.id, identity.userKey)}</span> : <span>未選択</span>}<small>変更</small></button></li>
       })}</ul>}
       </div>
-      {!events.length && <p className="board-empty">表示期間内に予定はありません。</p>}
+      {!props.isLoading && !props.loadError && !events.length && <p className="board-empty">表示期間内に予定はありません。</p>}
       <p className="board-note">参加予定＝○出席＋△遅刻/早退。同時に全員が揃うとは限りません。<br />未回答と未定は「-」で表示します。0件の内訳は「-」です。</p>
-    </> : event ? <>
+    </> : props.isLoading ? <LoadingSpinner /> : props.loadError ? null : event ? <>
       <a className="board-back" href="#schedule" onClick={click => { click.preventDefault(); navigate('') }}>← 予定一覧</a>
       <section className="board-summary"><h2>{eventDateLabel(event)} {event.title}</h2><p>{eventTimeLabel(event)}</p><strong>{event.location || '場所未設定'}</strong>{event.description && <p className="board-description">{cleanDescription(event.description)}</p>}
         <div className="board-counts">{RESPONSE_STATUSES.map(s => <span className={'board-answer ' + responseClass(s)} key={s}>{s} {countLabel(tallyAttendance(members, responses)[s])}人</span>)}</div>
@@ -171,7 +193,7 @@ export function AttendanceExperience(props: Props) {
         return <section key={part}><h3>{part} <small>{group.length}人</small><span>○{countLabel(counts['○'])} · △{countLabel(counts['△'])}</span></h3><ul>{group.map(member => <li key={member.userKey}><button onClick={() => onMemberClick(getMemberDisplayName(member))}><span>{member.name}</span><Answer status={status(event.id, member.userKey)} /></button></li>)}</ul></section>
       })}</div></div>
     </> : <p>この日程は現在の表示期間にありません。<a href="#schedule">予定一覧へ戻る</a></p>}
-    {choosing && <BoardDialog title="あなたの名前は？" busy={registerBusy} onClose={dismissChoosing} closeLabel={identity ? '閉じる' : '登録せずに見る'}><form className="board-dialog-body board-identity-form" onSubmit={submit => { submit.preventDefault(); if (registering) void registerIdentity(); else choose() }}>
+    {choosing && !props.isLoading && !props.loadError && <BoardDialog title="あなたの名前は？" busy={registerBusy} onClose={dismissChoosing} closeLabel={identity ? '閉じる' : '登録せずに見る'}><form className="board-dialog-body board-identity-form" onSubmit={submit => { submit.preventDefault(); if (registering) void registerIdentity(); else choose() }}>
       <div className="board-identity-notice" role="note"><strong>自分の出欠を、すぐに確認・入力できます</strong><p>パートと名前を選んでください。未登録ならここから登録できます。閲覧だけなら右上のボタンで閉じられます。</p></div>
       {!identity && <div className="board-identity-mode">{registering ? <><span>すでに登録済みの方</span><button type="button" disabled={registerBusy} onClick={() => { setRegistering(false); setRegisterError('') }}>名前を選ぶ</button></> : <><span>初めて利用する方</span><button type="button" className="board-register-link" disabled={registerBusy} onClick={() => { setRegistering(true); setRegisterError('') }}>メンバー登録</button></>}</div>}
       <label>パート<select disabled={registerBusy} value={choicePart} onChange={e => { setChoicePart(e.target.value); setChoice(''); setRegisterError('') }}><option value="" disabled>パートを選んでください</option>{(registering ? PART_OPTIONS.map(p => p.value) : [...groups.keys()]).map(p => <option key={p}>{p}</option>)}</select></label>
@@ -180,7 +202,7 @@ export function AttendanceExperience(props: Props) {
       <p className="board-note">ログインや本人確認ではありません。共有端末では記憶を外してください。</p>
       {registerError && <p role="alert" className="board-registration-error">{registerError}</p>}
       <div className="board-identity-actions"><button type="submit" className="board-primary" disabled={registerBusy || (registering ? !choicePart || !newName.trim() : !choicePart || !choice)}>{registerBusy ? '登録中…' : registering ? '登録して進む' : 'この名前で進む'}</button></div>
-      {identity && !registering && <div className="board-identity-account-actions"><button className="board-identity-edit" type="button" onClick={() => { setChoosing(false); props.onEditMemberInfo(getMemberDisplayName(identity)) }}>名前・パートを編集</button><button type="button" onClick={() => { setIdentityKey(''); try { localStorage.removeItem(identityStorage) } catch { /* memory is optional */ } setChoosing(false) }}>自分の選択を解除</button></div>}
+      {identity && !registering && <div className="board-identity-account-actions"><button className="board-identity-edit" type="button" onClick={() => { setChoosing(false); props.onEditMemberInfo(getMemberDisplayName(identity)) }}>名前・パートを編集</button><button type="button" onClick={() => { setIdentityKey(''); try { localStorage.removeItem(identityStorage); localStorage.removeItem(identityStorage + ':display') } catch { /* memory is optional */ } setChoosing(false) }}>自分の選択を解除</button></div>}
     </form></BoardDialog>}
     {editor && members.some(m => m.userKey === editor.key) && <ResponseEditor key={editor.key + ':' + editor.scope} member={members.find(m => m.userKey === editor.key)!} events={sortedEvents.filter(e => editor.eventIds.includes(e.id))} responses={Object.values(responsesMap).flat().filter(r => r.userKey === editor.key)} onSave={onSave} onClose={() => setEditor(null)} />}
   </section>

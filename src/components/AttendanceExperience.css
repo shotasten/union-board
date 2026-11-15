@@ -224,4 +224,5 @@ body:has(.board-app) .calendar-modal-content .form-btn.secondary:hover { backgro
   .board-experience .board-identity-badge:not(:disabled):hover { background: #d4f0f2; box-shadow: none; }
   .board-experience .board-text-action:not(:disabled):hover { background: transparent; text-decoration: underline; box-shadow: none; }
 }
-body:has(.board-app) .modal .admin-login-modal-content { width: 92%; max-inline-size: min(400px, calc(100vw - 24px)); margin-inline: auto; }
+body:has(.board-app) .admin-login-modal { align-items: center; justify-content: center; padding: 12px; }
+body:has(.board-app) .modal .admin-login-modal-content { width: 92%; max-inline-size: min(400px, calc(100vw - 24px)); margin: auto; }

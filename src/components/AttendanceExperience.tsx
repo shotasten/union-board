@@ -112,7 +112,7 @@ export function AttendanceExperience(props: Props) {
     if (pinned) requestAnimationFrame(() => tabRef.current?.scrollIntoView({ block: 'start' }))
   }
   return <section className="board-experience">
-    <div className="board-person-bar"><button aria-describedby={!identity ? 'board-identity-hint' : undefined} className={!identity ? 'board-primary' : undefined} onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(''); setRegistering(false); setRegisterError(''); setChoosing(true) }}>{identity ? identity.name + '（' + identity.part + '）' : '自分の名前を選ぶ'}</button>
+    <div className="board-person-bar"><button aria-describedby={!identity ? 'board-identity-hint' : undefined} className={!identity ? 'board-primary board-highlight' : undefined} onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(''); setRegistering(false); setRegisterError(''); setChoosing(true) }}>{identity ? identity.name + '（' + identity.part + '）' : '自分の名前を選ぶ'}</button>
       {identity && <><button className="board-primary" onClick={() => edit('all')}>出欠を変更</button><button onClick={() => props.onEditMemberInfo(getMemberDisplayName(identity))}>名前・パートを編集</button></>}
     </div>
     {!identity && <p id="board-identity-hint" className="board-identity-hint">まずは自分の名前を選ぶと、出欠をすぐに入力できます。閲覧だけなら選択不要です。</p>}

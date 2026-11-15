@@ -10,7 +10,7 @@ type Scope = 'all' | 'pending' | string
 interface Props {
   events: AttendanceEvent[]; members: Member[]; responsesMap: Record<string, AttendanceResponse[]>; isAdmin: boolean
   selectedMember: string | null; localStatusOverrides: Record<string, Record<string, ResponseStatus>>
-  storageScope: string; onRegisterMember: (part: string, name: string) => Promise<Member | null>; onMemberClick: (name: string) => void
+  storageScope: string; onRegisterMember: (part: string, name: string) => Promise<Member | null>; onMemberClick: (name: string) => void; onEditMemberInfo: (name: string) => void
   onSave: (key: string, name: string, updates: Array<{ eventId: string; status: ResponseStatus; comment: string }>) => Promise<boolean>
   onEditEvent: (id: string) => void; onDeleteEvent: (id: string, title: string) => void
 }
@@ -104,10 +104,9 @@ export function AttendanceExperience(props: Props) {
     setTab(next); setPartFilter('')
     if (pinned) requestAnimationFrame(() => tabRef.current?.scrollIntoView({ block: 'start' }))
   }
-  const pending = identity ? events.filter(e => status(e.id, identity.userKey) === '-').length : 0
   return <section className="board-experience">
     <div className="board-person-bar"><button aria-describedby={!identity ? 'board-identity-hint' : undefined} className={!identity ? 'board-primary' : undefined} onClick={() => { setPendingScope(null); setChoice(identity?.userKey || ''); setChoicePart(''); setRegistering(false); setRegisterError(''); setChoosing(true) }}>{identity ? identity.name + '（' + identity.part + '）' : '自分の名前を選ぶ'}</button>
-      {identity && <><button className="board-primary" onClick={() => edit(pending ? 'pending' : 'all')}>{pending ? '未定 ' + pending + '件を入力' : '出欠を変更'}</button><button onClick={() => edit('all')}>まとめて変更</button><button onClick={() => onMemberClick(getMemberDisplayName(identity))}>名前・パートを編集</button></>}
+      {identity && <><button className="board-primary" onClick={() => edit('all')}>出欠を変更</button><button onClick={() => props.onEditMemberInfo(getMemberDisplayName(identity))}>名前・パートを編集</button></>}
     </div>
     {!identity && <p id="board-identity-hint" className="board-identity-hint">まずは自分の名前を選ぶと、出欠をすぐに入力できます。閲覧だけなら選択不要です。</p>}
     {!eventId ? <>
@@ -126,7 +125,8 @@ export function AttendanceExperience(props: Props) {
     </> : event ? <>
       <a className="board-back" href="#schedule" onClick={click => { click.preventDefault(); navigate('') }}>← 予定一覧</a>
       <section className="board-summary"><h2>{eventDateLabel(event)} {event.title}</h2><p>{eventTimeLabel(event)}</p><strong>{event.location || '場所未設定'}</strong>{event.description && <p className="board-description">{cleanDescription(event.description)}</p>}
-        <div className="board-counts">{RESPONSE_STATUSES.map(s => <span className={'board-answer ' + responseClass(s)} key={s}>{s} {countLabel(tallyAttendance(members, responses)[s])}人</span>)}</div><button onClick={() => edit(event.id)}>{identity ? identity.name + 'の出欠・コメントを変更' : '自分の出欠・コメントを入力'}</button>
+        <div className="board-counts">{RESPONSE_STATUSES.map(s => <span className={'board-answer ' + responseClass(s)} key={s}>{s} {countLabel(tallyAttendance(members, responses)[s])}人</span>)}</div>
+        <div className="board-own-response"><span>自分の回答</span>{identity ? <Answer status={status(event.id, identity.userKey)} /> : <span className="board-note">未選択</span>}<button onClick={() => edit(event.id)}>{identity ? '出欠・コメントを変更' : '自分の出欠・コメントを入力'}</button></div>
       </section>
       <section className="board-comments" aria-labelledby="board-comments-title"><div className="board-section-heading"><h3 id="board-comments-title">コメント</h3><button onClick={() => edit(event.id)}>書く・編集</button></div>
         {responses.filter(r => members.some(m => m.userKey === r.userKey) && r.comment?.trim()).map(r => {
@@ -159,7 +159,7 @@ export function AttendanceExperience(props: Props) {
       <p className="board-note">ログインや本人確認ではありません。共有端末では記憶を外してください。</p>
       {registerError && <p role="alert" className="board-registration-error">{registerError}</p>}
       <div className="board-identity-actions"><button type="submit" className="board-primary" disabled={registerBusy || (registering ? !choicePart || !newName.trim() : !choice)}>{registerBusy ? '登録中…' : registering ? '登録して進む' : 'この名前で進む'}</button></div>
-      {identity && !registering && <div className="board-identity-account-actions"><button type="button" onClick={() => { setChoosing(false); onMemberClick(getMemberDisplayName(identity)) }}>名前・パートを編集</button><button type="button" onClick={() => { setIdentityKey(''); try { localStorage.removeItem(identityStorage) } catch { /* memory is optional */ } setChoosing(false) }}>自分の選択を解除</button></div>}
+      {identity && !registering && <div className="board-identity-account-actions"><button type="button" onClick={() => { setChoosing(false); props.onEditMemberInfo(getMemberDisplayName(identity)) }}>名前・パートを編集</button><button type="button" onClick={() => { setIdentityKey(''); try { localStorage.removeItem(identityStorage) } catch { /* memory is optional */ } setChoosing(false) }}>自分の選択を解除</button></div>}
     </form></BoardDialog>}
     {editor && members.some(m => m.userKey === editor.key) && <ResponseEditor key={editor.key + ':' + editor.scope} member={members.find(m => m.userKey === editor.key)!} events={sortedEvents.filter(e => editor.eventIds.includes(e.id))} responses={Object.values(responsesMap).flat().filter(r => r.userKey === editor.key)} onSave={onSave} onClose={() => setEditor(null)} />}
   </section>
@@ -178,5 +178,7 @@ function ResponseEditor({ member, events, responses, onSave, onClose }: { member
     catch { setError('保存できませんでした。入力内容を保持しています。') }
     finally { setBusy(false) }
   }
-  return <BoardDialog title={member.name + '（' + member.part + '）の出欠'} onClose={close} busy={busy}><div className="board-dialog-body"><p className="board-note">表示 {events.length}件。変更した回答・コメントだけを保存します。</p>{!events.length && <p>入力対象の日程はありません。</p>}{events.map(e => <fieldset className="board-editor-event" key={e.id}><legend>{eventDateLabel(e)} {e.title}</legend><p className="board-note">{e.location || '場所未設定'}<br />{eventTimeLabel(e)}</p><div className="board-choices">{RESPONSE_STATUSES.map(s => <button key={s} disabled={busy} className={responseClass(s)} aria-pressed={draft[e.id].status === s} onClick={() => setDraft(prev => ({ ...prev, [e.id]: { ...prev[e.id], status: s } }))}>{s}<small>{RESPONSE_LABELS[s]}</small></button>)}</div><label>コメント（任意）<textarea disabled={busy} value={draft[e.id].comment} onChange={input => setDraft(prev => ({ ...prev, [e.id]: { ...prev[e.id], comment: input.target.value } }))} /></label></fieldset>)}</div><div className="board-dialog-footer"><span role="status">{error || updates.length + '件変更'}</span><button disabled={busy} onClick={close}>取消</button><button className="board-primary" disabled={busy || !updates.length} onClick={save}>{busy ? '保存中…' : '保存'}</button></div></BoardDialog>
+  return <><BoardDialog title={member.name + '（' + member.part + '）の出欠'} onClose={close} busy={busy}><div className="board-dialog-body"><p className="board-note">表示 {events.length}件。変更した回答・コメントだけを保存します。</p>{!events.length && <p>入力対象の日程はありません。</p>}{events.map(e => <fieldset className="board-editor-event" key={e.id}><legend>{eventDateLabel(e)} {e.title}</legend><p className="board-note">{e.location || '場所未設定'}<br />{eventTimeLabel(e)}</p><div className="board-choices">{RESPONSE_STATUSES.map(s => <button key={s} disabled={busy} className={responseClass(s)} aria-pressed={draft[e.id].status === s} onClick={() => setDraft(prev => ({ ...prev, [e.id]: { ...prev[e.id], status: s } }))}>{s}<small>{RESPONSE_LABELS[s]}</small></button>)}</div><label>コメント（任意）<textarea disabled={busy} value={draft[e.id].comment} onChange={input => setDraft(prev => ({ ...prev, [e.id]: { ...prev[e.id], comment: input.target.value } }))} /></label></fieldset>)}</div><div className="board-dialog-footer"><span role="status">{updates.length + '件変更'}</span><button disabled={busy} onClick={close}>取消</button><button className="board-primary" disabled={busy || !updates.length} onClick={save}>{busy ? '保存中…' : '保存'}</button></div></BoardDialog>
+    {error && <BoardDialog title="保存できませんでした" onClose={() => setError('')}><div className="board-dialog-body"><p role="alert">{error}</p></div><div className="board-dialog-footer"><button className="board-primary" onClick={() => setError('')}>入力に戻る</button></div></BoardDialog>}
+  </>
 }

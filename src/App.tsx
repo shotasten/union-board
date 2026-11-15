@@ -71,6 +71,7 @@ export function App() {
   } = useAppState()
 
   const [adminManageRefresh, setAdminManageRefresh] = useState(0)
+  const [directInfoMemberKey, setDirectInfoMemberKey] = useState<string | null>(null)
   const bumpAdminManageRefresh = () => setAdminManageRefresh(n => n + 1)
 
   useEffect(() => {
@@ -90,6 +91,13 @@ export function App() {
 
     setSelectedMember(displayName)
     openModal('memberEdit', { open: true, memberKey: member.userKey })
+  }
+
+  const handleDirectMemberInfoEdit = (displayName: string) => {
+    const member = members.find(m => getMemberDisplayName(m) === displayName)
+    if (!member) return
+    setDirectInfoMemberKey(member.userKey)
+    openModal('memberInfoEdit', true)
   }
 
   // Handle member edit modal close
@@ -207,7 +215,7 @@ export function App() {
                       selectedMember={selectedMember} isAdmin={isAdmin}
                       localStatusOverrides={localStatusOverrides}
                       storageScope={import.meta.env.VITE_SPACE_ID || 'default'}
-                      onMemberClick={handleMemberClick} onSave={handleBulkUpdateResponses}
+                      onMemberClick={handleMemberClick} onEditMemberInfo={handleDirectMemberInfoEdit} onSave={handleBulkUpdateResponses}
                       onRegisterMember={async (part, name) => { let registered: Member | null = null; const ok = await handleRegisterMember(part, name, member => { registered = member }); return ok ? registered : null }}
                       onEditEvent={handleEditFromDetail} onDeleteEvent={handleDeleteFromDetail}
                     />
@@ -307,8 +315,8 @@ export function App() {
 
       <MemberInfoEditModal
         open={modals.memberInfoEdit}
-        member={editingMember}
-        onClose={() => closeModal('memberInfoEdit')}
+        member={directInfoMemberKey ? members.find(m => m.userKey === directInfoMemberKey) ?? null : editingMember}
+        onClose={() => { closeModal('memberInfoEdit'); setDirectInfoMemberKey(null) }}
         onSave={handleSaveMemberInfo}
       />
 

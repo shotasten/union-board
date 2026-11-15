@@ -14,6 +14,15 @@ body:has(.board-app) .modal .modal-content{border:1px solid var(--board-line);bo
 
 .board-dialog:modal{overscroll-behavior:contain}.board-dialog::backdrop{overflow:hidden;overscroll-behavior:contain}
 
+/* Keep page chrome flush to the viewport and make the calendar subscription dialog compact. */
+.board-app .container{margin:0 auto}
+body:has(.board-app) .modal .calendar-modal-content{width:min(520px,calc(100vw - 32px));max-width:520px!important;max-height:80dvh;padding:1rem}
+.board-dialog input:not([type=checkbox]){font:inherit;font-size:1rem;min-height:44px;width:100%;border:1px solid #cbd5e1;border-radius:8px;padding:.75rem;background:white;color:inherit}
+.board-own-response{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-block-start:1rem;padding: .75rem;background:#f4f8f9;border:1px solid var(--board-line);border-radius:8px}
+.board-own-response>span:first-child{font-size:.75rem;font-weight:600;color:var(--board-muted)}
+.board-own-response .board-note{margin:0}
+.board-own-response button{margin-inline-start:auto;font-size:.75rem}
+
 .board-app .member-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-block:0 .75rem}
 
 .board-identity-form>label{display:flex;flex-direction:column;gap:.5rem;margin-block:1rem;font-size:.8125rem}.board-identity-form input:not([type=checkbox]){font:inherit;font-size:1rem;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;min-height:44px;width:100%}.board-identity-form>.board-checkbox{flex-direction:row}.board-register-link{color:var(--board-accent)!important;font-size:.8125rem!important}.board-identity-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-block:1rem}.board-registration-error{color:#a73b48;font-size:.8125rem;line-height:1.6}

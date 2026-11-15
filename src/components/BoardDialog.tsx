@@ -1,7 +1,7 @@
 import { useEffect, useRef, useId } from 'react'
 import type { ReactNode, PointerEvent, MouseEvent } from 'react'
-interface Props { title: string; onClose: () => void; children: ReactNode; busy?: boolean }
-export function BoardDialog({ title, onClose, children, busy = false }: Props) {
+interface Props { title: string; onClose: () => void; children: ReactNode; busy?: boolean; closeLabel?: string }
+export function BoardDialog({ title, onClose, children, busy = false, closeLabel = '閉じる' }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   useEffect(() => {
@@ -20,7 +20,7 @@ export function BoardDialog({ title, onClose, children, busy = false }: Props) {
     onCancel={event => { if (busy) event.preventDefault() }} onClose={() => { if (!ref.current?.open) onClose() }}
     onPointerDown={event => { outsideStart.current = outside(event) }}
     onClick={event => { if (!('closedBy' in HTMLDialogElement.prototype) && outsideStart.current && outside(event) && !busy) ref.current?.close() }}>
-    <div className="board-dialog-heading"><h2 id={titleId}>{title}</h2><button type="button" onClick={onClose} disabled={busy} autoFocus>閉じる</button></div>
+    <div className="board-dialog-heading"><h2 id={titleId}>{title}</h2><button type="button" onClick={onClose} disabled={busy} autoFocus>{closeLabel}</button></div>
     {children}
   </dialog>
 }

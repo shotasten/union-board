@@ -14,17 +14,16 @@ body:has(.board-app) .modal .modal-content{border:1px solid var(--board-line);bo
 
 .board-dialog:modal{overscroll-behavior:contain}.board-dialog::backdrop{overflow:hidden;overscroll-behavior:contain}
 
-/* Keep the optional browse action visibly actionable while secondary to identity setup. */
-.board-dialog .board-browse-only{display:block;width:100%;min-height:44px;margin-top:.5rem;padding:.625rem .75rem;border:1px solid #c8dce0;border-radius:8px;background:#fff;color:var(--board-accent);font-size:.8125rem;font-weight:550;text-align:center}
-.board-dialog .board-browse-only:hover{background:#f2fafb}
-.board-dialog .board-browse-only:active{background:#e5f5f6}
-.board-dialog .board-browse-only{border:1px solid #c8dce0!important;background:#fff!important;color:var(--board-accent)!important}
-.board-dialog .board-browse-only:hover{background:#f2fafb!important}
-.board-dialog .board-browse-only:active{background:#e5f5f6!important}
-
 .board-app .member-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-block:0 .75rem}
 
 .board-identity-form>label{display:flex;flex-direction:column;gap:.5rem;margin-block:1rem;font-size:.8125rem}.board-identity-form input:not([type=checkbox]){font:inherit;font-size:1rem;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;min-height:44px;width:100%}.board-identity-form>.board-checkbox{flex-direction:row}.board-register-link{color:var(--board-accent)!important;font-size:.8125rem!important}.board-identity-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-block:1rem}.board-registration-error{color:#a73b48;font-size:.8125rem;line-height:1.6}
+
+/* Identity setup keeps its alternate path separate from the member picker. */
+.board-identity-mode{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem .75rem;margin-block:.75rem 1rem;padding:.75rem;border:1px solid var(--board-line);border-radius:8px;background:#fff}
+.board-identity-mode>span{font-size:.75rem;color:var(--board-muted)}
+.board-identity-mode>button{min-height:44px!important;padding:.625rem .75rem!important;border:1px solid #c8dce0!important;border-radius:8px;background:#fff!important;color:var(--board-accent)!important;font-size:.8125rem!important;white-space:nowrap}
+.board-identity-actions{display:grid;grid-template-columns:minmax(0,1fr);margin-block:1.25rem .5rem}
+.board-identity-actions>button{width:100%;min-height:48px;font-weight:600}
 
 /* The app and component preview share the same desktop reading width. */
 :root{--board-content-max:60rem}#app-root.board-app{max-inline-size:none;margin-inline:0}.board-app .container{max-width:none}.board-app main{max-inline-size:var(--board-content-max);margin-inline:auto}.board-app header{padding-inline:max(.75rem,calc((100% - var(--board-content-max))/2 + .75rem))}.board-app footer{padding-inline:max(.75rem,calc((100% - var(--board-content-max))/2 + .75rem))}.board-identity-hint{font-size:.8125rem;color:var(--board-accent);line-height:1.7;margin-block:.25rem 1rem;padding:.75rem 1rem;border-inline-start:3px solid var(--board-brand);background:#eaf6f7;border-radius:0 8px 8px 0}.board-identity-notice{padding:.875rem;background:#eaf6f7;border-radius:8px;margin-bottom:1rem;font-size:.8125rem;line-height:1.7}.board-identity-notice strong{font-weight:600;color:var(--board-ink)}.board-identity-notice p{margin-top:.375rem;color:var(--board-muted)}.board-dialog .board-browse-only{width:100%;background:transparent;color:var(--board-muted);border-color:transparent;margin-top:.25rem}

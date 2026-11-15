@@ -1284,6 +1284,16 @@ main {
 }
 
 .form-group input,
+/* Native date controls can otherwise retain an intrinsic width on mobile Safari. */
+.form-group input[type="date"],
+.form-group input[type="datetime-local"] {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
 .form-group textarea {
   width: 100%;
   padding: 10px;

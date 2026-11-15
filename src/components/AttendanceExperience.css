@@ -385,3 +385,8 @@ body:has(.board-app) .modal button { font-weight: 700; }
 .board-choices small { margin-top: 2px; }
 .board-editor-event > label { gap: .25rem; margin-block: .5rem 0; }
 .board-dialog .board-editor-event textarea { min-block-size: 44px; padding: .5rem .75rem; resize: vertical; }
+
+/* Keep the clear action alongside each comment without covering its text. */
+.board-comment-input { display: flex; align-items: flex-start; gap: .5rem; margin-block: .5rem 0; }
+.board-dialog .board-comment-input textarea { flex: 1; min-inline-size: 0; }
+.board-dialog .board-comment-input button { flex: none; font-size: 1.25rem; padding: .25rem; }

@@ -280,3 +280,5 @@ Cl (1人): 佐藤
 |---|---|
 | GOOGLE_SERVICE_ACCOUNT_JSON | GCP サービスアカウントの JSON キー |
 | GOOGLE_CALENDAR_ID | 同期先の Google Calendar ID |
+
+出欠編集のコメント欄では、入力内容があるときに表示されるクリアボタンでコメントを空にできる。変更は保存操作で反映する。

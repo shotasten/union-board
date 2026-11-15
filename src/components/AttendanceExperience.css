@@ -23,6 +23,25 @@ body:has(.board-app) .modal .calendar-modal-content{width:min(520px,calc(100vw -
 .board-own-response .board-note{margin:0}
 .board-own-response button{margin-inline-start:auto;font-size:.75rem}
 
+/* Whole-board view: reuse the app palette and keep the event column heading
+   aligned with its sticky body column while the member columns move sideways. */
+.board-experience .attendance-grid-scrollbar-top{height:10px;margin-bottom:6px;scrollbar-color:var(--board-brand) #e8eef0}
+.board-experience .attendance-grid-container{border:1px solid var(--board-line);border-top:0;border-radius:0 0 var(--board-radius) var(--board-radius);box-shadow:none;scrollbar-color:var(--board-brand) #e8eef0;overscroll-behavior-x:contain}
+.board-experience .attendance-grid-sticky-header{position:sticky;isolation:isolate;border-color:var(--board-line);border-radius:var(--board-radius) var(--board-radius) 0 0;box-shadow:0 2px 4px #23354d12}
+.board-experience .attendance-grid th{background:#f2f6f7;color:var(--board-ink);border-bottom:1px solid var(--board-line)}
+.board-experience .attendance-grid th:first-child,.board-experience .attendance-grid-event-heading{background:#eaf6f7;color:var(--board-ink);border-right:1px solid #cde2e4}
+.board-experience .attendance-grid-event-heading{position:absolute;inset:0 auto 0 0;z-index:20;width:200px;display:flex;align-items:center;justify-content:center;border-bottom:1px solid var(--board-line);font-size:.875rem;font-weight:650;pointer-events:none}
+.board-experience .attendance-grid thead tr:first-child th:not(:first-child){background:#eef4f6}
+.board-experience .attendance-grid thead tr:nth-child(2) th{background:#f9fbfc}
+.board-experience .attendance-grid tbody tr:nth-child(even) td:first-child{background:#f4f8f9}
+.board-experience .attendance-grid tbody tr:nth-child(odd) td:first-child{background:white}
+.board-experience .attendance-grid td:first-child{border-right:1px solid var(--board-line)}
+.board-experience .event-name-clickable{color:var(--board-ink);border-radius:6px}
+.board-experience .event-name-clickable::after{color:var(--board-accent)}
+.board-experience .member-name-col a{color:var(--board-accent)!important}
+.board-experience .attendance-grid-wrapper.scrollable-left::before{left:200px;width:18px;background:linear-gradient(to right,#f4f8f9,transparent)}
+.board-experience .attendance-grid-wrapper.scrollable-left::before{z-index:4}
+
 .board-app .member-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;margin-block:0 .75rem}
 
 .board-identity-form>label{display:flex;flex-direction:column;gap:.5rem;margin-block:1rem;font-size:.8125rem}.board-identity-form input:not([type=checkbox]){font:inherit;font-size:1rem;padding:.75rem;border:1px solid #cbd5e1;border-radius:8px;min-height:44px;width:100%}.board-identity-form>.board-checkbox{flex-direction:row}.board-register-link{color:var(--board-accent)!important;font-size:.8125rem!important}.board-identity-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-block:1rem}.board-registration-error{color:#a73b48;font-size:.8125rem;line-height:1.6}

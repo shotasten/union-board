@@ -215,7 +215,7 @@ export function AttendanceGrid({
           <thead>
             {/* Row 1: event header + legend + part headers */}
             <tr>
-              <th rowSpan={2}>イベント</th>
+              <th rowSpan={2} className="attendance-grid-event-header">イベント</th>
               <th
                 rowSpan={2}
                 colSpan={3}
@@ -237,12 +237,12 @@ export function AttendanceGrid({
                   style={{
                     fontSize: '0.85rem',
                     fontWeight: 'bold',
-                    color: '#333',
                     padding: '4px 6px',
                     lineHeight: '1.2',
-                    backgroundColor: '#f0f0f0',
-                    borderLeft: partIndex === 0 ? '1px solid #DDDDDD' : undefined,
-                    borderRight: partIndex < partKeys.length - 1 ? '1px solid #DDDDDD' : undefined,
+                    backgroundColor: '#eef4f6',
+                    color: 'var(--board-ink)',
+                    borderLeft: partIndex === 0 ? '1px solid var(--board-line)' : undefined,
+                    borderRight: partIndex < partKeys.length - 1 ? '1px solid var(--board-line)' : undefined,
                   }}
                 >
                   {part || 'その他'}
@@ -301,7 +301,7 @@ export function AttendanceGrid({
                       <a
                         href="#"
                         style={{
-                          color: isSelected ? '#667eea' : '#0066cc',
+                          color: 'var(--board-accent)',
                           textDecoration: 'underline',
                           fontSize: '0.7rem',
                           fontWeight: isSelected ? 'bold' : 'normal',
@@ -328,6 +328,7 @@ export function AttendanceGrid({
             </tr>
           </thead>
         </table>
+        <div className="attendance-grid-event-heading" aria-hidden="true">イベント</div>
       </div>
       <div id="attendance-grid" className="attendance-grid-container" ref={containerRef}>
         <table
@@ -407,7 +408,7 @@ export function AttendanceGrid({
                         <div
                           style={{
                             fontSize: '0.85rem',
-                            color: '#1976d2',
+                            color: 'var(--board-muted)',
                             lineHeight: '1.2',
                             whiteSpace: 'nowrap',
                             overflow: 'hidden',
@@ -418,7 +419,7 @@ export function AttendanceGrid({
                           {'📍' + event.location}
                         </div>
                       )}
-                      <div style={{ fontSize: '0.8rem', color: '#1976d2', lineHeight: '1.2' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--board-muted)', lineHeight: '1.2' }}>
                         {dateStrShort} {timeDisplay}
                       </div>
                     </div>

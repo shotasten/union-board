@@ -36,5 +36,3 @@ function personDetail(i=personIndex){personIndex=i;show('一人の12回を読む
  document.addEventListener('change',e=>{if(e.target.dataset.check!==undefined){const i=+e.target.dataset.check;e.target.checked?selected.add(i):selected.delete(i);const top=$('.scroll').scrollTop;render();$('.scroll').scrollTop=top;}else if(e.target.id==='part'){partFilter=e.target.value;render();}else if(e.target.id==='member-pick'){const i=+e.target.value;$('#detail').close();personDetail(i);}});
 load();render();
 </script></html>
-
-

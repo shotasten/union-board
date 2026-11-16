@@ -27,7 +27,6 @@ vi.mock('../src/lib/supabase', () => {
     supabase: {},
     supabasePublic: { from: () => builder() },
     SPACE_ID: 'test-space',
-    FUNCTIONS_URL: '',
   }
 })
 

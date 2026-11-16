@@ -12,7 +12,7 @@ type Scope = 'all' | 'pending' | string
 interface Props {
   onCalendar: () => void; onReload: () => void; isLoading?: boolean; loadError?: boolean
   events: AttendanceEvent[]; members: Member[]; responsesMap: Record<string, AttendanceResponse[]>; isAdmin: boolean
-  selectedMember: string | null; localStatusOverrides: Record<string, Record<string, ResponseStatus>>
+  selectedMember: string | null
   storageScope: string; onRegisterMember: (part: string, name: string) => Promise<Member | null>; onMemberClick: (name: string) => void; onEditMemberInfo: (name: string) => void
   onSave: (key: string, name: string, updates: Array<{ eventId: string; status: ResponseStatus; comment: string }>) => Promise<boolean>
   onEditEvent: (id: string) => void; onDeleteEvent: (id: string, title: string) => void

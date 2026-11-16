@@ -2,19 +2,6 @@ import type { Member } from '../types/models'
 
 export const PART_ORDER = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc', 'その他']
 
-export const PART_LABELS: Record<string, string> = {
-  'Fl': 'Fl (フルート)',
-  'Ob': 'Ob (オーボエ)',
-  'Cl': 'Cl (クラリネット)',
-  'Sax': 'Sax (サックス)',
-  'Hr': 'Hr (ホルン)',
-  'Tp': 'Tp (トランペット)',
-  'Tb': 'Tb (トロンボーン)',
-  'Bass': 'Bass (バス)',
-  'Perc': 'Perc (打楽器)',
-  'その他': 'その他'
-}
-
 export const PART_OPTIONS = [
   { value: 'Fl', label: 'Fl (フルート)' },
   { value: 'Ob', label: 'Ob (オーボエ)' },
@@ -72,10 +59,6 @@ export function formatDateShort(date: Date): string {
   return `${date.getMonth() + 1}/${date.getDate()}(${DAY_NAMES[date.getDay()]})`
 }
 
-export function formatDateLong(date: Date): string {
-  return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日(${DAY_NAMES[date.getDay()]})`
-}
-
 export function formatTime(date: Date): string {
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
 }
@@ -106,10 +89,4 @@ export function cleanDescription(description: string): string {
   cleaned = cleaned.replace(/\n{3,}/g, '\n\n')
   cleaned = cleaned.replace(/[ \t]+/g, ' ')
   return cleaned.trim()
-}
-
-export function escapeHtml(text: string): string {
-  const div = document.createElement('div')
-  div.textContent = text
-  return div.innerHTML
 }

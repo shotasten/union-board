@@ -40,7 +40,6 @@
 | `VITE_SUPABASE_URL` | Supabase プロジェクト URL | `https://vsdwwspusgljyrsvhghz.supabase.co` |
 | `VITE_SUPABASE_ANON_KEY` | Supabase Publishable key（anon key） | Dashboard > Project Settings > API |
 | `VITE_SPACE_ID` | spaces テーブルの UUID | `bb59c8f2-f1e8-427b-9258-73c344dd718c` |
-| `VITE_FUNCTIONS_URL` | Edge Functions のベース URL | `https://vsdwwspusgljyrsvhghz.supabase.co/functions/v1` |
 | `VITE_CAL_IFRAME_SRC` | カレンダー埋め込み iframe の src URL | Google カレンダー「カレンダーを埋め込む」から取得 |
 | `CLOUDFLARE_ACCOUNT_ID` | Cloudflare アカウント ID（各 Environment に対象アカウントの値を登録） | dev / prd で異なる値を設定 |
 | `KEEPALIVE_WORKER_URL` | 手動 keep-alive 実行対象 Worker の URL | dev / prd で異なる値を設定 |

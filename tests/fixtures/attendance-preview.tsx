@@ -45,7 +45,7 @@ function Preview() {
         <AttendanceExperience
           onCalendar={()=>setMessage('確認用画面ではカレンダーに接続しません')} onReload={()=>setMessage('確認用データを表示しています')}
           onRegisterMember={async(part,name)=>{if(fail)return null;if(members.some(m=>m.part===part&&m.name===name))return null;const member={userKey:crypto.randomUUID(),part,name,displayName:part+name,createdAt:stamp,updatedAt:stamp};setMembers(prev=>[...prev,member]);setMessage('サンプルメンバーを登録しました（この画面内のみ）');return member}}
-          events={events} members={members} responsesMap={responses} isAdmin={admin} selectedMember={members.find(m => m.userKey === memberKey) ? getMemberDisplayName(members.find(m => m.userKey === memberKey)!) : null} localStatusOverrides={{}} storageScope="ux-test-fixture"
+          events={events} members={members} responsesMap={responses} isAdmin={admin} selectedMember={members.find(m => m.userKey === memberKey) ? getMemberDisplayName(members.find(m => m.userKey === memberKey)!) : null} storageScope="ux-test-fixture"
           onMemberClick={name=>setMemberKey(members.find(m=>getMemberDisplayName(m)===name)?.userKey || null)} onEditMemberInfo={editInfo}
           onEditEvent={()=>setMessage('イベント編集')} onDeleteEvent={()=>setMessage('イベント削除の確認')}
           onSave={saveResponses}

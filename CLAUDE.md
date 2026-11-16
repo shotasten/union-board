@@ -27,7 +27,7 @@ union-board/
 │   └── components/
 │       ├── AttendanceGrid.tsx      出欠グリッド（メイン画面）
 │       ├── Header.tsx
-│       ├── Toast.tsx / FullscreenLoader.tsx / LoadingSpinner.tsx
+│       ├── Toast.tsx / FullscreenLoader.tsx
 │       └── modals/                 各種モーダル（イベント作成・メンバー登録など）
 ├── supabase/
 │   ├── migrations/

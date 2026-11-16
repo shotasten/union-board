@@ -31,7 +31,6 @@ export const supabasePublic = createClient(supabaseUrl, supabaseAnonKey, {
 });
 
 export const SPACE_ID = import.meta.env.VITE_SPACE_ID as string;
-export const FUNCTIONS_URL = import.meta.env.VITE_FUNCTIONS_URL as string;
 
 if (!SPACE_ID) {
   throw new Error('Missing VITE_SPACE_ID environment variable');

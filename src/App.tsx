@@ -40,7 +40,6 @@ export function App() {
     fullscreenLoader,
     modals,
     selectedMember,
-    localStatusOverrides,
     loadInitData,
     reloadEvents,
     openModal,
@@ -177,7 +176,6 @@ export function App() {
                       isLoading={isLoading} loadError={Boolean(error)} onCalendar={handleAddToCalendarClick} onReload={reloadEvents}
                       events={events} members={members} responsesMap={responsesMap}
                       selectedMember={selectedMember} isAdmin={isAdmin}
-                      localStatusOverrides={localStatusOverrides}
                       storageScope={import.meta.env.VITE_SPACE_ID || 'default'}
                       onMemberClick={handleMemberClick} onEditMemberInfo={handleDirectMemberInfoEdit} onSave={handleBulkUpdateResponses}
                       onRegisterMember={async (part, name) => { let registered: Member | null = null; const ok = await handleRegisterMember(part, name, member => { registered = member }); return ok ? registered : null }}

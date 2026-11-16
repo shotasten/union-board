@@ -63,7 +63,6 @@ jobs:
           VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           VITE_SPACE_ID: ${{ vars.VITE_SPACE_ID }}
-          VITE_FUNCTIONS_URL: ${{ vars.VITE_FUNCTIONS_URL }}
           VITE_CAL_IFRAME_SRC: ${{ vars.VITE_CAL_IFRAME_SRC }}
 
       # Cloudflare Pages の GitHub 連携は1リポジトリにつき1アカウントしか紐付けられない。

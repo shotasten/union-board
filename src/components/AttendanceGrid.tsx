@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react'
-import type { AttendanceEvent, AttendanceResponse, Member, ResponseStatus } from '../types/models'
+import type { AttendanceEvent, AttendanceResponse, Member } from '../types/models'
 import {
   sortMembers,
   getMemberDisplayName,
@@ -16,7 +16,6 @@ interface Props {
   responsesMap: Record<string, AttendanceResponse[]>
   selectedMember: string | null
   isAdmin: boolean
-  localStatusOverrides: Record<string, Record<string, ResponseStatus | '-'>>
   onMemberClick: (displayName: string) => void
   onEventClick: (eventId: string) => void
 }
@@ -35,7 +34,6 @@ export function AttendanceGrid({
   members,
   responsesMap,
   selectedMember,
-  localStatusOverrides,
   onMemberClick,
   onEventClick,
 }: Props) {
@@ -391,9 +389,7 @@ export function AttendanceGrid({
               const statusCounts: Record<string, number> = { '○': 0, '△': 0, '×': 0 }
               sortedMembers.forEach(member => {
                 const displayName = getMemberDisplayName(member)
-                const override = localStatusOverrides[event.id]?.[displayName]
-                const serverStatus = allResponses[event.id]?.[displayName]
-                const status = override !== undefined ? override : serverStatus
+                const status = allResponses[event.id]?.[displayName]
                 if (status === '○' || status === '△' || status === '×') {
                   statusCounts[status]++
                 }
@@ -484,10 +480,9 @@ export function AttendanceGrid({
                   {sortedMembers.map((member, memberIndex) => {
                     const displayName = getMemberDisplayName(member)
                     const part = member.part || 'その他'
-                    const override = localStatusOverrides[event.id]?.[displayName]
                     const serverStatus = allResponses[event.id]?.[displayName]
-                    const hasData = serverStatus !== undefined || override !== undefined
-                    const existingStatus = override !== undefined ? override : (serverStatus !== undefined ? serverStatus : null)
+                    const hasData = serverStatus !== undefined
+                    const existingStatus = serverStatus ?? null
 
                     const isSelected = selectedMember === displayName
                     const currentPartMembers = membersByPart[part] || []

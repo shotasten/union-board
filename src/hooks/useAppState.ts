@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
-import type { Session } from '@supabase/supabase-js'
 import { api } from '../lib/api'
 import { supabase } from '../lib/supabase'
 import { useAdmin } from './useAdmin'
@@ -26,9 +25,7 @@ export interface ModalState {
   adminInvite: boolean
   adminDeleteConfirm: { open: boolean; userId: string | null; adminName: string }
   event: { open: boolean; eventId: string | null }
-  eventDetail: { open: boolean; eventId: string | null }
   deleteConfirm: { open: boolean; eventId: string | null; eventTitle: string }
-  memberRegister: boolean
   memberEdit: { open: boolean; memberKey: string | null }
   memberInfoEdit: boolean
   displayPeriod: boolean
@@ -41,49 +38,13 @@ export interface ModalState {
   addToCalendar: boolean
 }
 
-export interface AppState {
-  events: AttendanceEvent[]
-  members: Member[]
-  responsesMap: Record<string, AttendanceResponse[]>
-  config: Config | null
-  isAdmin: boolean
-  session: Session | null
-  isLoading: boolean
-  error: string | null
-  toast: ToastState | null
-  fullscreenLoader: FullscreenLoaderState | null
-  modals: ModalState
-  selectedMember: string | null
-  // Local status overrides: { eventId: { displayName: status } }
-  localStatusOverrides: Record<string, Record<string, ResponseStatus | '-'>>
-}
-
-const PART_ORDER = ['Fl', 'Ob', 'Cl', 'Sax', 'Hr', 'Tp', 'Tb', 'Bass', 'Perc', 'その他']
-
-const PART_LABELS: Record<string, string> = {
-  'Fl': 'Fl (フルート)',
-  'Ob': 'Ob (オーボエ)',
-  'Cl': 'Cl (クラリネット)',
-  'Sax': 'Sax (サックス)',
-  'Hr': 'Hr (ホルン)',
-  'Tp': 'Tp (トランペット)',
-  'Tb': 'Tb (トロンボーン)',
-  'Bass': 'Bass (バス)',
-  'Perc': 'Perc (打楽器)',
-  'その他': 'その他'
-}
-
-export { PART_ORDER, PART_LABELS }
-
 const initialModalState: ModalState = {
   adminLogin: false,
   adminManage: false,
   adminInvite: false,
   adminDeleteConfirm: { open: false, userId: null, adminName: '' },
   event: { open: false, eventId: null },
-  eventDetail: { open: false, eventId: null },
   deleteConfirm: { open: false, eventId: null, eventTitle: '' },
-  memberRegister: false,
   memberEdit: { open: false, memberKey: null },
   memberInfoEdit: false,
   displayPeriod: false,
@@ -111,7 +72,6 @@ export function useAppState() {
   const [fullscreenLoader, setFullscreenLoader] = useState<FullscreenLoaderState | null>(null)
   const [modals, setModals] = useState<ModalState>(initialModalState)
   const [selectedMember, setSelectedMember] = useState<string | null>(null)
-  const [localStatusOverrides, setLocalStatusOverrides] = useState<Record<string, Record<string, ResponseStatus | '-'>>>({})
 
   // Keep a ref to responsesMap for use in callbacks without stale closures
   const responsesMapRef = useRef(responsesMap)
@@ -149,7 +109,7 @@ export function useAppState() {
   const closeModal = useCallback((key: keyof ModalState) => {
     setModals(prev => ({
       ...prev,
-      [key]: key === 'event' || key === 'eventDetail' || key === 'deleteConfirm' || key === 'memberEdit' || key === 'memberDeleteConfirm' || key === 'adminDeleteConfirm'
+      [key]: key === 'event' || key === 'deleteConfirm' || key === 'memberEdit' || key === 'memberDeleteConfirm' || key === 'adminDeleteConfirm'
         ? { ...initialModalState[key] }
         : false,
     }))
@@ -183,20 +143,18 @@ export function useAppState() {
       setEvents(data.events)
       setResponsesMap(data.responsesMap)
       setIsLoading(false)
+      return true
     } catch {
       setIsLoading(false)
       setError('データの取得に失敗しました。ブラウザのコンソールを確認してください。')
+      return false
     }
   }, [])
 
   // ===== Reload =====
   const reloadEvents = useCallback(async () => {
-    try {
-      await loadInitData()
-      showToast('最新のデータを読み込みました', 'success')
-    } catch {
-      showToast('再読み込みに失敗しました', 'error')
-    }
+    const success = await loadInitData()
+    showToast(success ? '最新のデータを読み込みました' : '再読み込みに失敗しました', success ? 'success' : 'error')
   }, [loadInitData, showToast])
 
   // ===== Invitation token from URL =====
@@ -305,7 +263,6 @@ export function useAppState() {
       const result = await api.createMember(userKey, part, name, displayName)
       if (result.success) {
         onRegistered?.(newMember)
-        closeModal('memberRegister')
         showToast('メンバーを登録しました', 'success')
         return true
       } else {
@@ -320,7 +277,7 @@ export function useAppState() {
       showToast('メンバー登録に失敗しました', 'error')
       return false
     }
-  }, [closeModal, showToast])
+  }, [showToast])
 
   // ===== Member info update =====
   const handleUpdateMemberInfo = useCallback(async (
@@ -400,19 +357,6 @@ export function useAppState() {
         closeModal('memberDeleteConfirm')
         closeModal('memberEdit')
         setSelectedMember(null)
-        setLocalStatusOverrides(prev => {
-          // Clean up overrides for this member
-          const updated = { ...prev }
-          Object.keys(updated).forEach(eventId => {
-            const displayName = member.part + member.name
-            if (updated[eventId][displayName] !== undefined) {
-              const eventOverrides = { ...updated[eventId] }
-              delete eventOverrides[displayName]
-              updated[eventId] = eventOverrides
-            }
-          })
-          return updated
-        })
         showToast('メンバーを削除しました', 'success')
         // Sync calendar to remove deleted member from event descriptions
         if (eventIdsToSync.length > 0) {
@@ -440,7 +384,7 @@ export function useAppState() {
   // ===== Bulk responses update =====
   const handleBulkUpdateResponses = useCallback(async (
     memberUserKey: string,
-    memberDisplayName: string,
+    _memberDisplayName: string,
     updates: Array<{ eventId: string; status: ResponseStatus | '-'; comment: string }>
   ): Promise<boolean> => {
     if (updates.length === 0) {
@@ -479,19 +423,6 @@ export function useAppState() {
                 createdAt: now,
                 updatedAt: now,
               }]
-            }
-          })
-          return updated
-        })
-
-        // Clear local overrides for this member
-        setLocalStatusOverrides(prev => {
-          const updated = { ...prev }
-          updates.forEach(u => {
-            if (updated[u.eventId]) {
-              const eventOverrides = { ...updated[u.eventId] }
-              delete eventOverrides[memberDisplayName]
-              updated[u.eventId] = eventOverrides
             }
           })
           return updated
@@ -664,7 +595,6 @@ export function useAppState() {
       if (result.success) {
         setMembers([])
         setResponsesMap({})
-        setLocalStatusOverrides({})
         setSelectedMember(null)
         closeModal('cleanupMembersResponsesFinalConfirm')
         showToast(
@@ -709,31 +639,6 @@ export function useAppState() {
     }
   }, [closeModal, hideFullscreenLoader, loadInitData, showFullscreenLoader, showToast])
 
-  // ===== Local overrides =====
-  const setLocalOverride = useCallback((eventId: string, displayName: string, status: ResponseStatus | '-') => {
-    setLocalStatusOverrides(prev => ({
-      ...prev,
-      [eventId]: {
-        ...(prev[eventId] || {}),
-        [displayName]: status,
-      }
-    }))
-  }, [])
-
-  const clearLocalOverridesForMember = useCallback((displayName: string) => {
-    setLocalStatusOverrides(prev => {
-      const updated = { ...prev }
-      Object.keys(updated).forEach(eventId => {
-        if (updated[eventId][displayName] !== undefined) {
-          const eventOverrides = { ...updated[eventId] }
-          delete eventOverrides[displayName]
-          updated[eventId] = eventOverrides
-        }
-      })
-      return updated
-    })
-  }, [])
-
   return {
     // State
     events,
@@ -748,7 +653,6 @@ export function useAppState() {
     fullscreenLoader,
     modals,
     selectedMember,
-    localStatusOverrides,
     pendingInvitationToken,
     // Actions
     loadInitData,
@@ -760,8 +664,6 @@ export function useAppState() {
     openModal,
     closeModal,
     setSelectedMember,
-    setLocalOverride,
-    clearLocalOverridesForMember,
     handleAdminLogin,
     handleAdminLogout,
     handleAdminListAdmins,
@@ -780,9 +682,5 @@ export function useAppState() {
     handleClearDisplayPeriod,
     handleCleanupMembersAndResponses,
     handleSyncAllEvents,
-    setEvents,
-    setMembers,
-    setResponsesMap,
-    setConfig,
   }
 }

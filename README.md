@@ -37,7 +37,6 @@ npm run dev
 VITE_SUPABASE_URL=https://xxxx.supabase.co
 VITE_SUPABASE_ANON_KEY=eyJ...
 VITE_SPACE_ID=<space-uuid>
-VITE_FUNCTIONS_URL=https://xxxx.supabase.co/functions/v1
 VITE_CAL_IFRAME_SRC=https://calendar.google.com/calendar/embed?src=...
 ```
 

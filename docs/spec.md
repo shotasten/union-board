@@ -274,7 +274,6 @@ Cl (1人): 佐藤
 | VITE_SUPABASE_URL | Supabase プロジェクト URL |
 | VITE_SUPABASE_ANON_KEY | Supabase anon key |
 | VITE_SPACE_ID | スペースの UUID |
-| VITE_FUNCTIONS_URL | Edge Functions のベース URL |
 
 ### Supabase Edge Function（シークレット）
 

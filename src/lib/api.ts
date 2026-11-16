@@ -40,11 +40,6 @@ export function getDisplayPeriod(config: Config, now = new Date()): { start: Dat
   return { start, end };
 }
 
-export function filterByDisplayPeriod(events: AttendanceEvent[], config: Config, now = new Date()): AttendanceEvent[] {
-  const { start, end } = getDisplayPeriod(config, now);
-  return events.filter(ev => (!start || new Date(ev.end) >= start) && (!end || new Date(ev.start) <= end));
-}
-
 // --- Converters ---
 
 function toEvent(row: DbEvent): AttendanceEvent {
@@ -174,19 +169,6 @@ export const api = {
     return { config, members: (membersResult.data as DbMember[] | null)?.map(toMember) ?? [], ...display };
   },
 
-  async getAllEventsWithResponses(): Promise<{
-    success: boolean;
-    events: AttendanceEvent[];
-    responsesMap: Record<string, AttendanceResponse[]>;
-    error?: string;
-  }> {
-    try {
-      return { success: true, ...await fetchDisplayData(await fetchConfig()) };
-    } catch (error) {
-      return { success: false, events: [], responsesMap: {}, error: error instanceof Error ? error.message : '取得に失敗しました' };
-    }
-  },
-
   async getMemberResponseEventIds(userKey: string): Promise<string[]> {
     const ids: string[] = [];
     for (let from = 0;; from += 1000) {
@@ -197,12 +179,6 @@ export const api = {
       ids.push(...page.map(row => row.event_id));
       if (page.length < 1000) return ids;
     }
-  },
-
-  async getMembers(): Promise<Member[]> {
-    const { data, error } = await supabasePublic.from('members').select('*').eq('space_id', SPACE_ID);
-    if (error) throw new Error(error.message);
-    return (data as DbMember[]).map(toMember);
   },
 
   async getAllEventsForLocationHistory(): Promise<AttendanceEvent[]> {
@@ -341,14 +317,6 @@ export const api = {
   // ------------------------------------------------------------------
   // Admin: Cleanup (RPC)
   // ------------------------------------------------------------------
-
-  async adminCleanupAllData(): Promise<{ success: boolean; calendarDeleted?: number; eventsDeleted?: number; responsesDeleted?: number; auditLogDeleted?: number; errors?: string[] }> {
-    const { data, error } = await supabase.rpc('admin_cleanup_all', {
-      p_space_id: SPACE_ID,
-    });
-    if (error) return { success: false, errors: [error.message] };
-    return data as { success: boolean; eventsDeleted: number; responsesDeleted: number };
-  },
 
   async adminCleanupMembersAndResponses(): Promise<{ success: boolean; membersDeleted?: number; responsesDeleted?: number; errors?: string[] }> {
     const { data, error } = await supabase.rpc('admin_cleanup_members_responses', {

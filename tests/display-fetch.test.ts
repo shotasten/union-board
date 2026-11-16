@@ -44,9 +44,33 @@ describe('display data fetching', () => {
     expect(first.responsesMap.camp[0].comment).toBe('camp')
     expect(state.requests.find(r => r.table === 'responses').filters).toEqual([['event_id', 'in', ['camp', 'future']]])
     state.config = [{ key: 'SHOW_ALL_EVENTS', value: 'true' }, { key: 'DISPLAY_END_DATE', value: '2026-08-08T00:00:00+09:00' }]
-    const second = await api.getAllEventsWithResponses()
+    const second = await api.getInitData()
     expect(second.events.map(e => e.id)).toEqual(['past'])
     expect(Object.keys(second.responsesMap)).toEqual(['past'])
+  })
+
+  it('includes events overlapping inclusive start and end boundaries', async () => {
+    const start = new Date('2026-08-10T00:00:00+09:00')
+    const end = new Date('2026-08-10T00:00:00+09:00')
+    end.setHours(23, 59, 59, 999)
+    state.config = [{ key: 'SHOW_ALL_EVENTS', value: 'true' }, { key: 'DISPLAY_START_DATE', value: start.toISOString() }, { key: 'DISPLAY_END_DATE', value: '2026-08-10T00:00:00+09:00' }]
+    const row = (id: string, a: string, b: string) => ({ id, start_at: a, end_at: b, status: 'active' })
+    state.events = [
+      row('all-day-boundary', '2026-08-09T00:00:00+09:00', start.toISOString()),
+      row('overnight', '2026-08-09T23:00:00+09:00', '2026-08-10T01:00:00+09:00'),
+      row('end-boundary', end.toISOString(), new Date(end.getTime() + 3600000).toISOString()),
+      row('outside', new Date(end.getTime() + 1).toISOString(), new Date(end.getTime() + 3600000).toISOString()),
+    ]
+    expect((await api.getInitData()).events.map(e => e.id)).toEqual(['all-day-boundary', 'overnight', 'end-boundary'])
+  })
+
+  it('uses the configured start only when past events are shown', async () => {
+    state.config = [{ key: 'SHOW_ALL_EVENTS', value: 'true' }, { key: 'DISPLAY_START_DATE', value: '2026-08-11T00:00:01+09:00' }]
+    expect((await api.getInitData()).events.map(e => e.id)).toEqual(['future'])
+    state.config[0].value = 'false'
+    expect((await api.getInitData()).events.map(e => e.id)).toEqual(['camp', 'future'])
+    state.config = [{ key: 'SHOW_ALL_EVENTS', value: 'true' }]
+    expect((await api.getInitData()).events.map(e => e.id)).toEqual(['past', 'camp', 'future'])
   })
 
   it('makes no responses request for an empty range', async () => {

@@ -12,7 +12,6 @@ import { AdminLoginModal } from './components/modals/AdminLoginModal'
 import { LogoutConfirmModal } from './components/modals/LogoutConfirmModal'
 import { SyncConfirmModal } from './components/modals/SyncConfirmModal'
 import { EventModal } from './components/modals/EventModal'
-import { EventDetailModal } from './components/modals/EventDetailModal'
 import { DeleteConfirmModal } from './components/modals/DeleteConfirmModal'
 import type { Member } from './types/models'
 import { MemberEditModal } from './components/modals/MemberEditModal'
@@ -41,7 +40,6 @@ export function App() {
     fullscreenLoader,
     modals,
     selectedMember,
-    localStatusOverrides,
     loadInitData,
     reloadEvents,
     openModal,
@@ -132,15 +130,13 @@ export function App() {
     return ok
   }
 
-  // Handle edit from event detail modal
+  // Handle edit from event detail
   const handleEditFromDetail = (eventId: string) => {
-    closeModal('eventDetail')
     openModal('event', { open: true, eventId })
   }
 
-  // Handle delete from event detail modal
+  // Handle delete from event detail
   const handleDeleteFromDetail = (eventId: string, title: string) => {
-    closeModal('eventDetail')
     openModal('deleteConfirm', { open: true, eventId, eventTitle: title })
   }
 
@@ -180,7 +176,6 @@ export function App() {
                       isLoading={isLoading} loadError={Boolean(error)} onCalendar={handleAddToCalendarClick} onReload={reloadEvents}
                       events={events} members={members} responsesMap={responsesMap}
                       selectedMember={selectedMember} isAdmin={isAdmin}
-                      localStatusOverrides={localStatusOverrides}
                       storageScope={import.meta.env.VITE_SPACE_ID || 'default'}
                       onMemberClick={handleMemberClick} onEditMemberInfo={handleDirectMemberInfoEdit} onSave={handleBulkUpdateResponses}
                       onRegisterMember={async (part, name) => { let registered: Member | null = null; const ok = await handleRegisterMember(part, name, member => { registered = member }); return ok ? registered : null }}
@@ -244,18 +239,6 @@ export function App() {
         onClose={() => closeModal('event')}
         onCreate={handleCreateEvent}
         onUpdate={handleUpdateEvent}
-      />
-
-      <EventDetailModal
-        open={modals.eventDetail.open}
-        eventId={modals.eventDetail.eventId}
-        events={events}
-        members={members}
-        responsesMap={responsesMap}
-        isAdmin={isAdmin}
-        onClose={() => closeModal('eventDetail')}
-        onEdit={handleEditFromDetail}
-        onDelete={handleDeleteFromDetail}
       />
 
       <DeleteConfirmModal

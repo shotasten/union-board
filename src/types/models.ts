@@ -44,13 +44,6 @@ export interface Config {
   SHOW_ALL_EVENTS?: string;
 }
 
-export interface InitData {
-  config: Config;
-  members: Member[];
-  events: AttendanceEvent[];
-  responses: AttendanceResponse[];
-}
-
 export interface EventInput {
   title: string;
   start: string;
@@ -58,13 +51,6 @@ export interface EventInput {
   isAllDay?: boolean;
   location?: string;
   description?: string;
-}
-
-export interface ResponseUpdate {
-  eventId: string;
-  userKey: string;
-  status: ResponseStatus;
-  comment?: string;
 }
 
 export interface AdminInfo {
@@ -82,15 +68,6 @@ export interface AdminInvitation {
   token: string;
   expiresAt: string;
   createdAt: string;
-}
-
-export interface ApiResult {
-  success: boolean;
-  error?: string;
-}
-
-export interface EventApiResult extends ApiResult {
-  event?: AttendanceEvent;
 }
 
 // Supabase DB row types (snake_case)

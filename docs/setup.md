@@ -17,6 +17,7 @@ Supabase Dashboard の SQL Editor で `supabase/migrations/` 配下のマイグ�
 3. `supabase/migrations/003_admin_display_name.sql`
 4. `supabase/migrations/004_explicit_data_api_grants.sql`
 5. `supabase/migrations/005_keepalive_ping.sql`
+6. `supabase/migrations/006_remove_legacy_cleanup.sql`
 
 `004_explicit_data_api_grants.sql` と `005_keepalive_ping.sql` は、Supabase Data API（PostgREST / `supabase-js`）から必要なテーブル・RPC にアクセスできるようにする明示的な `GRANT` を含む。新規 Supabase プロジェクトでは `public` schema のテーブルが自動公開されないため、必ず適用する。
 
@@ -55,7 +56,6 @@ Cloudflare Dashboard → Workers & Pages → プロジェクト → Settings →
 | `VITE_SUPABASE_URL` | Variable | Supabase プロジェクト URL |
 | `VITE_SUPABASE_ANON_KEY` | Variable | Supabase anon key |
 | `VITE_SPACE_ID` | Variable | スペースの UUID |
-| `VITE_FUNCTIONS_URL` | Variable | `https://<project>.supabase.co/functions/v1` |
 | `VITE_CAL_IFRAME_SRC` | Variable | `/cal` に埋め込む Google カレンダーの iframe src URL |
 
 `VITE_CAL_IFRAME_SRC` は dev・prd それぞれの環境変数に設定する。Google カレンダーの「カレンダーを埋め込む」から取得できる URL（`https://calendar.google.com/calendar/embed?...`）をそのまま貼り付ける。

@@ -26,7 +26,6 @@ export interface ModalState {
   adminInvite: boolean
   adminDeleteConfirm: { open: boolean; userId: string | null; adminName: string }
   event: { open: boolean; eventId: string | null }
-  eventDetail: { open: boolean; eventId: string | null }
   deleteConfirm: { open: boolean; eventId: string | null; eventTitle: string }
   memberRegister: boolean
   memberEdit: { open: boolean; memberKey: string | null }
@@ -81,7 +80,6 @@ const initialModalState: ModalState = {
   adminInvite: false,
   adminDeleteConfirm: { open: false, userId: null, adminName: '' },
   event: { open: false, eventId: null },
-  eventDetail: { open: false, eventId: null },
   deleteConfirm: { open: false, eventId: null, eventTitle: '' },
   memberRegister: false,
   memberEdit: { open: false, memberKey: null },
@@ -149,7 +147,7 @@ export function useAppState() {
   const closeModal = useCallback((key: keyof ModalState) => {
     setModals(prev => ({
       ...prev,
-      [key]: key === 'event' || key === 'eventDetail' || key === 'deleteConfirm' || key === 'memberEdit' || key === 'memberDeleteConfirm' || key === 'adminDeleteConfirm'
+      [key]: key === 'event' || key === 'deleteConfirm' || key === 'memberEdit' || key === 'memberDeleteConfirm' || key === 'adminDeleteConfirm'
         ? { ...initialModalState[key] }
         : false,
     }))

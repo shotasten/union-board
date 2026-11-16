@@ -7,7 +7,7 @@ export function BoardDialog({ title, onClose, children, busy = false, closeLabel
   useEffect(() => {
     const dialog = ref.current!
     dialog.setAttribute('closedby', 'any')
-    dialog.setAttribute('autofocus', '')
+    dialog.querySelector('h2')?.setAttribute('autofocus', '')
     dialog.showModal()
     return () => dialog.close()
   }, [])
@@ -48,7 +48,7 @@ export function BoardDialog({ title, onClose, children, busy = false, closeLabel
     onCancel={event => { if (busy) event.preventDefault() }} onClose={() => { if (!ref.current?.open) onClose() }}
     onPointerDown={event => { outsideStart.current = outside(event) }}
     onClick={event => { if (!('closedBy' in HTMLDialogElement.prototype) && outsideStart.current && outside(event) && !busy) ref.current?.close() }}>
-    <div className="board-dialog-heading"><h2 id={titleId}>{title}</h2><button className={showCloseLabel ? 'board-dialog-close-label' : 'board-dialog-close'} type="button" aria-label={closeLabel} onClick={onClose} disabled={busy}>{showCloseLabel ? closeLabel : <span aria-hidden="true">×</span>}</button></div>
+    <div className="board-dialog-heading"><h2 id={titleId} tabIndex={-1}>{title}</h2><button className={showCloseLabel ? 'board-dialog-close-label' : 'board-dialog-close'} type="button" aria-label={closeLabel} onClick={onClose} disabled={busy}>{showCloseLabel ? closeLabel : <span aria-hidden="true">×</span>}</button></div>
     {children}
   </dialog>
 }

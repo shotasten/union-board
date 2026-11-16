@@ -402,8 +402,10 @@ body:has(.board-app) .modal button { font-weight: 700; }
 .board-dialog .board-editor-event textarea { font-size: max(16px, 1em); }
 .board-dialog .board-editor-event [data-iphone-safari] textarea { font-size: max(16px, 1em); }
 .board-dialog .board-comment-input textarea::placeholder { font-size: .75rem; }
-.board-dialog .board-dialog-close { flex: none; inline-size: 44px; padding: 0; border-color: transparent; background: transparent; box-shadow: none; font-size: 1.5rem; font-weight: 400; line-height: 1; }
+.board-dialog .board-dialog-close, body:has(.board-app) .modal .close-btn { flex: none; inline-size: 44px; block-size: 44px; padding: 0; border: 0; border-radius: 8px; background: transparent; box-shadow: none; color: var(--board-muted); font-size: 1.125rem; font-weight: 400; line-height: 1; }
 @media (hover: hover) { .board-dialog .board-dialog-close:not(:disabled):hover { background: var(--board-tint); } }
+.board-dialog-heading { padding-block: 0; padding-inline: 1rem .5rem; }
+body:has(.board-app) .modal .modal-header { margin-block: -.5rem .5rem; margin-inline-end: -.5rem; padding-block-end: .25rem; }
 
 /* Show more of the schedule on a phone while keeping controls easy to tap. */
 @media (max-width: 600px) {
@@ -428,12 +430,12 @@ body:has(.board-app) .modal button { font-weight: 700; }
 
 /* Make modal chrome and informational copy more compact on phones. */
 @media (max-width: 600px) {
-  .board-dialog-heading { padding: .5rem .75rem; }
+  .board-dialog-heading { padding: 0 .25rem 0 .75rem; }
   .board-dialog-heading h2 { font-size: .9375rem; }
   .board-dialog-body { padding: .75rem; }
   .board-dialog-footer { padding: .5rem .75rem; }
   body:has(.board-app) .modal .modal-content { padding: .75rem; }
-  body:has(.board-app) .modal .modal-header { margin-bottom: .75rem; padding-bottom: .5rem; }
+  body:has(.board-app) .modal .modal-header { margin-bottom: .5rem; padding-bottom: .25rem; }
   body:has(.board-app) .modal .modal-header h2 { font-size: 1rem; }
   body:has(.board-app) .calendar-info { padding: .75rem; margin-bottom: .75rem; font-size: .8125rem; }
   body:has(.board-app) .calendar-info ul { line-height: 1.5; }

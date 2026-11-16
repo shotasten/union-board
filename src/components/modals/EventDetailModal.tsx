@@ -153,7 +153,7 @@ export function EventDetailModal({
                 </button>
               </div>
             )}
-            <button className="close-btn" onClick={onClose}>&times;</button>
+            <button type="button" className="close-btn" aria-label="閉じる" onClick={onClose}>&times;</button>
           </div>
         </div>
 

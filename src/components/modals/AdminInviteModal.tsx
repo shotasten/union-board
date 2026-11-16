@@ -60,7 +60,7 @@ export function AdminInviteModal({ open, onClose, onInvite }: Props) {
       <div className="modal-content" style={{ maxWidth: '500px' }}>
         <div className="modal-header">
           <h2>管理者を招待</h2>
-          <button className="close-btn" onClick={handleClose}>&times;</button>
+          <button type="button" className="close-btn" aria-label="閉じる" onClick={handleClose}>&times;</button>
         </div>
         <div className="modal-body">
           <p style={{ marginBottom: '20px', fontSize: '0.9rem', color: '#555', lineHeight: '1.6' }}>

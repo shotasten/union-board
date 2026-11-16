@@ -62,7 +62,7 @@ export function AdminManageModal({ open, refreshTrigger, onClose, onInviteClick,
       <div className="modal-content" style={{ maxWidth: '560px' }}>
         <div className="modal-header">
           <h2>管理者管理</h2>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button type="button" className="close-btn" aria-label="閉じる" onClick={onClose}>&times;</button>
         </div>
         <div className="modal-body">
 

@@ -42,7 +42,7 @@ export function MemberRegisterModal({ open, onClose, onRegister }: Props) {
       <div className="modal-content">
         <div className="modal-header">
           <h2>メンバー登録</h2>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button type="button" className="close-btn" aria-label="閉じる" onClick={onClose}>&times;</button>
         </div>
         <div className="modal-body">
           <div className="form-group" style={{ marginTop: '20px' }}>

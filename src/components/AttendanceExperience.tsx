@@ -21,7 +21,6 @@ function readIdentity(key: string) { try { return localStorage.getItem(key) || '
 function dismissedIdentity(key: string) { try { return sessionStorage.getItem(key) === 'true' } catch { return false } }
 function readTableView() { try { return new URLSearchParams(location.search).get('view') === 'table' } catch { return false } }
 function hashEvent() { try { return location.hash.startsWith('#event/') ? decodeURIComponent(location.hash.slice(7)) : '' } catch { return '' } }
-const countLabel = (value: number) => value || '-'
 function Answer({ status }: { status: ResponseStatus }) { return <span className={'board-answer ' + responseClass(status)}>{status}<span className="board-answer-label">{RESPONSE_LABELS[status]}</span></span> }
 
 export function AttendanceExperience(props: Props) {
@@ -154,7 +153,7 @@ export function AttendanceExperience(props: Props) {
         return <li key={ev.id} className="board-cassette"><a href={'#event/' + encodeURIComponent(ev.id)} onClick={click => { if (!click.metaKey && !click.ctrlKey && !click.shiftKey && !click.altKey) { click.preventDefault(); navigate(ev.id) } }} className="board-event-link">
           <span className="board-event-date"><strong>{eventDateLabel(ev)}</strong><span>{ev.title || '予定'}</span><small>{eventTimeLabel(ev)}</small></span>
           <span className="board-event-place">{ev.location || '場所未設定'}</span>
-          <span className="board-event-count"><small>参加予定</small><strong>{counts['○'] + counts['△']}<small>人</small></strong><span>○{countLabel(counts['○'])} · △{countLabel(counts['△'])}</span></span>
+          <span className="board-event-count"><small>参加予定</small><strong>{counts['○'] + counts['△']}<small>人</small></strong><span>○{counts['○']} · △{counts['△']}</span></span>
         </a><button className="board-self" aria-label={eventDateLabel(ev) + ' 自分の出欠を編集'} onClick={() => edit(ev.id)}><small>自分</small>{identity ? <span className={'board-self-mark ' + responseClass(status(ev.id, identity.userKey))}>{status(ev.id, identity.userKey)}</span> : <span>未選択</span>}<small>変更</small></button></li>
       })}</ul>}
       </div>
@@ -164,7 +163,7 @@ export function AttendanceExperience(props: Props) {
       <a className="board-back" href="#schedule" onClick={click => { click.preventDefault(); navigate('') }}>&lt; 予定一覧に戻る</a>
       {isAdmin && <div className="board-admin-event"><strong>管理者操作</strong><button onClick={() => onEditEvent(event.id)}>イベント編集</button><button className="board-danger" onClick={() => onDeleteEvent(event.id, event.title)}>削除</button></div>}
       <section className="board-summary"><h2>{eventDateLabel(event)} {event.title}</h2><p>{eventTimeLabel(event)}</p><strong>{event.location || '場所未設定'}</strong>{event.description && <p className="board-description">{cleanDescription(event.description)}</p>}
-        <div className="board-counts">{RESPONSE_STATUSES.map(s => <span className={'board-answer ' + responseClass(s)} key={s}>{s} {countLabel(tallyAttendance(members, responses)[s])}人</span>)}</div>
+        <div className="board-counts">{RESPONSE_STATUSES.map(s => <span className={'board-answer ' + responseClass(s)} key={s}>{s} {tallyAttendance(members, responses)[s]}人</span>)}</div>
         <div className="board-own-response"><span>自分の回答</span>{identity ? <Answer status={status(event.id, identity.userKey)} /> : <span className="board-note">未選択</span>}<button onClick={() => edit(event.id)}>{identity ? '出欠・コメントを変更' : '自分の出欠・コメントを入力'}</button></div>
       </section>
       <section className="board-comments" aria-labelledby="board-comments-title"><div className="board-section-heading"><h3 id="board-comments-title">コメント</h3><button onClick={() => edit(event.id)}>書く・編集</button></div>
@@ -181,11 +180,11 @@ export function AttendanceExperience(props: Props) {
       }}>{(['parts', 'people'] as const).map(key => <button id={'board-tab-' + key} key={key} role="tab" aria-selected={tab === key} tabIndex={tab === key ? 0 : -1} onClick={() => switchTab(key)}>{key === 'parts' ? 'パート別' : '全員の出欠'}</button>)}</div>
       <div role="tabpanel" aria-labelledby="board-tab-parts" hidden={tab !== 'parts'}><h3>パート別の人数</h3><p className="board-note">○出席 · △遅刻/早退 · ×欠席 · -未定</p><dl className="board-part-list">{[...groups].map(([part, group]) => {
         const counts = tallyAttendance(group, responses)
-        return <div className="board-part-row" key={part}><dt><button onClick={() => { setTab('people'); setSelectedPart(part) }}>{part} <small>{group.length}人 ›</small></button></dt><dd>{RESPONSE_STATUSES.map(s => <span key={s} className={'board-answer ' + responseClass(s)} aria-label={part + ' ' + RESPONSE_LABELS[s] + ' ' + counts[s] + '人'}>{s} {countLabel(counts[s])}</span>)}</dd></div>
+        return <div className="board-part-row" key={part}><dt><button onClick={() => { setTab('people'); setSelectedPart(part) }}>{part} <small>{group.length}人 ›</small></button></dt><dd>{RESPONSE_STATUSES.map(s => <span key={s} className={'board-answer ' + responseClass(s)} aria-label={part + ' ' + RESPONSE_LABELS[s] + ' ' + counts[s] + '人'}>{s} {counts[s]}</span>)}</dd></div>
       })}</dl></div>
       <div role="tabpanel" aria-labelledby="board-tab-people" hidden={tab !== 'people'}><p className="board-note">この日の出欠。名前から、その人の全日程と名前・パートの編集へ。</p><div className="board-roster">{[...groups].map(([part, group]) => {
         const counts = tallyAttendance(group, responses)
-        return <section key={part} ref={part === selectedPart ? selectedPartRef : undefined} tabIndex={part === selectedPart ? -1 : undefined} className={part === selectedPart ? 'board-roster-selected' : undefined}><h3>{part} <small>{group.length}人</small>{part === selectedPart && <strong className="board-roster-selected-label">選択したパート</strong>}<span>○{countLabel(counts['○'])} · △{countLabel(counts['△'])}</span></h3><ul>{group.map(member => <li key={member.userKey}><button onClick={() => onMemberClick(getMemberDisplayName(member))}><span>{member.name}</span><Answer status={status(event.id, member.userKey)} /></button></li>)}</ul></section>
+        return <section key={part} ref={part === selectedPart ? selectedPartRef : undefined} tabIndex={part === selectedPart ? -1 : undefined} className={part === selectedPart ? 'board-roster-selected' : undefined}><h3>{part} <small>{group.length}人</small>{part === selectedPart && <strong className="board-roster-selected-label">選択したパート</strong>}<span>○{counts['○']} · △{counts['△']}</span></h3><ul>{group.map(member => <li key={member.userKey}><button onClick={() => onMemberClick(getMemberDisplayName(member))}><span>{member.name}</span><Answer status={status(event.id, member.userKey)} /></button></li>)}</ul></section>
       })}</div></div>
     </> : <p>この日程は現在の表示期間にありません。<a href="#schedule">予定一覧へ戻る</a></p>}
     {choosing && !props.isLoading && !props.loadError && <BoardDialog title="あなたの名前は？" busy={registerBusy} onClose={dismissChoosing} closeLabel={identity ? '閉じる' : '登録せずに見る'} showCloseLabel><form className="board-dialog-body board-identity-form" onSubmit={submit => { submit.preventDefault(); if (registering) void registerIdentity(); else choose() }}>

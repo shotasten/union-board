@@ -297,6 +297,19 @@ main {
   overflow: visible;
 }
 
+/* マウスで表をつかんで横スクロールする */
+@media (hover: hover) and (pointer: fine) {
+  .attendance-grid-wrapper.is-scrollable :is(.attendance-grid-container, .attendance-grid-sticky-header) {
+    cursor: grab;
+    user-select: none;
+  }
+  .attendance-grid-wrapper.is-dragging,
+  .attendance-grid-wrapper.is-dragging * {
+    cursor: grabbing !important;
+    user-select: none;
+  }
+}
+
 .attendance-grid-wrapper {
   position: relative;
   width: 100%;

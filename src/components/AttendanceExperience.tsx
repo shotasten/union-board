@@ -47,6 +47,7 @@ export function AttendanceExperience(props: Props) {
   const [editor, setEditor] = useState<{ key: string; scope: Scope; eventIds: string[] } | null>(null)
   const listScroll = useRef(0)
   const tabRef = useRef<HTMLDivElement>(null)
+  const selectedPartRef = useRef<HTMLElement>(null)
   const groups = sortMembersByPart(members)
   const sortedEvents = [...events].sort((a, b) => Date.parse(a.start) - Date.parse(b.start))
   const event = events.find(e => e.id === eventId)
@@ -61,6 +62,11 @@ export function AttendanceExperience(props: Props) {
     return () => { window.removeEventListener('unionboard:home', home); window.removeEventListener('hashchange', navigate); window.removeEventListener('popstate', navigate) }
   }, [])
   useEffect(() => { window.scrollTo(0, eventId ? 0 : listScroll.current) }, [eventId])
+  useEffect(() => {
+    if (tab !== 'people' || !selectedPart) return
+    selectedPartRef.current?.focus({ preventScroll: true })
+    selectedPartRef.current?.scrollIntoView({ block: 'start' })
+  }, [tab, selectedPart])
   useEffect(() => {
     const label = event ? eventDateLabel(event) + ' ' + event.title : '予定一覧'
     document.title = label + ' | UnionBoard'
@@ -175,11 +181,11 @@ export function AttendanceExperience(props: Props) {
       }}>{(['parts', 'people'] as const).map(key => <button id={'board-tab-' + key} key={key} role="tab" aria-selected={tab === key} tabIndex={tab === key ? 0 : -1} onClick={() => switchTab(key)}>{key === 'parts' ? 'パート別' : '全員の出欠'}</button>)}</div>
       <div role="tabpanel" aria-labelledby="board-tab-parts" hidden={tab !== 'parts'}><h3>パート別の人数</h3><p className="board-note">○出席 · △遅刻/早退 · ×欠席 · -未定</p><dl className="board-part-list">{[...groups].map(([part, group]) => {
         const counts = tallyAttendance(group, responses)
-        return <div className="board-part-row" key={part}><dt><button onClick={() => { switchTab('people'); setSelectedPart(part); requestAnimationFrame(() => document.getElementById('board-tab-people')?.focus({ preventScroll: true })) }}>{part} <small>{group.length}人 ›</small></button></dt><dd>{RESPONSE_STATUSES.map(s => <span key={s} className={'board-answer ' + responseClass(s)} aria-label={part + ' ' + RESPONSE_LABELS[s] + ' ' + counts[s] + '人'}>{s} {countLabel(counts[s])}</span>)}</dd></div>
+        return <div className="board-part-row" key={part}><dt><button onClick={() => { setTab('people'); setSelectedPart(part) }}>{part} <small>{group.length}人 ›</small></button></dt><dd>{RESPONSE_STATUSES.map(s => <span key={s} className={'board-answer ' + responseClass(s)} aria-label={part + ' ' + RESPONSE_LABELS[s] + ' ' + counts[s] + '人'}>{s} {countLabel(counts[s])}</span>)}</dd></div>
       })}</dl></div>
-      <div role="tabpanel" aria-labelledby="board-tab-people" hidden={tab !== 'people'}><p className="board-note">この日の出欠。名前から、その人の全日程と名前・パートの編集へ。</p><div className="board-roster">{[...groups].sort(([a], [b]) => Number(b === selectedPart) - Number(a === selectedPart)).map(([part, group]) => {
+      <div role="tabpanel" aria-labelledby="board-tab-people" hidden={tab !== 'people'}><p className="board-note">この日の出欠。名前から、その人の全日程と名前・パートの編集へ。</p><div className="board-roster">{[...groups].map(([part, group]) => {
         const counts = tallyAttendance(group, responses)
-        return <section key={part}><h3>{part} <small>{group.length}人</small><span>○{countLabel(counts['○'])} · △{countLabel(counts['△'])}</span></h3><ul>{group.map(member => <li key={member.userKey}><button onClick={() => onMemberClick(getMemberDisplayName(member))}><span>{member.name}</span><Answer status={status(event.id, member.userKey)} /></button></li>)}</ul></section>
+        return <section key={part} ref={part === selectedPart ? selectedPartRef : undefined} tabIndex={part === selectedPart ? -1 : undefined} className={part === selectedPart ? 'board-roster-selected' : undefined}><h3>{part} <small>{group.length}人</small>{part === selectedPart && <strong className="board-roster-selected-label">選択したパート</strong>}<span>○{countLabel(counts['○'])} · △{countLabel(counts['△'])}</span></h3><ul>{group.map(member => <li key={member.userKey}><button onClick={() => onMemberClick(getMemberDisplayName(member))}><span>{member.name}</span><Answer status={status(event.id, member.userKey)} /></button></li>)}</ul></section>
       })}</div></div>
     </> : <p>この日程は現在の表示期間にありません。<a href="#schedule">予定一覧へ戻る</a></p>}
     {choosing && !props.isLoading && !props.loadError && <BoardDialog title="あなたの名前は？" busy={registerBusy} onClose={dismissChoosing} closeLabel={identity ? '閉じる' : '登録せずに見る'}><form className="board-dialog-body board-identity-form" onSubmit={submit => { submit.preventDefault(); if (registering) void registerIdentity(); else choose() }}>

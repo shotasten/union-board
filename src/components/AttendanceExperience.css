@@ -447,3 +447,8 @@ body:has(.board-app) .modal button { font-weight: 700; }
   .board-identity-actions { margin-block: .625rem .375rem; }
   .board-identity-form > .board-note { margin-block: .375rem; }
 }
+
+.board-roster section { scroll-margin-block-start: 68px; }
+.board-roster section.board-roster-selected { border-color: var(--board-accent); box-shadow: 0 0 0 2px var(--board-accent); }
+.board-roster-selected h3 { background: #e5f5f6; }
+.board-roster-selected-label { color: var(--board-accent); font-size: .6875rem; }

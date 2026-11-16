@@ -404,7 +404,7 @@ body:has(.board-app) .modal button { font-weight: 700; }
 .board-dialog .board-comment-input textarea::placeholder { font-size: .75rem; }
 .board-dialog .board-dialog-close, body:has(.board-app) .modal .close-btn { flex: none; inline-size: 44px; block-size: 44px; padding: 0; border: 0; border-radius: 8px; background: transparent; box-shadow: none; color: var(--board-muted); font-size: 1.125rem; font-weight: 400; line-height: 1; }
 .board-dialog .board-dialog-heading button:focus-visible { outline-offset: -3px; }
-.board-dialog-heading h2:focus { outline: none; }
+.board-dialog .board-dialog-heading h2:focus-visible { outline: none; }
 .board-dialog .board-dialog-close-label { flex: none; }
 @media (hover: hover) { .board-dialog .board-dialog-close:not(:disabled):hover { background: var(--board-tint); } }
 .board-dialog-heading { padding-block: 0; padding-inline: 1rem .5rem; }

@@ -7,10 +7,10 @@ export function BoardDialog({ title, onClose, children, busy = false, closeLabel
   useEffect(() => {
     const dialog = ref.current!
     dialog.setAttribute('closedby', 'any')
-    dialog.querySelector('h2')?.setAttribute('autofocus', '')
+    dialog.querySelector(showCloseLabel ? '.board-identity-form select' : 'h2')?.setAttribute('autofocus', '')
     dialog.showModal()
     return () => dialog.close()
-  }, [])
+  }, [showCloseLabel])
   useEffect(() => { ref.current?.setAttribute('closedby', busy ? 'none' : 'any') }, [busy])
   useEffect(() => {
     const dialog = ref.current!

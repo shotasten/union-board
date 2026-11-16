@@ -1,15 +1,16 @@
 import { useEffect, useRef, useId } from 'react'
 import type { ReactNode, PointerEvent, MouseEvent } from 'react'
-interface Props { title: string; onClose: () => void; children: ReactNode; busy?: boolean; closeLabel?: string }
-export function BoardDialog({ title, onClose, children, busy = false, closeLabel = '閉じる' }: Props) {
+interface Props { title: string; onClose: () => void; children: ReactNode; busy?: boolean; closeLabel?: string; showCloseLabel?: boolean }
+export function BoardDialog({ title, onClose, children, busy = false, closeLabel = '閉じる', showCloseLabel = false }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   useEffect(() => {
     const dialog = ref.current!
     dialog.setAttribute('closedby', 'any')
+    dialog.querySelector(showCloseLabel ? '.board-identity-form select' : 'h2')?.setAttribute('autofocus', '')
     dialog.showModal()
     return () => dialog.close()
-  }, [])
+  }, [showCloseLabel])
   useEffect(() => { ref.current?.setAttribute('closedby', busy ? 'none' : 'any') }, [busy])
   useEffect(() => {
     const dialog = ref.current!
@@ -47,7 +48,7 @@ export function BoardDialog({ title, onClose, children, busy = false, closeLabel
     onCancel={event => { if (busy) event.preventDefault() }} onClose={() => { if (!ref.current?.open) onClose() }}
     onPointerDown={event => { outsideStart.current = outside(event) }}
     onClick={event => { if (!('closedBy' in HTMLDialogElement.prototype) && outsideStart.current && outside(event) && !busy) ref.current?.close() }}>
-    <div className="board-dialog-heading"><h2 id={titleId}>{title}</h2><button type="button" onClick={onClose} disabled={busy} autoFocus>{closeLabel}</button></div>
+    <div className="board-dialog-heading"><h2 id={titleId} tabIndex={-1}>{title}</h2><button className={showCloseLabel ? 'board-dialog-close-label' : 'board-dialog-close'} type="button" aria-label={closeLabel} onClick={onClose} disabled={busy}>{showCloseLabel ? closeLabel : <span aria-hidden="true">×</span>}</button></div>
     {children}
   </dialog>
 }

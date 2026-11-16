@@ -24,7 +24,7 @@ export function AddToCalendarModal({ open, config, onClose }: Props) {
       <div className="modal-content calendar-modal-content" style={{ maxWidth: '520px' }}>
         <div className="modal-header">
           <h2>自分のGoogleカレンダーに追加</h2>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button type="button" className="close-btn" aria-label="閉じる" onClick={onClose}>&times;</button>
         </div>
         <div className="modal-body">
           <div className="calendar-info">

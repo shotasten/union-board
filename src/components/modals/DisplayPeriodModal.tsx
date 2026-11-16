@@ -73,7 +73,7 @@ export function DisplayPeriodModal({ open, config, onClose, onSave, onClearConfi
       <div className="modal-content">
         <div className="modal-header">
           <h2>表示期間を設定</h2>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button type="button" className="close-btn" aria-label="閉じる" onClick={onClose}>&times;</button>
         </div>
         <div className="modal-body">
           <p>表示するイベントの期間を設定します。空欄にすると制限なし（全期間）になります。</p>

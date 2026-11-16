@@ -16,7 +16,7 @@ export function LogoutConfirmModal({ open, onClose, onConfirm }: Props) {
       <div className="modal-content" style={{ maxWidth: '500px' }}>
         <div className="modal-header">
           <h2>管理者ログアウトの確認</h2>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button type="button" className="close-btn" aria-label="閉じる" onClick={onClose}>&times;</button>
         </div>
         <div className="modal-body">
           <p style={{ marginBottom: '15px', lineHeight: '1.6' }}>管理者としてログアウトしますか？</p>

@@ -254,7 +254,7 @@ export function EventModal({ open, eventId, events, onClose, onCreate, onUpdate 
       <div className="modal-content">
         <div className="modal-header">
           <h2 id="modal-title">{eventId ? 'イベントを編集' : '新しいイベントを作成'}</h2>
-          <button className="close-btn" onClick={onClose}>&times;</button>
+          <button type="button" className="close-btn" aria-label="閉じる" onClick={onClose}>&times;</button>
         </div>
         <form id="event-form" onSubmit={handleSubmit}>
           <div className="form-group">

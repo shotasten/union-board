@@ -445,7 +445,6 @@ export function AttendanceGrid({
                     return (
                       <td
                         key={status}
-                        className={'attendance-count ' + (status === '○' ? 'status-attend' : status === '△' ? 'status-maybe' : 'status-absent')}
                         style={{
                           textAlign: 'center',
                           verticalAlign: 'middle',
@@ -461,6 +460,7 @@ export function AttendanceGrid({
                       >
                         {count > 0 ? (
                           <div
+                            className={'attendance-count ' + (status === '○' ? 'status-attend' : status === '△' ? 'status-maybe' : 'status-absent')}
                             style={{
                               fontSize: '1.1rem',
                               fontWeight: 'bold',
@@ -470,7 +470,7 @@ export function AttendanceGrid({
                             {count}
                           </div>
                         ) : (
-                          <div style={{ fontSize: '0.9rem', lineHeight: '1.2' }}>-</div>
+                          <div style={{ fontSize: '0.9rem', color: 'var(--board-muted)', lineHeight: '1.2' }}>-</div>
                         )}
                       </td>
                     )

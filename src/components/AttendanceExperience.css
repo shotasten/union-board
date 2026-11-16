@@ -148,6 +148,7 @@ body:has(.board-app) .modal .form-btn.primary {
 .board-experience .attendance-grid .status-attend { background: #d9f5e3; color: #176534; }
 .board-experience .attendance-grid .status-maybe { background: #fff0c2; color: #765000; }
 .board-experience .attendance-grid .status-absent { background: var(--board-danger-bg); color: var(--board-danger-text); }
+.board-experience .attendance-grid .attendance-count { display: inline-flex; align-items: center; justify-content: center; min-width: 24px; min-height: 26px; border-radius: 5px; }
 .board-experience .attendance-grid .attendance-count.status-attend { color: #147a3f; }
 .board-experience .attendance-grid .attendance-count.status-maybe { color: #8a6100; }
 .board-experience .attendance-grid .attendance-count.status-absent { color: #b12e40; }

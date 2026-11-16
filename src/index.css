@@ -998,26 +998,9 @@ main {
   right: auto;
   left: 50%;
   translate: -50% 0;
-  display: flex;
-  align-items: center;
-  gap: 12px;
   touch-action: pan-x;
 }
 .app-toast span { overflow-wrap: anywhere; }
-.toast-close {
-  flex: none;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: 4px;
-  background: transparent;
-  color: inherit;
-  font-size: 24px;
-  line-height: 1;
-  cursor: pointer;
-}
-.toast-close:focus-visible { outline: 2px solid currentColor; outline-offset: 2px; }
 @media (prefers-reduced-motion: no-preference) {
   .app-toast { animation: toastDown 0.3s ease-out; }
 }

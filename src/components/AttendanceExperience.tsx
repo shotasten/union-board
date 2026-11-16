@@ -32,7 +32,7 @@ export function AttendanceExperience(props: Props) {
   const displayIdentity = identity
   const [eventId, setEventId] = useState(hashEvent)
   const [tab, setTab] = useState<'parts' | 'people'>('parts')
-  const [partFilter, setPartFilter] = useState('')
+  const [selectedPart, setSelectedPart] = useState('')
   const [showTable, setShowTable] = useState(readTableView)
   const dismissalStorage = 'unionboard:identity-dismissed:' + props.storageScope
   const [choosing, setChoosing] = useState(() => !identityKey && !dismissedIdentity(dismissalStorage))
@@ -54,7 +54,7 @@ export function AttendanceExperience(props: Props) {
   const status = (id: string, key: string): ResponseStatus => memberResponse(responsesMap[id] || [], key)?.status || '-'
 
   useEffect(() => {
-    const navigate = () => { setEventId(hashEvent()); setTab('parts'); setPartFilter('') }
+    const navigate = () => { setEventId(hashEvent()); setTab('parts'); setSelectedPart('') }
     const home = () => { listScroll.current = 0; setEventId(''); setShowTable(readTableView()) }; window.addEventListener('unionboard:home', home)
     window.addEventListener('hashchange', navigate)
     window.addEventListener('popstate', navigate)
@@ -121,7 +121,7 @@ export function AttendanceExperience(props: Props) {
   }
   const switchTab = (next: 'parts' | 'people') => {
     const pinned = (tabRef.current?.getBoundingClientRect().top || 0) <= 1
-    setTab(next); setPartFilter('')
+    setTab(next); setSelectedPart('')
     if (pinned) requestAnimationFrame(() => tabRef.current?.scrollIntoView({ block: 'start' }))
   }
   return <section className="board-experience">
@@ -175,9 +175,9 @@ export function AttendanceExperience(props: Props) {
       }}>{(['parts', 'people'] as const).map(key => <button id={'board-tab-' + key} key={key} role="tab" aria-selected={tab === key} tabIndex={tab === key ? 0 : -1} onClick={() => switchTab(key)}>{key === 'parts' ? 'パート別' : '全員の出欠'}</button>)}</div>
       <div role="tabpanel" aria-labelledby="board-tab-parts" hidden={tab !== 'parts'}><h3>パート別の人数</h3><p className="board-note">○出席 · △遅刻/早退 · ×欠席 · -未定</p><dl className="board-part-list">{[...groups].map(([part, group]) => {
         const counts = tallyAttendance(group, responses)
-        return <div className="board-part-row" key={part}><dt><button onClick={() => { switchTab('people'); setPartFilter(part); requestAnimationFrame(() => document.getElementById('board-tab-people')?.focus({ preventScroll: true })) }}>{part} <small>{group.length}人 ›</small></button></dt><dd>{RESPONSE_STATUSES.map(s => <span key={s} className={'board-answer ' + responseClass(s)} aria-label={part + ' ' + RESPONSE_LABELS[s] + ' ' + counts[s] + '人'}>{s} {countLabel(counts[s])}</span>)}</dd></div>
+        return <div className="board-part-row" key={part}><dt><button onClick={() => { switchTab('people'); setSelectedPart(part); requestAnimationFrame(() => document.getElementById('board-tab-people')?.focus({ preventScroll: true })) }}>{part} <small>{group.length}人 ›</small></button></dt><dd>{RESPONSE_STATUSES.map(s => <span key={s} className={'board-answer ' + responseClass(s)} aria-label={part + ' ' + RESPONSE_LABELS[s] + ' ' + counts[s] + '人'}>{s} {countLabel(counts[s])}</span>)}</dd></div>
       })}</dl></div>
-      <div role="tabpanel" aria-labelledby="board-tab-people" hidden={tab !== 'people'}>{partFilter && <button className="board-roster-reset" onClick={() => setPartFilter('')}>← 全員を表示</button>}<p className="board-note">この日の出欠。名前から、その人の全日程と名前・パートの編集へ。</p><div className="board-roster">{[...groups].filter(([part]) => !partFilter || part === partFilter).map(([part, group]) => {
+      <div role="tabpanel" aria-labelledby="board-tab-people" hidden={tab !== 'people'}><p className="board-note">この日の出欠。名前から、その人の全日程と名前・パートの編集へ。</p><div className="board-roster">{[...groups].sort(([a], [b]) => Number(b === selectedPart) - Number(a === selectedPart)).map(([part, group]) => {
         const counts = tallyAttendance(group, responses)
         return <section key={part}><h3>{part} <small>{group.length}人</small><span>○{countLabel(counts['○'])} · △{countLabel(counts['△'])}</span></h3><ul>{group.map(member => <li key={member.userKey}><button onClick={() => onMemberClick(getMemberDisplayName(member))}><span>{member.name}</span><Answer status={status(event.id, member.userKey)} /></button></li>)}</ul></section>
       })}</div></div>

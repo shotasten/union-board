@@ -464,7 +464,7 @@ export function AttendanceGrid({
                               fontSize: '1.1rem',
                               fontWeight: 'bold',
                               lineHeight: '1.2',
-                              color: status === '○' ? '#176534' : status === '△' ? '#765000' : 'var(--board-danger-text)',
+                              color: status === '○' ? '#d9f5e3' : status === '△' ? '#fff0c2' : 'var(--board-danger-bg)',
                             }}
                           >
                             {count}

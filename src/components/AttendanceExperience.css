@@ -394,7 +394,7 @@ body:has(.board-app) .modal button { font-weight: 700; }
 .board-dialog .board-choices .yes[aria-pressed=true] { background: #bcebc9; outline-color: #86c99b; }
 .board-dialog .board-choices .late[aria-pressed=true] { background: #ffe49b; outline-color: #d6b55f; }
 .board-dialog .board-choices .no[aria-pressed=true] { background: #ffcbd0; outline-color: #e9a0aa; }
-.board-dialog .board-choices .unknown[aria-pressed=true] { background: #cbdfe5; outline-color: #a3bdc5; }
+.board-dialog .board-choices .unknown[aria-pressed=true] { background: #adcbd5; outline-color: #a3bdc5; }
 .board-dialog .board-choices :is(.yes, .late, .no, .unknown)[aria-pressed=true]:focus-visible { outline: 3px solid var(--board-accent); outline-offset: 3px; }
 @media (forced-colors: active) {
   .board-dialog .board-choices :is(.yes, .late, .no, .unknown)[aria-pressed=true] { outline-color: Highlight; }

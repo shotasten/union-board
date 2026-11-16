@@ -13,6 +13,7 @@ export interface ToastState {
   message: string
   type: ToastType
   id: number
+  duration?: number
 }
 
 export interface FullscreenLoaderState {
@@ -126,9 +127,6 @@ export function useAppState() {
   const showToast = useCallback((message: string, type: ToastType = 'success') => {
     const id = ++toastIdCounter
     setToast({ message, type, id })
-    setTimeout(() => {
-      setToast(prev => prev?.id === id ? null : prev)
-    }, 3000)
   }, [])
 
   // ===== Fullscreen Loader =====
@@ -170,7 +168,6 @@ export function useAppState() {
       signedInRecentlyRef.current = false
       const id = ++toastIdCounter
       setToast({ message: '管理者としてログインしました', type: 'success', id })
-      setTimeout(() => setToast(prev => prev?.id === id ? null : prev), 3000)
     }
   }, [isAdmin])
 
@@ -223,11 +220,9 @@ export function useAppState() {
         recheckAdmin()
         const id = ++toastIdCounter
         setToast({ message: '管理者として登録されました', type: 'success', id })
-        setTimeout(() => setToast(prev => prev?.id === id ? null : prev), 3000)
       } else {
         const id = ++toastIdCounter
-        setToast({ message: result.error || '招待の承認に失敗しました', type: 'error', id })
-        setTimeout(() => setToast(prev => prev?.id === id ? null : prev), 4000)
+        setToast({ message: result.error || '招待の承認に失敗しました', type: 'error', id, duration: 4000 })
       }
     })
   }, [session, pendingInvitationToken, recheckAdmin])
@@ -759,6 +754,7 @@ export function useAppState() {
     loadInitData,
     reloadEvents,
     showToast,
+    dismissToast: () => setToast(null),
     showFullscreenLoader,
     hideFullscreenLoader,
     openModal,

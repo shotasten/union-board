@@ -73,42 +73,22 @@ export function EventDetailModal({
   const rawResponses = responsesMap[eventId] || []
   const responses = rawResponses.filter(r => activeMemberKeys.has(r.userKey))
 
-  // Tally
-  const tally = {
-    attend: responses.filter(r => r.status === '○').length,
-    maybe: responses.filter(r => r.status === '△').length,
-    absent: responses.filter(r => r.status === '×').length,
-    undecided: responses.filter(r => r.status === '-').length,
-  }
-
-  // Breakdown by status and part
+  // Each member is included even when no response has been saved yet.
+  const responseByMember = new Map(responses.map(response => [response.userKey, response]))
+  const tally = { attend: 0, maybe: 0, absent: 0, undecided: 0 }
   type BreakdownMap = Record<string, Record<string, string[]>>
   const statusBreakdown: BreakdownMap = { '○': {}, '△': {}, '×': {}, '-': {} }
-  const totalCounts: Record<string, number> = { '○': 0, '△': 0, '×': 0, '-': 0 }
 
-  responses.forEach(response => {
-    const status = response.status as string
-    if (!['○', '△', '×', '-'].includes(status)) return
+  members.forEach(member => {
+    const status = responseByMember.get(member.userKey)?.status || '-'
+    if (status === '○') tally.attend++
+    else if (status === '△') tally.maybe++
+    else if (status === '×') tally.absent++
+    else tally.undecided++
 
-    totalCounts[status]++
-
-    const member = members.find(m => m.userKey === response.userKey)
-    let part = ''
-    let name = ''
-
-    if (member) {
-      part = member.part || ''
-      name = member.name || ''
-    } else {
-      part = ''
-      name = '不明'
-    }
-
-    const partKey = part || 'その他'
-    if (!statusBreakdown[status][partKey]) {
-      statusBreakdown[status][partKey] = []
-    }
-    statusBreakdown[status][partKey].push(name)
+    const part = member.part || 'その他'
+    if (!statusBreakdown[status][part]) statusBreakdown[status][part] = []
+    statusBreakdown[status][part].push(member.name || '')
   })
 
   function sortParts(parts: string[]): string[] {
@@ -178,7 +158,7 @@ export function EventDetailModal({
 
           {/* Breakdown */}
           <div id="event-detail-breakdown" style={{ marginBottom: '20px' }}>
-            {responses.length === 0 ? (
+            {members.length === 0 ? (
               <div style={{ padding: '15px', textAlign: 'center', color: '#999' }}>出欠回答がありません</div>
             ) : (
               <div style={{ background: '#f8f9fa', padding: '15px', borderRadius: '8px' }}>

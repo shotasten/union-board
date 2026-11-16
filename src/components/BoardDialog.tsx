@@ -47,7 +47,7 @@ export function BoardDialog({ title, onClose, children, busy = false, closeLabel
     onCancel={event => { if (busy) event.preventDefault() }} onClose={() => { if (!ref.current?.open) onClose() }}
     onPointerDown={event => { outsideStart.current = outside(event) }}
     onClick={event => { if (!('closedBy' in HTMLDialogElement.prototype) && outsideStart.current && outside(event) && !busy) ref.current?.close() }}>
-    <div className="board-dialog-heading"><h2 id={titleId}>{title}</h2><button type="button" onClick={onClose} disabled={busy} autoFocus>{closeLabel}</button></div>
+    <div className="board-dialog-heading"><h2 id={titleId}>{title}</h2><button className="board-dialog-close" type="button" aria-label={closeLabel} onClick={onClose} disabled={busy} autoFocus><span aria-hidden="true">×</span></button></div>
     {children}
   </dialog>
 }

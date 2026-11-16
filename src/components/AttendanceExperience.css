@@ -400,7 +400,10 @@ body:has(.board-app) .modal button { font-weight: 700; }
 
 /* Keep comment text readable when Safari page zoom is set to 75%. */
 .board-dialog .board-editor-event textarea { font-size: max(16px, 1em); }
-.board-dialog .board-editor-event [data-iphone-safari] textarea { font-size: max(22px, 1em); }
+.board-dialog .board-editor-event [data-iphone-safari] textarea { font-size: max(16px, 1em); }
+.board-dialog .board-comment-input textarea::placeholder { font-size: .75rem; }
+.board-dialog .board-dialog-close { flex: none; inline-size: 44px; padding: 0; border-color: transparent; background: transparent; box-shadow: none; font-size: 1.5rem; font-weight: 400; line-height: 1; }
+@media (hover: hover) { .board-dialog .board-dialog-close:not(:disabled):hover { background: var(--board-tint); } }
 
 /* Show more of the schedule on a phone while keeping controls easy to tap. */
 @media (max-width: 600px) {

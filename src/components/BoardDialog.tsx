@@ -7,6 +7,7 @@ export function BoardDialog({ title, onClose, children, busy = false, closeLabel
   useEffect(() => {
     const dialog = ref.current!
     dialog.setAttribute('closedby', 'any')
+    dialog.setAttribute('autofocus', '')
     dialog.showModal()
     return () => dialog.close()
   }, [])
@@ -43,7 +44,7 @@ export function BoardDialog({ title, onClose, children, busy = false, closeLabel
     const rect = ref.current!.getBoundingClientRect()
     return event.target === ref.current && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)
   }
-  return <dialog className="board-dialog" ref={ref} aria-labelledby={titleId} autoFocus
+  return <dialog className="board-dialog" ref={ref} aria-labelledby={titleId}
     onCancel={event => { if (busy) event.preventDefault() }} onClose={() => { if (!ref.current?.open) onClose() }}
     onPointerDown={event => { outsideStart.current = outside(event) }}
     onClick={event => { if (!('closedBy' in HTMLDialogElement.prototype) && outsideStart.current && outside(event) && !busy) ref.current?.close() }}>

@@ -408,6 +408,7 @@ body:has(.board-app) .modal button { font-weight: 700; }
 .board-dialog .board-dialog-close-label { flex: none; }
 @media (hover: hover) { .board-dialog .board-dialog-close:not(:disabled):hover { background: var(--board-tint); } }
 .board-dialog-heading { padding-block: 0; padding-inline: 1rem .5rem; }
+.board-dialog-heading:has(.board-dialog-close-label) { padding: .5rem 1rem; }
 body:has(.board-app) .modal .modal-header { margin-block: -.5rem .5rem; margin-inline-end: -.5rem; padding-block-end: .25rem; }
 
 /* Show more of the schedule on a phone while keeping controls easy to tap. */
@@ -434,6 +435,7 @@ body:has(.board-app) .modal .modal-header { margin-block: -.5rem .5rem; margin-i
 /* Make modal chrome and informational copy more compact on phones. */
 @media (max-width: 600px) {
   .board-dialog-heading { padding: 0 .25rem 0 .75rem; }
+  .board-dialog-heading:has(.board-dialog-close-label) { padding: .5rem .75rem; }
   .board-dialog-heading h2 { font-size: .9375rem; }
   .board-dialog-body { padding: .75rem; }
   .board-dialog-footer { padding: .5rem .75rem; }

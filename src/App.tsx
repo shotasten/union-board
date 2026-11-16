@@ -66,6 +66,7 @@ export function App() {
     handleCleanupMembersAndResponses,
     handleSyncAllEvents,
     showToast,
+    dismissToast,
     pendingInvitationToken,
   } = useAppState()
 
@@ -354,7 +355,7 @@ export function App() {
       />
 
       {/* Toast notification */}
-      {toast && <Toast toast={toast} />}
+      {toast && <Toast key={toast.id} toast={toast} onDismiss={dismissToast} />}
 
       {/* Fullscreen loader */}
       {isLoading && <div className="fullscreen-loader active initial-loader" role="status" aria-label="データを読み込み中"><div className="loader-spinner" /></div>}

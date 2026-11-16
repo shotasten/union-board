@@ -17,6 +17,7 @@ Supabase Dashboard の SQL Editor で `supabase/migrations/` 配下のマイグ�
 3. `supabase/migrations/003_admin_display_name.sql`
 4. `supabase/migrations/004_explicit_data_api_grants.sql`
 5. `supabase/migrations/005_keepalive_ping.sql`
+6. `supabase/migrations/006_remove_legacy_cleanup.sql`
 
 `004_explicit_data_api_grants.sql` と `005_keepalive_ping.sql` は、Supabase Data API（PostgREST / `supabase-js`）から必要なテーブル・RPC にアクセスできるようにする明示的な `GRANT` を含む。新規 Supabase プロジェクトでは `public` schema のテーブルが自動公開されないため、必ず適用する。
 

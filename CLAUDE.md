@@ -34,7 +34,6 @@ union-board/
 │   │   └── 001_initial_schema.sql  テーブル定義・RLS・RPC 関数（すべて1ファイルに統合）
 │   ├── functions/
 │   │   ├── calendar-sync/          Google Calendar 同期 Edge Function（現役）
-│   │   └── api/                    旧管理者 API Edge Function（後述）
 │   ├── seed.sql                    初期データ投入用
 │   └── config.toml                 Supabase ローカル設定
 ├── docs/
@@ -62,9 +61,6 @@ union-board/
 ---
 
 ## 注意事項
-
-### supabase/functions/api/ について
-`supabase/functions/api/index.ts` は旧来の ADMIN_TOKEN 方式による管理者 API で、現在のフロントエンドからは使われていない。管理者操作は `src/lib/api.ts` から Supabase RPC（`admin_create_event` など）を直接呼び出す形に移行済み。このファイルを参照して認証方式を判断しないこと。
 
 ### Supabase クライアントが2つある理由
 `src/lib/supabase.ts` には `supabase`（認証あり）と `supabasePublic`（認証なし・読み取り専用）の2つのクライアントがある。`supabasePublic` は auth 初期化のハングを回避するために分離している。データ取得には `supabasePublic`、認証が必要な操作（RPC・出欠 upsert）には `supabase` を使う。

@@ -11,6 +11,8 @@
 
 `github.actor == 'shotasten'` 以外のアクターによるプッシュはすべてスキップされます。
 
+Supabase のデプロイ時は旧 `api` Edge Function が残っている場合のみ削除し、`calendar-sync` をデプロイする。DB の旧全データ削除 RPC は `006_remove_legacy_cleanup.sql` で削除する。
+
 ---
 
 ## GitHub Environments

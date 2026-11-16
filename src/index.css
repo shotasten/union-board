@@ -493,7 +493,7 @@ main {
   white-space: normal !important;
   writing-mode: horizontal-tb !important;
   text-orientation: mixed !important;
-  padding: 2px 3px !important;
+  padding: 0 !important;
   box-sizing: border-box !important;
 }
 
@@ -518,23 +518,29 @@ main {
   /* 2行表示を確実にする、1行に2文字が収まるように調整 */
 }
 
-/* 名前列内のリンクのスタイル */
-.member-name-col a {
-  display: inline;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  white-space: normal !important;
-  writing-mode: horizontal-tb !important;
-  text-orientation: mixed !important;
-  font-size: 0.7rem !important;
-  line-height: 1.3 !important;
+/* 名前セル全体を操作できるようにする */
+.member-name-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 45px;
+  padding: 2px 3px;
+  border: 0;
+  background: transparent;
+  color: var(--board-accent);
+  font: inherit;
+  font-size: 0.7rem;
+  cursor: pointer;
 }
 
-/* より具体的なセレクタで横書きを強制 */
-.member-name-col .member-name-wrapper a {
-  writing-mode: horizontal-tb !important;
-  text-orientation: mixed !important;
-  white-space: normal !important;
+.member-name-button:hover {
+  background: #e8f5f6;
+}
+
+.member-name-button:focus-visible {
+  outline: 2px solid var(--board-accent);
+  outline-offset: -2px;
 }
 
 /* 出欠状況セルの固定幅（名前列の領域を確保） */
@@ -572,7 +578,7 @@ main {
   text-orientation: mixed !important;
 }
 
-.attendance-grid th:first-child {
+.attendance-grid .attendance-grid-event-header {
   position: sticky;
   left: 0;
   top: 0;

@@ -292,51 +292,18 @@ export function AttendanceGrid({
                       borderRight: isLastInPart && !isLastPart ? '1px solid #DDDDDD' : undefined,
                     } as React.CSSProperties}
                   >
-                    <div
-                      className="member-name-wrapper"
-                      style={{
-                        display: '-webkit-box',
-                        WebkitBoxOrient: 'vertical',
-                        WebkitLineClamp: 2,
-                        overflow: 'hidden',
-                        wordBreak: 'break-word',
-                        overflowWrap: 'break-word',
-                        lineHeight: '1.3',
-                        height: '2.6em',
-                        minHeight: '2.6em',
-                        maxHeight: '2.6em',
-                        width: '100%',
-                        boxSizing: 'border-box',
-                        whiteSpace: 'normal',
-                        textAlign: 'center',
-                        writingMode: 'horizontal-tb',
-                        textOrientation: 'mixed',
-                      } as React.CSSProperties}
+                    <button
+                      type="button"
+                      className="member-name-button"
+                      title={member.name}
+                      aria-label={`${displayName}の出欠を表示`}
+                      style={{ fontWeight: isSelected ? 'bold' : 'normal' }}
+                      onClick={() => onMemberClick(displayName)}
                     >
-                      <a
-                        href="#"
-                        style={{
-                          color: 'var(--board-accent)',
-                          textDecoration: 'underline',
-                          fontSize: '0.7rem',
-                          fontWeight: isSelected ? 'bold' : 'normal',
-                          cursor: 'pointer',
-                          display: 'block',
-                          width: '100%',
-                          whiteSpace: 'pre-line',
-                          writingMode: 'horizontal-tb',
-                          textOrientation: 'mixed',
-                        } as React.CSSProperties}
-                        title={member.name}
-                        onClick={e => {
-                          e.preventDefault()
-                          e.stopPropagation()
-                          onMemberClick(displayName)
-                        }}
-                      >
+                      <span className="member-name-wrapper">
                         {formatMemberNameForDisplay(member.name || '')}
-                      </a>
-                    </div>
+                      </span>
+                    </button>
                   </th>
                 )
               })}

@@ -41,6 +41,8 @@ export function AttendanceGrid({
   const topScrollbarRef = useRef<HTMLDivElement>(null)
   const wrapperRef = useRef<HTMLDivElement>(null)
   const stickyHeaderTableRef = useRef<HTMLTableElement>(null)
+  const dragRef = useRef<{ pointerId: number; startX: number; scrollLeft: number; moved: boolean } | null>(null)
+  const suppressClickRef = useRef(false)
 
   // Sort events ascending by start date
   const sortedEvents = [...events].sort((a, b) => {
@@ -204,7 +206,56 @@ export function AttendanceGrid({
   }
 
   return (
-    <div className="table-responsive attendance-grid-wrapper" ref={wrapperRef}>
+    <div
+      className="table-responsive attendance-grid-wrapper"
+      ref={wrapperRef}
+      onPointerDown={e => {
+        const container = containerRef.current
+        const target = e.target as Element
+        if (e.pointerType !== 'mouse' || e.button !== 0 || !container ||
+            container.scrollWidth <= container.clientWidth ||
+            !target.closest('.attendance-grid-container, .attendance-grid-sticky-header')) return
+        // Keep the native scrollbar draggable.
+        if (target.closest('.attendance-grid-container') &&
+            e.clientY >= container.getBoundingClientRect().top + container.clientHeight) return
+        suppressClickRef.current = false
+        dragRef.current = { pointerId: e.pointerId, startX: e.clientX, scrollLeft: container.scrollLeft, moved: false }
+      }}
+      onPointerMove={e => {
+        const drag = dragRef.current
+        const container = containerRef.current
+        if (!drag || drag.pointerId !== e.pointerId || !container) return
+        const distance = e.clientX - drag.startX
+        if (!drag.moved && Math.abs(distance) < 5) return
+        if (!drag.moved) {
+          drag.moved = true
+          e.currentTarget.setPointerCapture(e.pointerId)
+          e.currentTarget.classList.add('is-dragging')
+        }
+        container.scrollLeft = drag.scrollLeft - distance
+      }}
+      onPointerUp={e => {
+        const drag = dragRef.current
+        if (!drag || drag.pointerId !== e.pointerId) return
+        suppressClickRef.current = drag.moved
+        dragRef.current = null
+        e.currentTarget.classList.remove('is-dragging')
+        if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId)
+        if (suppressClickRef.current) window.setTimeout(() => { suppressClickRef.current = false }, 0)
+      }}
+      onPointerCancel={() => {
+        dragRef.current = null
+        wrapperRef.current?.classList.remove('is-dragging')
+      }}
+      onClickCapture={e => {
+        if (suppressClickRef.current) {
+          e.preventDefault()
+          e.stopPropagation()
+          suppressClickRef.current = false
+        }
+      }}
+      onDragStart={e => e.preventDefault()}
+    >
       <div className="attendance-grid-scroll-hint">
         <svg viewBox="0 0 48 48" fill="none" aria-hidden="true"><path d="M8 13h32M8 13l5-5m-5 5 5 5m27-5-5-5m5 5-5 5M20 24V15a3 3 0 0 1 6 0v11l1-1a3 3 0 0 1 4 1l1 2a3 3 0 0 1 4 2l1 5-3 5H22l-7-8a3 3 0 0 1 4-4l1 1Z" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
         <span>スクロールできます</span>

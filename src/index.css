@@ -995,6 +995,7 @@ main {
 .board-dialog .board-dialog-toast { position: absolute; top: 76px; right: 12px; left: 12px; max-width: none; }
 
 .app-toast {
+  width: max-content;
   right: auto;
   left: 50%;
   translate: -50% 0;

@@ -69,6 +69,9 @@ body:has(.board-app) .modal .calendar-modal-content{width:min(520px,calc(100vw -
 .board-identity-account-actions{display:flex;flex-wrap:wrap;gap:var(--board-gap);margin-block-start:.5rem}
 #app-root.board-app header{padding-inline:0}
 .board-app .header-inner{width:100%;max-inline-size:none;margin-inline:0;padding-inline:var(--board-page-gutter)}
+.board-app .header-top { margin-bottom: 0; }
+.board-app .header-brand { min-width: 0; }
+.board-app .header-brand .board-brand { min-block-size: 0; }
 #app-root.board-app main{max-inline-size:var(--board-content-max);padding-inline:var(--board-page-gutter)}
 #app-root.board-app footer{padding-inline:max(var(--board-page-gutter),calc((100% - var(--board-content-max))/2 + var(--board-page-gutter)))}
 
@@ -402,7 +405,6 @@ body:has(.board-app) .modal button { font-weight: 700; }
 /* Show more of the schedule on a phone while keeping controls easy to tap. */
 @media (max-width: 600px) {
   .board-app header { padding-block: .5rem; }
-  .board-app header .board-brand { min-block-size: 44px; }
   .board-app header p { margin-top: 0; font-size: .6875rem; }
   .board-app main { padding-block: .625rem 1.5rem; }
   .board-experience .board-person-bar { margin-block-end: .5rem; gap: .5rem; }

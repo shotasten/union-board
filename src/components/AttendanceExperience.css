@@ -386,9 +386,11 @@ body:has(.board-app) .modal button { font-weight: 700; }
 .board-editor-event > .board-note { margin: .25rem 0 .5rem; line-height: 1.5; }
 .board-dialog .board-choices button { min-block-size: 44px; padding: 4px; font-size: 1rem; line-height: 1.2; }
 .board-choices small { margin-top: 2px; }
-.board-dialog .board-choices button { position: relative; }
-.board-dialog .board-choices [aria-pressed=true] { outline-color: currentColor; font-weight: 700; }
-.board-dialog .board-choices [aria-pressed=true]::after { content: '✓'; position: absolute; inset-block-start: 3px; inset-inline-end: 6px; font-size: .75rem; line-height: 1; }
+.board-dialog .board-choices .yes[aria-pressed=false] { background: #f1faf4; }
+.board-dialog .board-choices .late[aria-pressed=false] { background: #fff9e9; }
+.board-dialog .board-choices .no[aria-pressed=false] { background: #fff3f4; }
+.board-dialog .board-choices .unknown[aria-pressed=false] { background: #f3f7f8; }
+.board-dialog .board-choices [aria-pressed=true] { outline-color: currentColor; font-weight: 700; box-shadow: 0 2px 5px #0f172a30; }
 .board-dialog .board-choices [aria-pressed=true]:focus-visible { outline: 3px solid var(--board-accent); outline-offset: 3px; }
 @media (forced-colors: active) {
   .board-dialog .board-choices [aria-pressed=true] { outline-color: Highlight; }

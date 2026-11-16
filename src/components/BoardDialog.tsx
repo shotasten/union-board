@@ -1,7 +1,7 @@
 import { useEffect, useRef, useId } from 'react'
 import type { ReactNode, PointerEvent, MouseEvent } from 'react'
-interface Props { title: string; onClose: () => void; children: ReactNode; busy?: boolean; closeLabel?: string }
-export function BoardDialog({ title, onClose, children, busy = false, closeLabel = '閉じる' }: Props) {
+interface Props { title: string; onClose: () => void; children: ReactNode; busy?: boolean; closeLabel?: string; showCloseLabel?: boolean }
+export function BoardDialog({ title, onClose, children, busy = false, closeLabel = '閉じる', showCloseLabel = false }: Props) {
   const ref = useRef<HTMLDialogElement>(null)
   const titleId = useId()
   useEffect(() => {
@@ -43,11 +43,11 @@ export function BoardDialog({ title, onClose, children, busy = false, closeLabel
     const rect = ref.current!.getBoundingClientRect()
     return event.target === ref.current && (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom)
   }
-  return <dialog className="board-dialog" ref={ref} aria-labelledby={titleId}
+  return <dialog className="board-dialog" ref={ref} aria-labelledby={titleId} autoFocus
     onCancel={event => { if (busy) event.preventDefault() }} onClose={() => { if (!ref.current?.open) onClose() }}
     onPointerDown={event => { outsideStart.current = outside(event) }}
     onClick={event => { if (!('closedBy' in HTMLDialogElement.prototype) && outsideStart.current && outside(event) && !busy) ref.current?.close() }}>
-    <div className="board-dialog-heading"><h2 id={titleId}>{title}</h2><button className="board-dialog-close" type="button" aria-label={closeLabel} onClick={onClose} disabled={busy} autoFocus><span aria-hidden="true">×</span></button></div>
+    <div className="board-dialog-heading"><h2 id={titleId}>{title}</h2><button className={showCloseLabel ? 'board-dialog-close-label' : 'board-dialog-close'} type="button" aria-label={closeLabel} onClick={onClose} disabled={busy}>{showCloseLabel ? closeLabel : <span aria-hidden="true">×</span>}</button></div>
     {children}
   </dialog>
 }

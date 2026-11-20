@@ -38,6 +38,15 @@ export function AddToCalendarModal({ open, config, onClose }: Props) {
             <p>追加すると、同じGoogleアカウントのGoogleカレンダーで予定を確認できます。予定の追加・変更・削除は自動で反映されます。</p>
             {calendarId ? <a id="calendar-add-link" href={calendarUrl} target="_blank" rel="noopener noreferrer" className="calendar-add-link">Googleカレンダーに追加</a> : <p>カレンダーIDが設定されていません。管理者に連絡してください。</p>}
             <p>スマホで追加画面を開けない場合は、PCのブラウザで追加してください。</p>
+            <div className="calendar-hint calendar-iphone-guide">
+              <h3>Google経由でiPhone標準カレンダーに表示する</h3>
+              <p>Googleカレンダーに追加した後、次の設定を行ってください。</p>
+              <ol>
+                <li><a href="https://calendar.google.com/calendar/syncselect" target="_blank" rel="noopener noreferrer">Googleの同期設定を開く</a></li>
+                <li>「TMU Event」にチェックを入れて保存する</li>
+              </ol>
+              <p><strong>ご注意：</strong>同じ端末でGoogle経由の同期と直接購読を両方設定すると、予定が重複する場合があります。</p>
+            </div>
           </section>
           <section>
             <h3>対応カレンダーアプリで購読</h3>
@@ -48,11 +57,6 @@ export function AddToCalendarModal({ open, config, onClose }: Props) {
               <p role="status">{copyMessage}</p>
               {copyMessage.startsWith('コピーできません') && <input aria-label="購読URL" readOnly value={icsUrl} onFocus={e => e.currentTarget.select()} />}
             </> : <p>購読URLが設定されていません。管理者に連絡してください。</p>}
-          </section>
-          <section>
-            <h3>Google経由でiPhone標準カレンダーに表示する</h3>
-            <p>Googleカレンダーに追加した後、<a href="https://calendar.google.com/calendar/syncselect" target="_blank" rel="noopener noreferrer">Googleの同期設定を開く</a>で「TMU Event」にチェックを入れて保存してください。</p>
-            <p>同じ端末でGoogle経由の同期と直接購読を両方設定すると、予定が重複する場合があります。</p>
           </section>
         </div>
         <div className="form-actions" style={{ marginTop: '20px' }}>

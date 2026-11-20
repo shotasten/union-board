@@ -484,3 +484,8 @@ body:has(.board-app) .calendar-options h3 { font-size: 1rem; margin: 0 0 .5rem; 
 body:has(.board-app) .calendar-options p { line-height: 1.6; margin: .5rem 0; }
 body:has(.board-app) .calendar-options input { width: 100%; }
 body:has(.board-app) .calendar-options .calendar-secondary-link { display: inline-flex; align-items: center; text-decoration: none; margin-bottom: .5rem; }
+body:has(.board-app) .calendar-options .calendar-iphone-guide { margin-top: 1rem; padding: 1rem; }
+body:has(.board-app) .calendar-options .calendar-iphone-guide h3 { font-size: .9375rem; line-height: 1.5; }
+body:has(.board-app) .calendar-options .calendar-iphone-guide p { font-size: .875rem; line-height: 1.6; }
+body:has(.board-app) .calendar-options .calendar-iphone-guide ol { margin: .5rem 0; padding-inline-start: 1.5rem; font-size: .875rem; line-height: 1.7; }
+body:has(.board-app) .calendar-options .calendar-iphone-guide a { color: var(--board-accent); font-weight: 700; }

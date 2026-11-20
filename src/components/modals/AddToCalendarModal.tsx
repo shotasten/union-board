@@ -50,7 +50,8 @@ export function AddToCalendarModal({ open, config, onClose }: Props) {
           </section>
           <section>
             <h3>対応カレンダーアプリで購読</h3>
-            <p>iPhone・iPadの標準カレンダーなど、購読に対応したアプリで利用できます。購読後は予定が自動で更新されます。反映には時間がかかる場合があります。</p>
+            <p>iPhone・iPadの標準カレンダーや、Androidの購読に対応したカレンダーアプリで利用できます。購読後は予定が自動で更新されます。反映には時間がかかる場合があります。</p>
+            <p>AndroidでGoogleカレンダーをお使いの場合は、上の「Googleカレンダーに追加」をご利用ください。</p>
             {validIcsUrl ? <>
               <a className="form-btn secondary calendar-secondary-link" href={webcalUrl}>対応カレンダーアプリで購読</a>{' '}
               <button type="button" className="form-btn secondary" onClick={copyUrl}>購読URLをコピー</button>

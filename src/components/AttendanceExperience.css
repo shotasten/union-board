@@ -478,3 +478,9 @@ body:has(.board-app) .modal .modal-header { margin-block: -.5rem .5rem; margin-i
 /* Continue the row divider through the empty cell for an odd-sized roster. */
 .board-roster li:last-child:nth-child(odd) { position: relative; }
 .board-roster li:last-child:nth-child(odd)::after { content: ""; position: absolute; inset-block-start: -1px; inset-inline-start: 100%; inline-size: 100%; border-block-start: 1px solid #edf0f5; pointer-events: none; }
+
+body:has(.board-app) .calendar-options section + section { border-top: 1px solid var(--board-line); margin-top: 1rem; padding-top: 1rem; }
+body:has(.board-app) .calendar-options h3 { font-size: 1rem; margin: 0 0 .5rem; }
+body:has(.board-app) .calendar-options p { line-height: 1.6; margin: .5rem 0; }
+body:has(.board-app) .calendar-options input { width: 100%; }
+body:has(.board-app) .calendar-options .calendar-secondary-link { display: inline-flex; align-items: center; text-decoration: none; margin-bottom: .5rem; }

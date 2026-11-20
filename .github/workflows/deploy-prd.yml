@@ -74,6 +74,7 @@ jobs:
           VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
           VITE_SPACE_ID: ${{ vars.VITE_SPACE_ID }}
           VITE_CAL_IFRAME_SRC: ${{ vars.VITE_CAL_IFRAME_SRC }}
+          VITE_CALENDAR_ICS_URL: ${{ vars.VITE_CALENDAR_ICS_URL }}
 
       # Cloudflare Pages の GitHub 連携は1リポジトリにつき1アカウントしか紐付けられない。
       # dev アカウントがすでにリポジトリと連携済みのため、prd は Wrangler CLI でデプロイする。
